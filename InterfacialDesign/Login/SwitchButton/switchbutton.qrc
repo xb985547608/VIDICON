@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/login-SwitchBtn-Add.png</file>
+        <file>images/login-SwitchBtn-Background.png</file>
+        <file>images/login-SwitchBtn-Handle.png</file>
+        <file>images/login-SwitchBtn-Sub.png</file>
+    </qresource>
+</RCC>

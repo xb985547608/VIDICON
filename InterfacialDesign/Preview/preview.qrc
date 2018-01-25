@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/autoRecord.png</file>
+        <file>images/blind.png</file>
+        <file>images/manualRecord.png</file>
+        <file>images/motion.png</file>
+        <file>images/snapshot.png</file>
+        <file>images/voice.png</file>
+        <file>images/alarmhint.png</file>
+    </qresource>
+</RCC>

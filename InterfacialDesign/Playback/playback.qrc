@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/query.png</file>
+        <file>images/checkbox.png</file>
+        <file>images/checked.png</file>
+        <file>images/unchecked.png</file>
+        <file>images/tristate.png</file>
+    </qresource>
+</RCC>
