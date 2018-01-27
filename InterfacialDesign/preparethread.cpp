@@ -10,6 +10,9 @@ PrepareThread::PrepareThread(QObject *parent) : QThread(parent)
 
 void PrepareThread::run()
 {
+    VidiconProtocol *v = VidiconProtocol::getInstance();
+    v->init();
+
     VlcControl *c =  VlcControl::getInstance();
 
 //    VidiconProtocol::PlayStateParameter *param1 = new VidiconProtocol::PlayStateParameter;

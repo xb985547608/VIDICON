@@ -1453,6 +1453,31 @@ bool ParseXML::parseBackUpQueryParameter(VidiconProtocol::BackUpQueryParameter *
     }
     QDomElement child = root.firstChildElement();
     switch(param->Type) {
+    case 0: {
+        while(!child.isNull()) {
+            if(child.tagName().left(8).compare("TimePara", Qt::CaseInsensitive) == 0) {
+                VidiconProtocol::TimeParameter timeParam;
+
+                QDomElement child2 = child.firstChildElement();
+                while(!child2.isNull()) {
+                    if(child2.tagName().compare("StarTime", Qt::CaseInsensitive) == 0) {
+                        QStringList list = child2.text().split(':');
+                        timeParam.StarTime = QTime(list.at(0).toInt(), list.at(1).toInt(), list.at(2).toInt());
+                    }else if(child2.tagName().compare("EndTime", Qt::CaseInsensitive) == 0) {
+                        QStringList list = child2.text().split(':');
+                        timeParam.EndTime = QTime(list.at(0).toInt(), list.at(1).toInt(), list.at(2).toInt());
+                    }else if(child2.tagName().compare("RecordType", Qt::CaseInsensitive) == 0) {
+                        timeParam.RecordType = child2.text().toInt();
+                    }
+                    child2 = child2.nextSiblingElement();
+                }
+
+                param->TimeParamMap->insert(child.tagName().right(1).toInt(), timeParam);
+            }
+            child = child.nextSiblingElement();
+        }
+        break;
+    }
     case 1: {
         while(!child.isNull()) {
             if(child.tagName().left(8).compare("FilePara", Qt::CaseInsensitive) == 0) {

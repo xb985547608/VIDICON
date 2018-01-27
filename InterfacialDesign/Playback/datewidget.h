@@ -13,7 +13,6 @@ class DateWidget : public QWidget
 public:
     explicit DateWidget(QWidget *parent = nullptr);
 
-    QDate getDate() { return dateEdit->date(); }
 protected:
     virtual void paintEvent(QPaintEvent *event);
     virtual void enterEvent(QEvent *event);
@@ -26,7 +25,7 @@ signals:
 
 public slots:
     void handlerReceiveData(int type, QByteArray data);
-    void handlerDateChangle(QDate date);
+    void handlerDateChangle(const QDate &date);
 
 private:
     QMap<int, QLabel *> lblDateMap;

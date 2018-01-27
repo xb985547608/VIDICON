@@ -7,7 +7,7 @@
 #include <QApplication>
 #include "Protocol/vidiconprotocol.h"
 #include "parsexml.h"
-
+#include <QPushButton>
 
 DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
 {
@@ -17,7 +17,7 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
     connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &DateWidget::handlerReceiveData);
 
     /*********************************界面布局*********************************/
-    QGridLayout *layout1 = new QGridLayout(this);
+    QGridLayout *layout1 = new QGridLayout;
 
 //    QLabel *lbl = new QLabel("文件类型", this);
 //    typeSelect = new QComboBox(this);
@@ -29,10 +29,14 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
     dateEdit = new QDateEdit(this);
     dateEdit->setDisplayFormat("当前日期:yyyy-MM");
     connect(dateEdit, &QDateEdit::dateChanged, this, [this](QDate date){
-        VidiconProtocol::BackUpQueryParameter *param = new VidiconProtocol::BackUpQueryParameter;
-        param->Type = 6;
-        param->Date = date;
-        emit signalSetParameter(BACKQUERY, param);
+        VidiconProtocol::BackUpQueryParameter *param1 = new VidiconProtocol::BackUpQueryParameter;
+        param1->Type = 6;
+        param1->Date = date;
+        emit signalSetParameter(BACKQUERY, param1);
+        VidiconProtocol::BackUpQueryParameter *param2 = new VidiconProtocol::BackUpQueryParameter;
+        param2->Type = 2;
+        param2->Date = date;
+        emit signalSetParameter(BACKQUERY, param2);
     });
     layout1->addWidget(dateEdit, 1, 0, 1, 7, Qt::AlignCenter);
     QStringList list;
@@ -70,9 +74,28 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
     layout1->addWidget(lbl4, 10, 1, 1, 6, Qt::AlignLeft);
     layout1->setSpacing(2);
     layout1->setSizeConstraint(QLayout::SetFixedSize);
+
+    QPushButton *btn = new QPushButton(this);
+    btn->setFixedSize(80, 25);
+    btn->setStyleSheet("QPushButton{border-image:url(:images/query.png)0 80 0 0}"
+                       "QPushButton:pressed{border-image:url(:images/query.png)0 0 0 80}");
+    connect(btn, &QPushButton::clicked, this, [this](){
+        VidiconProtocol::BackUpQueryParameter *param = new VidiconProtocol::BackUpQueryParameter;
+        param->Date = dateEdit->date();
+        param->Type = 1;
+        emit signalSetParameter(BACKQUERY, param);
+    });
+
+    QVBoxLayout *layout2 = new QVBoxLayout(this);
+    layout2->addLayout(layout1, 0);
+    layout2->addStretch();
+    layout2->addWidget(btn, 0, Qt::AlignCenter);
+    layout2->setContentsMargins(0, 0, 0, 0);
     /*********************************界面布局*********************************/
 
     dateEdit->setDate(QDate::currentDate());
+    MonthMap.clear();
+    handlerDateChangle(QDate::currentDate());
 }
 
 void DateWidget::paintEvent(QPaintEvent *event)
@@ -125,7 +148,7 @@ void DateWidget::handlerReceiveData(int type, QByteArray data)
     }
 }
 
-void DateWidget::handlerDateChangle(QDate date)
+void DateWidget::handlerDateChangle(const QDate &date)
 {
     int startIndex = QDate(date.year(), date.month(), 1).dayOfWeek();
     if(startIndex == 7) {

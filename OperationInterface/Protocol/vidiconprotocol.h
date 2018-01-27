@@ -55,7 +55,7 @@
 
 #define RESPONSESTATUS       0x8888
 
-#define TIMEOUTMSEC          3000
+#define TIMEOUTMSEC          2000
 
 class OPERATIONINTERFACESHARED_EXPORT VidiconProtocol : public QObject
 {

@@ -61,7 +61,7 @@ void PreviewWidget::handlerWidgetSwitch()
 }
 
 void PreviewWidget::handlerStreamSwitch(bool checked)
-{
+{    
     VlcControl::getInstance()->stop();
     if(checked){
         emit signalVlcControl(VLCCONTROLINIT, "rtsp://admin:admin@192.168.0.66/H264?channel=0&subtype=0&unicast=true&proto=Onvif", ui->displayArea->winId());
@@ -75,6 +75,7 @@ void PreviewWidget::handlerTimeout()
     if(isVisible()) {
         emit signalGetParameter(PULLMESSAGE);
 
+        //处理标志闪烁情况
         if(motionAlarmFlicker) {
             ui->motion->setProperty("State", ui->motion->property("State").toString() == "flicker" ? "enable" : "flicker");
         }else {

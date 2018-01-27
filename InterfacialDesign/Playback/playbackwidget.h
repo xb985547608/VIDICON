@@ -19,6 +19,7 @@ public:
 signals:
     void signalSetParameter(int type, void *param, QString SessionID = "R00001");
     void signalGetParameter(int type, int StreamType = 0, int Channel = 0, QString SessionID = "R00001");
+    void signalVlcControl(int type, QString url = "", WId id = 0);
 
 public slots:
     void handlerWidgetSwitch();

@@ -112,7 +112,6 @@ void VidiconProtocol::getVideoEncodingParameter(QString SessionID, int Channel, 
 
     handlerPrePare(request, requestBody);
     currentType = VIDEOENCODINGPARAM;
-    qDebug() << requestBody.toStdString().data();
     reply = manager->post(request, requestBody.toStdString().data());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
     connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
@@ -1668,8 +1667,8 @@ void VidiconProtocol::setFastOrSlowPlayState(QString SessionID, const VidiconPro
                                                    .arg(param.StateValue));
 
     handlerPrePare(request, requestBody);
-//    currentType = PLAYSTATE;
-    reply = manager->put(request, requestBody.toLatin1());
+    currentType = PLAYSTATE;
+    reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
     connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
 }
@@ -1725,23 +1724,24 @@ void VidiconProtocol::handlerPrePare(QNetworkRequest &request, QString RequestBo
     request.setRawHeader(QByteArray("Cache-Control"),    QByteArray("no-cache"));
     request.setRawHeader(QByteArray("Content-Type"),     QByteArray("application/xml"));
 
-    while(currentState == Busy) {
-        qApp->processEvents();
-    }
-    currentState = Busy;
+//    while(currentState == Busy) {
+//        qApp->processEvents();
+//    }
+//    currentState = Busy;
 }
 
 void VidiconProtocol::handlerReply(QNetworkReply *reply)
 {
-    if(reply->error()) {
-        qDebug() << "#VidiconProtocol# hanndlerReply, reply error type:" << reply->error();
+    if(reply->error() != QNetworkReply::NoError) {
+        qDebug() << "#VidiconProtocol# hanndlerReply,"
+                 << "StatusCode:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
+                 << "ErrorType:" << reply->error();
     }else {
         qDebug("#VidiconProtocol# hanndlerReply, response content start............");
 
         QByteArray bytes = reply->readAll();
         qDebug() << bytes.toStdString().data();
         currentState = Leisure;
-        qDebug() << currentType << bytes.length();
         if(currentType != -1 && bytes.length() > 10){
             qDebug() << "#VidiconProtocol# hanndlerReply, send signal ParameterType:" << currentType;
             emit signalSendData(currentType, bytes);
