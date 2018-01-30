@@ -22,7 +22,7 @@ TabSystem::TabSystem(QWidget *parent) : QTabWidget(parent)
     initMaintenanceWidget();
     initDeviceInfoWidget();
     initSetTimeWidget();
-    initUserAdminWidget();
+//    initUserAdminWidget();
 
     connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &TabSystem::handlerReceiveData);
     connect(this, &TabSystem::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);

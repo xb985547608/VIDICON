@@ -5,7 +5,7 @@
 
 VidiconProtocol *VidiconProtocol::_instance = NULL;
 VidiconProtocol::VidiconProtocol(QString host, QString port, QObject *parent) : QObject(parent) ,
-    reply(NULL), targetHost(host), targetPort(port), currentState(Leisure), currentType(-1)
+    reply(NULL), targetHost(host), targetPort(port), currentType(-1), currentState(Leisure)
 {
 }
 
@@ -56,6 +56,7 @@ void VidiconProtocol::login(QString user, QString passwd)
 
     handlerPrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
+    currentType = LOGIN;
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
     connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
 }
@@ -1673,41 +1674,23 @@ void VidiconProtocol::setFastOrSlowPlayState(QString SessionID, const VidiconPro
     connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
 }
 
-void VidiconProtocol::deviceDiscover()
+void VidiconProtocol::downloadFile(QString fileName)
 {
-    QUdpSocket udpSocket;
+    QString urlSuffix = QString("/record/%1").arg(fileName);
+    QNetworkRequest request;
+    request.setUrl(QUrl(urlPrefix + urlSuffix));
 
-    if (!udpSocket.bind(QHostAddress::AnyIPv4, 3704, QUdpSocket::ReuseAddressHint))
-    {
-        qDebug() << "#CLIENT# udp socket bind error!";
-    }
-    udpSocket.setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
-    if (!udpSocket.joinMulticastGroup(QHostAddress("239.255.255.250")))
-    {
-        qDebug() << "#CLIENT# udp socket join group " << " fail!";
-    }
-    udpSocket.writeDatagram("<Discovery/>", QHostAddress("239.255.255.250"), 3704);
-    while(1){
-        if(udpSocket.waitForReadyRead()){
-            QHostAddress ip;
-            quint16 port;
-            int length = udpSocket.pendingDatagramSize();
-            if (length <= 0)
-                return;
-
-            char array[length];
-            int ret = udpSocket.readDatagram(array, length, &ip, &port);
-            array[ret] = '\0';
-            qDebug() << array;
-        }
-    }
+    handlerPrePare(request, "");
+    currentType = DOWNLOAD;
+    reply = manager->get(request);
 }
 
 void VidiconProtocol::handlerTimeout()
 {
-    currentState = Leisure;
-    currentType = -1;
-    reply = NULL;
+//    currentState = Leisure;
+//    currentType = -1;
+//    reply = NULL;
+                                   qDebug("timeout");
 }
 
 void VidiconProtocol::handlerPrePare(QNetworkRequest &request, QString RequestBody)
@@ -1724,10 +1707,10 @@ void VidiconProtocol::handlerPrePare(QNetworkRequest &request, QString RequestBo
     request.setRawHeader(QByteArray("Cache-Control"),    QByteArray("no-cache"));
     request.setRawHeader(QByteArray("Content-Type"),     QByteArray("application/xml"));
 
-//    while(currentState == Busy) {
-//        qApp->processEvents();
-//    }
-//    currentState = Busy;
+    while(currentState == Busy) {
+        qApp->processEvents();
+    }
+    currentState = Busy;
 }
 
 void VidiconProtocol::handlerReply(QNetworkReply *reply)
@@ -1738,17 +1721,17 @@ void VidiconProtocol::handlerReply(QNetworkReply *reply)
                  << "ErrorType:" << reply->error();
     }else {
         qDebug("#VidiconProtocol# hanndlerReply, response content start............");
-
         QByteArray bytes = reply->readAll();
         qDebug() << bytes.toStdString().data();
-        currentState = Leisure;
         if(currentType != -1 && bytes.length() > 10){
             qDebug() << "#VidiconProtocol# hanndlerReply, send signal ParameterType:" << currentType;
             emit signalSendData(currentType, bytes);
-            currentType = -1;
+
         }
         qDebug("#VidiconProtocol# hanndlerReply, response content end  ............");
     }
+    currentState = Leisure;
+    currentType = -1;
 }
 
 

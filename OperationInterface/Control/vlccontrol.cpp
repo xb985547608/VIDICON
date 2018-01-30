@@ -7,18 +7,27 @@ VlcControl::VlcControl(QObject *parent) : QObject(parent),
     vlcInstance(NULL),
     vlcMedia(NULL),
     vlcMediaPlayer(NULL),
-    vlcUrl(""),
     vlcCache(2000),
     vlcState(VLCSTOP),
-    vlcVolume(50)
+    vlcVolume(50),
+    dstIPAddr("192.168.0.66"),
+    dstPort("554"),
+    user("admin"),
+    passwd("admin")
 {
 
 }
 
-void VlcControl::handlerVlcControl(int type, QString url, WId id)
+void VlcControl::handlerVlcControl(int type, int subtype, WId id)
 {
     switch(type) {
     case VLCCONTROLINIT: {
+        QString url = QString("rtsp://%4:%5@%1:%2/H264?channel=0&subtype=%3&unicast=true&proto=Onvif")
+                .arg(dstIPAddr)
+                .arg(dstPort)
+                .arg(subtype)
+                .arg(user)
+                .arg(passwd);
         init(url, id);
         break;
     }
@@ -102,10 +111,9 @@ int VlcControl::init(QString url, WId id)
         }
     }
 
-    vlcUrl = url;
     vlcWId = id;
 
-    vlcMedia = libvlc_media_new_location(vlcInstance, vlcUrl.toStdString().data());
+    vlcMedia = libvlc_media_new_location(vlcInstance, url.toStdString().data());
     if(vlcMedia == NULL) {
         qDebug("#VlcControl# init Error, libvlc_media_new_location return NULL");
         return -1;

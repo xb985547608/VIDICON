@@ -85,7 +85,7 @@ void SettinsWidget::initSideBar()
 
     list.clear();
     boxSystem = new BoxView(toolbox);
-    list << "Maintenance" << "Device Info" << "Set Time" << "User Admin";
+    list << "Maintenance" << "Device Info" << "Set Time"/* << "User Admin"*/;
     boxSystem->setData(list);
     toolbox->addItem(boxSystem, QIcon(":/images/system.png"), "System Config");
 }
@@ -123,6 +123,7 @@ void SettinsWidget::handlerToolBoxClicked(int index)
     tabAlarm->setVisible(false);
     tabRecord->setVisible(false);
     tabSystem->setVisible(false);
+    toolbox->setCurrentIndex(index);
     switch (index) {
         case 0:
         {

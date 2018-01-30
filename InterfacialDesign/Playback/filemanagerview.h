@@ -14,22 +14,6 @@
 
 class FileView;
 
-class FileView : public QTableView
-{
-    Q_OBJECT
-public:
-    FileView(QWidget *parent = Q_NULLPTR);
-    ~FileView();
-
-    void setDataSource(const QStringList &list);
-
-protected:
-    virtual void mousePressEvent(QMouseEvent *event);
-    virtual void mouseReleaseEvent(QMouseEvent *event);
-
-private:
-};
-
 class FileModel : public QAbstractTableModel
 {
     Q_OBJECT
@@ -68,6 +52,23 @@ private:
 
     QList<FileInfo> fileList;
     QStringList headList;
+};
+
+class FileView : public QTableView
+{
+    Q_OBJECT
+public:
+    FileView(QWidget *parent = Q_NULLPTR);
+    ~FileView();
+
+    void setDataSource(const QStringList &list);
+    const QList<FileModel::FileInfo> &dataSource();
+
+protected:
+    virtual void mousePressEvent(QMouseEvent *event);
+    virtual void mouseReleaseEvent(QMouseEvent *event);
+
+private:
 };
 
 class FileViewDelegate : public QItemDelegate

@@ -15,7 +15,8 @@ SwitchWidget::SwitchWidget(QWidget *parent) :
     connect(ui->btnSettings,         SIGNAL(clicked()), this, SLOT(onSettingsBtn()));
     connect(ui->btnLogout,           SIGNAL(clicked()), this, SLOT(onLogoutBtn()));
 
-    onWelcomeBtn();
+    ui->btnWelcome->setVisible(false);
+    ui->btnPhoto->setVisible(false);
 }
 
 SwitchWidget::~SwitchWidget()

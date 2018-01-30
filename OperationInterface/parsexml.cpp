@@ -1599,3 +1599,73 @@ bool ParseXML::parseResponseStatus(VidiconProtocol::ResponseStatus *param, QByte
     delete doc;
     return true;
 }
+
+bool ParseXML::parseDiscoveryDevice(SearchDeviceThread::DeviceInfo *param, QByteArray data)
+{
+    QDomDocument *doc = new QDomDocument();
+    QString errorMsg;
+    int errorLine, errorColumn;
+
+    if(!doc->setContent(data, &errorMsg, &errorLine, &errorColumn)) {
+        qDebug() << "#ParseXML# parseAudioEncodingParameter Error occurred: "
+                 << "errorMsg" << errorMsg
+                 << "errorLine" << errorLine
+                 << "errorColumn" << errorColumn;
+        delete doc;
+        return false;
+    }
+
+    QDomElement root = doc->documentElement();
+    if(root.isNull()) {
+        delete doc;
+        return false;
+    }
+
+    if (root.tagName().compare("Discovery", Qt::CaseInsensitive) != 0) {
+        qDebug("#ParseXML# parseDiscoveryDevice XML data unmatched");
+        delete doc;
+        return false;
+    }
+    QDomElement child = root.firstChildElement();
+    if(child.isNull()) {
+        return false;
+    }
+    while(!child.isNull()) {
+        if(child.tagName().compare("DeviceName", Qt::CaseInsensitive) == 0) {
+            param->DeviceName = child.text();
+        }else if(child.tagName().compare("DeviceModel", Qt::CaseInsensitive) == 0) {
+            param->DeviceModel = child.text();
+        }else if(child.tagName().compare("SerialNumber", Qt::CaseInsensitive) == 0) {
+            param->SerialNumber = child.text();
+        }else if(child.tagName().compare("SoftwareVersion", Qt::CaseInsensitive) == 0) {
+            param->SoftwareVersion = child.text();
+        }else if(child.tagName().compare("P2P_UID", Qt::CaseInsensitive) == 0) {
+            param->P2P_UID = child.text();
+        }else if(child.tagName().compare("IPAddr", Qt::CaseInsensitive) == 0) {
+            param->IPAddr = child.text();
+        }else if(child.tagName().compare("MacAddr", Qt::CaseInsensitive) == 0) {
+            param->MacAddr = child.text();
+        }else if(child.tagName().compare("SubnetMask", Qt::CaseInsensitive) == 0) {
+            param->SubnetMask = child.text();
+        }else if(child.tagName().compare("Gateway", Qt::CaseInsensitive) == 0) {
+            param->Gateway = child.text();
+        }else if(child.tagName().compare("DNSIpAddr1", Qt::CaseInsensitive) == 0) {
+            param->DNSIpAddr1 = child.text();
+        }else if(child.tagName().compare("DNSIpAddr2", Qt::CaseInsensitive) == 0) {
+            param->DNSIpAddr2 = child.text();
+        }else if(child.tagName().compare("HTTPPort", Qt::CaseInsensitive) == 0) {
+            param->HTTPPort = child.text().toInt();
+        }else if(child.tagName().compare("ONVIFPort", Qt::CaseInsensitive) == 0) {
+            param->ONVIFPort = child.text().toInt();
+        }else if(child.tagName().compare("RTSPPort", Qt::CaseInsensitive) == 0) {
+            param->RTSPPort = child.text().toInt();
+        }else if(child.tagName().compare("DHCPEnabled", Qt::CaseInsensitive) == 0) {
+            param->DHCPEnabled = child.text().toInt();
+        }else if(child.tagName().compare("Format", Qt::CaseInsensitive) == 0) {
+            param->Format = child.text();
+        }
+        child = child.nextSiblingElement();
+    }
+    delete doc;
+    return true;
+}

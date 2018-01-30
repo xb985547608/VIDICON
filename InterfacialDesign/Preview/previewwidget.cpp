@@ -33,7 +33,7 @@ PreviewWidget::PreviewWidget(QWidget *parent) :
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &PreviewWidget::handlerTimeout);
-    timer->start(500);
+    timer->start(1000);
 
     ui->mainStream->setChecked(true);
 }
@@ -64,16 +64,23 @@ void PreviewWidget::handlerStreamSwitch(bool checked)
 {    
     VlcControl::getInstance()->stop();
     if(checked){
-        emit signalVlcControl(VLCCONTROLINIT, "rtsp://admin:admin@192.168.0.66/H264?channel=0&subtype=0&unicast=true&proto=Onvif", ui->displayArea->winId());
+        emit signalVlcControl(VLCCONTROLINIT, MAINSTREAMTYPE, ui->displayArea->winId());
     }else{
-        emit signalVlcControl(VLCCONTROLINIT, "rtsp://admin:admin@192.168.0.66/H264?channel=0&subtype=1&unicast=true&proto=Onvif", ui->displayArea->winId());
+        emit signalVlcControl(VLCCONTROLINIT, SUBSTREAMTYPE, ui->displayArea->winId());
     }
+    replySuccess = true;
 }
 
 void PreviewWidget::handlerTimeout()
 {
     if(isVisible()) {
-        emit signalGetParameter(PULLMESSAGE);
+        if(replySuccess || timeoutSec > 4) {
+            emit signalGetParameter(PULLMESSAGE);
+            replySuccess = false;
+            timeoutSec = 0;
+        }else {
+            timeoutSec++;
+        }
 
         //处理标志闪烁情况
         if(motionAlarmFlicker) {
@@ -94,13 +101,16 @@ void PreviewWidget::handlerTimeout()
         updateDynamicProperty(ui->alarm);
         updateDynamicProperty(ui->motion);
         updateDynamicProperty(ui->blind);
+    }else {
+        replySuccess = true;
     }
 }
 
 void PreviewWidget::handlerReceiveData(int type, QByteArray data)
 {
     switch(type) {
-    case PULLMESSAGE: {
+    case PULLMESSAGE: {        
+        replySuccess = true;
         if(ParseXML::getInstance()->parsePullMsg(&param, data)) {
             motionAlarmFlicker = false;
             sensorAlarmFlicker = false;

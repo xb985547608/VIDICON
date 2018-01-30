@@ -18,6 +18,10 @@ extern "C"{
 #define VLCCONTROLPLAY    0x2002
 #define VLCCONTROLSTOP    0x2003
 
+#define MAINSTREAMTYPE    0
+#define SUBSTREAMTYPE     1
+#define BACKUPSTREAMTYPE  2
+
 class OPERATIONINTERFACESHARED_EXPORT VlcControl : public QObject
 {
     Q_OBJECT
@@ -38,6 +42,11 @@ public:
 
     ~VlcControl();
 
+    void setHost(QString host) { dstIPAddr = host; }
+    void setPort(QString port) { dstPort = port; }
+    void setUser(QString u) { user = u; }
+    void setPasswd(QString p) { passwd = p; }
+
     void setCache(int cache) { vlcCache = cache; }
     int  getCache() const { return vlcCache; }
 
@@ -46,9 +55,6 @@ public:
 
     void setVolume(int volume);
     int  getVolume() const { return vlcVolume; }
-
-    void setUrl(const QString url) { vlcUrl = url; }
-    QString getUrl() const { return vlcUrl; }
 
     int getDuration();
     int getProgress();
@@ -64,18 +70,22 @@ private:
     VlcControl(QObject *parent = Q_NULLPTR);
 
 public slots:
-    void handlerVlcControl(int type, QString url, WId id);
+    void handlerVlcControl(int type, int subtype, WId id);
 
 private:
     static VlcControl     *_instance;
     libvlc_instance_t     *vlcInstance;
     libvlc_media_t        *vlcMedia;
     libvlc_media_player_t *vlcMediaPlayer;
-    QString                vlcUrl;
     int                    vlcCache;
     WId                    vlcWId;
     int                    vlcState;
     int                    vlcVolume;
+
+    QString dstIPAddr;
+    QString dstPort;
+    QString user;
+    QString passwd;
 };
 
 #endif // VLCCONTROL_H

@@ -22,23 +22,6 @@ PlaybackWidget::PlaybackWidget(QWidget *parent) :
 
     ui->rightBar->setStyleSheet("QWidget#rightBar{background-color:darkgray}");
     dateWidget = new DateWidget(ui->rightBar);
-    QVBoxLayout *layout1 = new QVBoxLayout(ui->rightBar);
-    layout1->setContentsMargins(0, 0, 0, 0);
-    layout1->addWidget(dateWidget, 0, Qt::AlignCenter);
-
-//    QPushButton *btn1 = new QPushButton(ui->timeslider);
-//    connect(btn1, &QPushButton::clicked, this, [this](){
-//        VidiconProtocol::PlayStateParameter *param1 = new VidiconProtocol::PlayStateParameter;
-//        param1->htmlid = htmlid;
-//        param1->StateValue = 0;
-//        emit signalSetParameter(PLAYSTATE, param1);
-
-//        VidiconProtocol::StartPlayingParameter *param = new VidiconProtocol::StartPlayingParameter;
-//        param->htmlid = htmlid;
-//        param->playing = 1;
-//        param->Time = QDateTime(QDate(2018, 1, 22), QTime(21, 43, 00));
-//        emit signalSetParameter(STARTPLAYING, param);
-//    });
 
     TimerShaft *view = new TimerShaft(ui->timeslider);
     QVBoxLayout *layout2 = new QVBoxLayout(ui->timeslider);
@@ -49,6 +32,12 @@ PlaybackWidget::PlaybackWidget(QWidget *parent) :
 PlaybackWidget::~PlaybackWidget()
 {
 
+}
+
+void PlaybackWidget::resizeEvent(QResizeEvent *event)
+{
+    Q_UNUSED(event);
+    dateWidget->setGeometry(5, 5, ui->rightBar->size().width() - 10, ui->rightBar->size().height() - 5);
 }
 
 void PlaybackWidget::handlerWidgetSwitch()

@@ -64,6 +64,7 @@ void MainWindow::loginHandler(LoginWidget::LoginState state)
         switchWidget->setSettingsBtnVisible(false);
     }
     LoginWidget::getInstance()->setVisible(false);
+    activateWindow();
     setVisible(true);
 }
 

@@ -57,6 +57,11 @@ void FileView::setDataSource(const QStringList &list)
     static_cast<FileModel *>(static_cast<QSortFilterProxyModel *>(model())->sourceModel())->setDataSource(list);
 }
 
+const QList<FileModel::FileInfo> &FileView::dataSource()
+{
+    return static_cast<FileModel *>(static_cast<QSortFilterProxyModel *>(model())->sourceModel())->getDataSource();
+}
+
 void FileView::mousePressEvent(QMouseEvent *event)
 {
     if(event->buttons() & Qt::LeftButton) {

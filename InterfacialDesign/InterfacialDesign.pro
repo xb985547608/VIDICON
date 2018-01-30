@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -36,15 +36,16 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     customstyle.cpp \
-    preparethread.cpp
+    selectcurrentipdialog.cpp
 
 HEADERS += \
         mainwindow.h \
     customstyle.h \
-    preparethread.h
+    selectcurrentipdialog.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    selectcurrentipdialog.ui
 
 include($$PWD/Login/Login.pri)
 include($$PWD/Preview/Preview.pri)

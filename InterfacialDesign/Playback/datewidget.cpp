@@ -13,8 +13,8 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
 {
     setMouseTracking(true);
 
-    connect(this, &DateWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &DateWidget::handlerReceiveData);
+    connect(this, &DateWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter, Qt::QueuedConnection);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &DateWidget::handlerReceiveData, Qt::QueuedConnection);
 
     /*********************************界面布局*********************************/
     QGridLayout *layout1 = new QGridLayout;
@@ -34,7 +34,7 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
         param1->Date = date;
         emit signalSetParameter(BACKQUERY, param1);
         VidiconProtocol::BackUpQueryParameter *param2 = new VidiconProtocol::BackUpQueryParameter;
-        param2->Type = 2;
+        param2->Type = 0;
         param2->Date = date;
         emit signalSetParameter(BACKQUERY, param2);
     });
@@ -80,10 +80,14 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
     btn->setStyleSheet("QPushButton{border-image:url(:images/query.png)0 80 0 0}"
                        "QPushButton:pressed{border-image:url(:images/query.png)0 0 0 80}");
     connect(btn, &QPushButton::clicked, this, [this](){
-        VidiconProtocol::BackUpQueryParameter *param = new VidiconProtocol::BackUpQueryParameter;
-        param->Date = dateEdit->date();
-        param->Type = 1;
-        emit signalSetParameter(BACKQUERY, param);
+        VidiconProtocol::BackUpQueryParameter *param1 = new VidiconProtocol::BackUpQueryParameter;
+        param1->Date = dateEdit->date();
+        param1->Type = 1;
+        emit signalSetParameter(BACKQUERY, param1);
+        VidiconProtocol::BackUpQueryParameter *param2 = new VidiconProtocol::BackUpQueryParameter;
+        param2->Date = dateEdit->date();
+        param2->Type = 2;
+        emit signalSetParameter(BACKQUERY, param2);
     });
 
     QVBoxLayout *layout2 = new QVBoxLayout(this);

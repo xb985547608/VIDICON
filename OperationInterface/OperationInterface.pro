@@ -30,12 +30,14 @@ CONFIG(debug, debug|release){
 
 SOURCES += \
     settings.cpp \
-    parsexml.cpp
+    parsexml.cpp \
+    searchdevicethread.cpp
 
 HEADERS += \
     settings.h \
     operationinterface_global.h \
-    parsexml.h
+    parsexml.h \
+    searchdevicethread.h
 
 INCLUDEPATH += $PWD
 

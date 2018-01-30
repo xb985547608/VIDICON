@@ -17,10 +17,15 @@ signals:
 
 public slots:
     void handlerReceiveData(int type, QByteArray data);
+    void handlerDownload();
 
 private:
     QStringList fileList;
     FileView *fileView;
+
+    QStringList videoList;
+    QStringList pictureList;
+    bool isVideo;
 };
 
 #endif // FILEMANAGERDIALOG_H

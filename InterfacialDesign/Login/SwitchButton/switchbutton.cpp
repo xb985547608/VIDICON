@@ -5,7 +5,7 @@
 #include <QDebug>
 
 SwitchButton::SwitchButton(QWidget *parent) : QWidget(parent),
-    isOpen(false), isSlide(false)
+    isOpen(true), isSlide(false)
 {
     backgroundImg = new QPixmap(":/images/login-SwitchBtn-Background.png");
     addImg = new QPixmap(":/images/login-SwitchBtn-Add.png");

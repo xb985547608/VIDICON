@@ -4,6 +4,7 @@
 #include <QObject>
 #include "Protocol/vidiconprotocol.h"
 #include "operationinterface_global.h"
+#include "searchdevicethread.h"
 
 class OPERATIONINTERFACESHARED_EXPORT ParseXML : public QObject
 {
@@ -47,6 +48,7 @@ public:
 
     bool parsePullMsg(VidiconProtocol::PullMessage *param, QByteArray data);
     bool parseResponseStatus(VidiconProtocol::ResponseStatus *param, QByteArray data);
+    bool parseDiscoveryDevice(SearchDeviceThread::DeviceInfo *param, QByteArray data);
 
 signals:
 

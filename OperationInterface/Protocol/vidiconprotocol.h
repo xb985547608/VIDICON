@@ -52,6 +52,8 @@
 #define PULLMESSAGE          1060
 #define STARTPLAYING         1061
 #define PLAYSTATE            1062
+#define LOGIN                1063
+#define DOWNLOAD             1064
 
 #define RESPONSESTATUS       0x8888
 
@@ -65,16 +67,14 @@ class OPERATIONINTERFACESHARED_EXPORT VidiconProtocol : public QObject
         Busy
     };
 public:    
-    static VidiconProtocol *getInstance()
+    static VidiconProtocol *getInstance(QString ipAddr = "", int port = -1)
     {
         if(NULL == _instance){
-            _instance = new VidiconProtocol("192.168.0.66", "80");
+            _instance = new VidiconProtocol(ipAddr, QString::number(port));
         }
         return _instance;
     }
     ~VidiconProtocol();
-
-    void init();
 
 private:
     static VidiconProtocol *_instance;
@@ -95,7 +95,7 @@ public:
         QString FactoryInfo;
     }DeviceInfo;
     void getDeviceInfomation(QString SessionID);
-    void login(QString user, QString passwd);
+    Q_INVOKABLE void login(QString user, QString passwd);
     void logout(QString SessionID);
 
     /*********************Media Settings*********************/
@@ -497,12 +497,13 @@ public:
     }PlayStateParameter;
     void setFastOrSlowPlayState(QString SessionID, const PlayStateParameter &param);
 
-    void deviceDiscover();
+    Q_INVOKABLE void downloadFile(QString fileName);
 
 signals:
     void signalSendData(int type, QByteArray data);
 
 public slots:
+    void init();
     void handlerTimeout();
     void handlerPrePare(QNetworkRequest &request, QString RequestBody);
     void handlerReply(QNetworkReply *reply);
@@ -515,7 +516,7 @@ private:
     QString urlPrefix;
     QString targetHost;
     QString targetPort;
-    State currentState;
+    int currentState;
     int currentType;
 };
 
