@@ -2,6 +2,7 @@
 #include <QUdpSocket>
 #include <QApplication>
 #include <QThread>
+#include <QEventLoop>
 
 VidiconProtocol *VidiconProtocol::_instance = NULL;
 VidiconProtocol::VidiconProtocol(QString host, QString port, QObject *parent) : QObject(parent) ,
@@ -1690,7 +1691,6 @@ void VidiconProtocol::handlerTimeout()
 //    currentState = Leisure;
 //    currentType = -1;
 //    reply = NULL;
-                                   qDebug("timeout");
 }
 
 void VidiconProtocol::handlerPrePare(QNetworkRequest &request, QString RequestBody)
@@ -1723,7 +1723,7 @@ void VidiconProtocol::handlerReply(QNetworkReply *reply)
         qDebug("#VidiconProtocol# hanndlerReply, response content start............");
         QByteArray bytes = reply->readAll();
         qDebug() << bytes.toStdString().data();
-        if(currentType != -1 && bytes.length() > 10){
+        if(currentType != -1){
             qDebug() << "#VidiconProtocol# hanndlerReply, send signal ParameterType:" << currentType;
             emit signalSendData(currentType, bytes);
 

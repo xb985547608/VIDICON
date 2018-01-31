@@ -501,6 +501,7 @@ public:
 
 signals:
     void signalSendData(int type, QByteArray data);
+    void signalFinished();
 
 public slots:
     void init();

@@ -44,70 +44,70 @@ void TabNetwork::initTCPIPWidget()
     QStringList list;
     tcpIpWidget = new QWidget(this);
 
-    QLabel *lbl1 = new QLabel("Max connection：", tcpIpWidget);
+    QLabel *lbl1 = new QLabel("最大连接数：", tcpIpWidget);
     QLineEdit *lineEdit1 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("Max connection", lineEdit1);
 
-    QLabel *lbl2 = new QLabel("DHCP：", tcpIpWidget);
+    QLabel *lbl2 = new QLabel("DHCP启用：", tcpIpWidget);
     QComboBox *comboBox1 = new QComboBox(tcpIpWidget);
     list << "Disable" << "Enable";
     comboBox1->addItems(list);
     list.clear();
     tcpIpMap.insert("DHCP", comboBox1);
 
-    QLabel *lbl3 = new QLabel("IPv4 Address：", tcpIpWidget);
+    QLabel *lbl3 = new QLabel("IPv4地址：", tcpIpWidget);
     QLineEdit *lineEdit2 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("IPv4 Address", lineEdit2);
 
-    QLabel *lbl4 = new QLabel("IPv4 Subnet：", tcpIpWidget);
+    QLabel *lbl4 = new QLabel("IPv4掩码地址：", tcpIpWidget);
     QLineEdit *lineEdit3 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("IPv4 Subnet", lineEdit3);
 
-    QLabel *lbl5 = new QLabel("IPv4 Gateway：", tcpIpWidget);
+    QLabel *lbl5 = new QLabel("IPv4网关地址：", tcpIpWidget);
     QLineEdit *lineEdit4 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("IPv4 Gateway", lineEdit4);
 
-    QLabel *lbl6 = new QLabel("IPv4 DNS 1：", tcpIpWidget);
+    QLabel *lbl6 = new QLabel("IPv4主DNS：", tcpIpWidget);
     QLineEdit *lineEdit5 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("IPv4 DNS 1", lineEdit5);
 
-    QLabel *lbl7 = new QLabel("IPv4 DNS 2：", tcpIpWidget);
+    QLabel *lbl7 = new QLabel("IPv4备用DNS：", tcpIpWidget);
     QLineEdit *lineEdit6 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("IPv4 DNS 2", lineEdit6);
 
-    QLabel *lbl8 = new QLabel("IPv4 MacAddr：", tcpIpWidget);
+    QLabel *lbl8 = new QLabel("MAC地址：", tcpIpWidget);
     QLineEdit *lineEdit7 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("IPv4 MacAddr", lineEdit7);
 
-    QLabel *lbl9 = new QLabel("IPv6 Address：", tcpIpWidget);
+    QLabel *lbl9 = new QLabel("IPv6地址：", tcpIpWidget);
     QLineEdit *lineEdit8 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("IPv6 Address", lineEdit8);
 
-    QLabel *lbl10 = new QLabel("IPv6 Gateway：", tcpIpWidget);
+    QLabel *lbl10 = new QLabel("IPv6掩码地址：", tcpIpWidget);
     QLineEdit *lineEdit9 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("IPv6 Gateway", lineEdit9);
 
-    QLabel *lbl11 = new QLabel("IPv6 DNS 1：", tcpIpWidget);
+    QLabel *lbl11 = new QLabel("IPv6主DNS：", tcpIpWidget);
     QLineEdit *lineEdit10 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("IPv6 DNS 1", lineEdit10);
 
-    QLabel *lbl12 = new QLabel("IPv6 DNS 2：", tcpIpWidget);
+    QLabel *lbl12 = new QLabel("IPv6备用DNS：", tcpIpWidget);
     QLineEdit *lineEdit11 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("IPv6 DNS 2", lineEdit11);
 
-    QLabel *lbl13 = new QLabel("HTTP Port(1-65535)：", tcpIpWidget);
+    QLabel *lbl13 = new QLabel("HTTP端口(1-65535)：", tcpIpWidget);
     QLineEdit *lineEdit12 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("HTTP Port", lineEdit12);
 
-    QLabel *lbl14 = new QLabel("Onvif Port(1-65535)：", tcpIpWidget);
+    QLabel *lbl14 = new QLabel("Onvif端口(1-65535)：", tcpIpWidget);
     QLineEdit *lineEdit13 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("Onvif Port", lineEdit13);
 
-    QLabel *lbl15 = new QLabel("RTSP Port(1-65535)：", tcpIpWidget);
+    QLabel *lbl15 = new QLabel("RTSP端口(1-65535)：", tcpIpWidget);
     QLineEdit *lineEdit14 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("RTSP Port", lineEdit14);
 
-    QPushButton *btn = new QPushButton("Save", tcpIpWidget);
+    QPushButton *btn = new QPushButton("保存", tcpIpWidget);
     connect(btn, &QPushButton::clicked, this, &TabNetwork::handlerPrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -175,18 +175,18 @@ void TabNetwork::initPPPOEWidget()
 {
     PPPOEWidget = new QWidget(this);
 
-    QRadioButton *rBtn = new QRadioButton("Enable", PPPOEWidget);
+    QRadioButton *rBtn = new QRadioButton("启用PPPOE", PPPOEWidget);
     PPPOEMap.insert("Enable", rBtn);
 
-    QLabel *lbl1 = new QLabel("Username：", PPPOEWidget);
+    QLabel *lbl1 = new QLabel("用户名：", PPPOEWidget);
     QLineEdit *lineEdit1 = new QLineEdit(PPPOEWidget);
     PPPOEMap.insert("Username", lineEdit1);
 
-    QLabel *lbl2 = new QLabel("Password：", PPPOEWidget);
+    QLabel *lbl2 = new QLabel("密码：", PPPOEWidget);
     QLineEdit *lineEdit2 = new QLineEdit(PPPOEWidget);
     PPPOEMap.insert("Password", lineEdit1);
 
-    QPushButton *btn = new QPushButton("Save", PPPOEWidget);
+    QPushButton *btn = new QPushButton("保存", PPPOEWidget);
     btn->setFixedWidth(50);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -217,33 +217,33 @@ void TabNetwork::initDDNSClientWidget()
     QStringList list;
     DDNSClientWidget = new QWidget(this);
 
-    QRadioButton *rBtn = new QRadioButton("Enable", DDNSClientWidget);
+    QRadioButton *rBtn = new QRadioButton("启用DDNS", DDNSClientWidget);
     DDNSClientMap.insert("Enable", rBtn);
 
-    QLabel *lbl1 = new QLabel("Provider：", DDNSClientWidget);
+    QLabel *lbl1 = new QLabel("协议类型：", DDNSClientWidget);
     QComboBox *comboBox = new QComboBox();
     list << "3322.org" << "DynDDNS" << "Noip";
     comboBox->addItems(list);
     list.clear();
     DDNSClientMap.insert("Provider", comboBox);
 
-    QLabel *lbl2 = new QLabel("Server：", DDNSClientWidget);
+    QLabel *lbl2 = new QLabel("DDNS服务器：", DDNSClientWidget);
     QLineEdit *lineEdit1 = new QLineEdit(DDNSClientWidget);
     DDNSClientMap.insert("Server", lineEdit1);
 
-    QLabel *lbl3 = new QLabel("Hostname：", DDNSClientWidget);
+    QLabel *lbl3 = new QLabel("DDNS域名：", DDNSClientWidget);
     QLineEdit *lineEdit2 = new QLineEdit(DDNSClientWidget);
     DDNSClientMap.insert("Hostname", lineEdit2);
 
-    QLabel *lbl4 = new QLabel("Username：", DDNSClientWidget);
+    QLabel *lbl4 = new QLabel("用户名：", DDNSClientWidget);
     QLineEdit *lineEdit3 = new QLineEdit(DDNSClientWidget);
     DDNSClientMap.insert("Username", lineEdit3);
 
-    QLabel *lbl5 = new QLabel("Password：", DDNSClientWidget);
+    QLabel *lbl5 = new QLabel("密码：", DDNSClientWidget);
     QLineEdit *lineEdit4 = new QLineEdit(DDNSClientWidget);
     DDNSClientMap.insert("Password", lineEdit4);
 
-    QPushButton *btn = new QPushButton("Save", PPPOEWidget);
+    QPushButton *btn = new QPushButton("保存", PPPOEWidget);
     btn->setFixedWidth(50);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -282,53 +282,53 @@ void TabNetwork::initEmailWidget()
 {
     EmailWidget = new QWidget(this);
 
-    QRadioButton *rBtn = new QRadioButton("Enable", EmailWidget);
+    QRadioButton *rBtn = new QRadioButton("启用邮箱", EmailWidget);
     EmailMap.insert("Enable", rBtn);
 
-    QLabel *lbl1 = new QLabel("Motion Subject：", EmailWidget);
+    QLabel *lbl1 = new QLabel("移动侦测标题：", EmailWidget);
     QLineEdit *lineEdit1 = new QLineEdit(EmailWidget);
     EmailMap.insert("Motion Subject", lineEdit1);
 
-    QLabel *lbl2 = new QLabel("Alarm Subject：", EmailWidget);
+    QLabel *lbl2 = new QLabel("探头报警标题：", EmailWidget);
     QLineEdit *lineEdit2 = new QLineEdit(EmailWidget);
     EmailMap.insert("Alarm Subject", lineEdit2);
 
-    QLabel *lbl3 = new QLabel("SMTP Server：", EmailWidget);
+    QLabel *lbl3 = new QLabel("SMTP服务器：", EmailWidget);
     QLineEdit *lineEdit3 = new QLineEdit(EmailWidget);
     EmailMap.insert("SMTP Server", lineEdit3);
 
-    QLabel *lbl4 = new QLabel("SMTP Port：", EmailWidget);
+    QLabel *lbl4 = new QLabel("SMTP端口：", EmailWidget);
     QLineEdit *lineEdit4 = new QLineEdit(EmailWidget);
     EmailMap.insert("SMTP Port", lineEdit4);
 
-    QLabel *lbl5 = new QLabel("Sender Address：", EmailWidget);
+    QLabel *lbl5 = new QLabel("发送人E-mail：", EmailWidget);
     QLineEdit *lineEdit5 = new QLineEdit(EmailWidget);
     EmailMap.insert("Sender Address", lineEdit5);
 
-    QLabel *lbl6 = new QLabel("Sender Password：", EmailWidget);
+    QLabel *lbl6 = new QLabel("密码：", EmailWidget);
     QLineEdit *lineEdit6 = new QLineEdit(EmailWidget);
     EmailMap.insert("Sender Password", lineEdit6);
 
-    QLabel *lbl7 = new QLabel("Recipient Address：", EmailWidget);
+    QLabel *lbl7 = new QLabel("收件人E-mail：", EmailWidget);
     QLineEdit *lineEdit7 = new QLineEdit(EmailWidget);
     EmailMap.insert("Recipient Address-1", lineEdit7);
 
-    QLabel *lbl8 = new QLabel("Recipient Address：", EmailWidget);
+    QLabel *lbl8 = new QLabel("收件人E-mail：", EmailWidget);
     QLineEdit *lineEdit8 = new QLineEdit(EmailWidget);
     EmailMap.insert("Recipient Address-2", lineEdit8);
 
-    QLabel *lbl9 = new QLabel("Recipient Address：", EmailWidget);
+    QLabel *lbl9 = new QLabel("收件人E-mail：", EmailWidget);
     QLineEdit *lineEdit9 = new QLineEdit(EmailWidget);
     EmailMap.insert("Recipient Address-3", lineEdit9);
 
-    QLabel *lbl10 = new QLabel("Recipient Address：", EmailWidget);
+    QLabel *lbl10 = new QLabel("收件人E-mail：", EmailWidget);
     QLineEdit *lineEdit10 = new QLineEdit(EmailWidget);
     EmailMap.insert("Recipient Address-4", lineEdit10);
 
-    QPushButton *btn1 = new QPushButton("Save", EmailWidget);
+    QPushButton *btn1 = new QPushButton("保存", EmailWidget);
     btn1->setFixedWidth(50);
 
-    QPushButton *btn2 = new QPushButton("Test", EmailWidget);
+    QPushButton *btn2 = new QPushButton("测试", EmailWidget);
     btn2->setFixedWidth(50);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -384,40 +384,40 @@ void TabNetwork::initFTPWidget()
     QStringList list;
     FTPWidget = new QWidget(this);
 
-    QRadioButton *rBtn = new QRadioButton("Enable", FTPWidget);
+    QRadioButton *rBtn = new QRadioButton("启用FTP服务器", FTPWidget);
     FTPMap.insert("Enable", rBtn);
 
-    QLabel *lbl1 = new QLabel("Server：", FTPWidget);
+    QLabel *lbl1 = new QLabel("FTP服务器", FTPWidget);
     QLineEdit *lineEdit1 = new QLineEdit(FTPWidget);
     FTPMap.insert("Server", lineEdit1);
 
-    QLabel *lbl2 = new QLabel("Port：", FTPWidget);
+    QLabel *lbl2 = new QLabel("FTP端口：", FTPWidget);
     QLineEdit *lineEdit2 = new QLineEdit(FTPWidget);
     FTPMap.insert("Port", lineEdit2);
 
-    QLabel *lbl3 = new QLabel("Mode：", FTPWidget);
+    QLabel *lbl3 = new QLabel("模式：", FTPWidget);
     QComboBox *comboBox = new QComboBox();
-    list << "Passive" << "Active";
+    list << "被动" << "主动";
     comboBox->addItems(list);
     list.clear();
     FTPMap.insert("Mode", comboBox);
 
-    QLabel *lbl4 = new QLabel("Username：", FTPWidget);
+    QLabel *lbl4 = new QLabel("用户名：", FTPWidget);
     QLineEdit *lineEdit3 = new QLineEdit(FTPWidget);
     FTPMap.insert("Username", lineEdit3);
 
-    QLabel *lbl5 = new QLabel("Password：", FTPWidget);
+    QLabel *lbl5 = new QLabel("密码：", FTPWidget);
     QLineEdit *lineEdit4 = new QLineEdit(FTPWidget);
     FTPMap.insert("Password", lineEdit4);
 
-    QLabel *lbl6 = new QLabel("Upload Directory：", FTPWidget);
+    QLabel *lbl6 = new QLabel("上传路径：", FTPWidget);
     QLineEdit *lineEdit5 = new QLineEdit(FTPWidget);
     FTPMap.insert("Upload Directory", lineEdit5);
 
-    QPushButton *btn1 = new QPushButton("Save", EmailWidget);
+    QPushButton *btn1 = new QPushButton("保存", EmailWidget);
     btn1->setFixedWidth(50);
 
-    QPushButton *btn2 = new QPushButton("Test", EmailWidget);
+    QPushButton *btn2 = new QPushButton("测试", EmailWidget);
     btn2->setFixedWidth(50);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -460,20 +460,20 @@ void TabNetwork::initBonjourWidget()
 {
     BonjourWidget = new QWidget(this);
 
-    QRadioButton *rBtn = new QRadioButton("Enable", BonjourWidget);
+    QRadioButton *rBtn = new QRadioButton("启用Bonjour", BonjourWidget);
     BonjourMap.insert("Enable", rBtn);
 
     QLabel *lbl1 = new QLabel("Bonjour：", BonjourWidget);
     QLineEdit *lineEdit1 = new QLineEdit(BonjourWidget);
     BonjourMap.insert("Bonjour", lineEdit1);
 
-    QPushButton *btn1 = new QPushButton("Default", EmailWidget);
+    QPushButton *btn1 = new QPushButton("恢复默认值", EmailWidget);
     btn1->setFixedWidth(50);
 
-    QPushButton *btn2 = new QPushButton("Update", EmailWidget);
+    QPushButton *btn2 = new QPushButton("更新", EmailWidget);
     btn2->setFixedWidth(50);
 
-    QPushButton *btn3 = new QPushButton("Save", EmailWidget);
+    QPushButton *btn3 = new QPushButton("保存", EmailWidget);
     btn3->setFixedWidth(50);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -509,7 +509,7 @@ void TabNetwork::initSNMPWidget()
     QCheckBox *cb2 = new QCheckBox("SNMP v2", SNMPWidget);
     SNMPMap.insert("SNMP v2", cb2);
 
-    QLabel *lbl1 = new QLabel("SNMP Port(1-65535)：", SNMPWidget);
+    QLabel *lbl1 = new QLabel("SNMP端口(1-65535)：", SNMPWidget);
     QLineEdit *lineEdit1 = new QLineEdit(SNMPWidget);
     SNMPMap.insert("SNMP Port", lineEdit1);
 
@@ -521,15 +521,15 @@ void TabNetwork::initSNMPWidget()
     QLineEdit *lineEdit3 = new QLineEdit(SNMPWidget);
     SNMPMap.insert("Write Community", lineEdit3);
 
-    QLabel *lbl4 = new QLabel("Trap Address：", SNMPWidget);
+    QLabel *lbl4 = new QLabel("Trap地址：", SNMPWidget);
     QLineEdit *lineEdit4 = new QLineEdit(SNMPWidget);
     SNMPMap.insert("Trap Address", lineEdit4);
 
-    QLabel *lbl5 = new QLabel("Trap Port(1-65535)：", SNMPWidget);
+    QLabel *lbl5 = new QLabel("Trap端口(1-65535)：", SNMPWidget);
     QLineEdit *lineEdit5 = new QLineEdit(SNMPWidget);
     SNMPMap.insert("Trap Port", lineEdit5);
 
-    QPushButton *btn = new QPushButton("Save", EmailWidget);
+    QPushButton *btn = new QPushButton("保存", EmailWidget);
     btn->setFixedWidth(50);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -570,14 +570,14 @@ void TabNetwork::initUPNPWidget()
     QStringList list;
     UPNPWidget = new QWidget(this);
 
-    QLabel *lbl = new QLabel("UPNP：", UPNPWidget);
+    QLabel *lbl = new QLabel("是否启用UPNP：", UPNPWidget);
     QComboBox *comboBox = new QComboBox();
-    list << "Disable" << "Enable";
+    list << "关闭" << "打开";
     comboBox->addItems(list);
     list.clear();
     UPNPMap.insert("UPNP", comboBox);
 
-    QPushButton *btn = new QPushButton("Save", UPNPWidget);
+    QPushButton *btn = new QPushButton("保存", UPNPWidget);
     btn->setFixedWidth(50);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -602,14 +602,14 @@ void TabNetwork::initHTTPsWidget()
 {
     HTTPsWidget = new QWidget(this);
 
-    QRadioButton *rBtn = new QRadioButton("Enable", HTTPsWidget);
+    QRadioButton *rBtn = new QRadioButton("启用HTTPs", HTTPsWidget);
     HTTPsMap.insert("Enable", rBtn);
 
-    QLabel *lbl = new QLabel("HTTPs Port(1-65535)：", HTTPsWidget);
+    QLabel *lbl = new QLabel("HTTPs端口(1-65535)：", HTTPsWidget);
     QLineEdit *lineEdit = new QLineEdit(HTTPsWidget);
     HTTPsMap.insert("HTTPs Port", lineEdit);
 
-    QPushButton *btn = new QPushButton("Save", HTTPsWidget);
+    QPushButton *btn = new QPushButton("保存", HTTPsWidget);
     btn->setFixedWidth(50);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -635,7 +635,7 @@ void TabNetwork::initP2PWidget()
 {
     P2PWidget = new QWidget(this);
 
-    QRadioButton *rBtn = new QRadioButton("P2P", P2PWidget);
+    QRadioButton *rBtn = new QRadioButton("启用P2P", P2PWidget);
     P2PMap.insert("P2P", rBtn);
 
     QLabel *lbl1 = new QLabel("UUID：", P2PWidget);
@@ -643,10 +643,10 @@ void TabNetwork::initP2PWidget()
     lineEdit1->setFixedWidth(400);
     P2PMap.insert("UUID", lineEdit1);
 
-    QLabel *lbl2 = new QLabel("APP Android：", P2PWidget);
+    QLabel *lbl2 = new QLabel("安卓应用：", P2PWidget);
     QLineEdit *lineEdit2 = new QLineEdit("http://www.zwcloud.wang/p2p_direct.html", P2PWidget);
 
-    QLabel *lbl3 = new QLabel("APP IOS：", P2PWidget);
+    QLabel *lbl3 = new QLabel("IOS应用：", P2PWidget);
     QLineEdit *lineEdit3 = new QLineEdit("https://itunes.apple.com/us/app/p2pcmscam/id1173582301?mt=8", P2PWidget);
 
     QPushButton *btn = new QPushButton("Save", P2PWidget);
@@ -682,17 +682,17 @@ void TabNetwork::initRTSPWidget()
 {
     RTSPWidget = new QWidget(this);
 
-    QRadioButton *rBtn = new QRadioButton("Enable", RTSPWidget);
+    QRadioButton *rBtn = new QRadioButton("启用RTSP", RTSPWidget);
     RTSPMap.insert("Enable", rBtn);
 
-    QLabel *lbl1 = new QLabel("RTSP Port：", RTSPWidget);
+    QLabel *lbl1 = new QLabel("RTSP端口：", RTSPWidget);
     QLineEdit *lineEdit1 = new QLineEdit(RTSPWidget);
     RTSPMap.insert("RTSP Port", lineEdit1);
 
-    QPushButton *btn = new QPushButton("Save", P2PWidget);
+    QPushButton *btn = new QPushButton("保存", P2PWidget);
     btn->setFixedWidth(50);
 
-    QLabel *lbl2 = new QLabel("Instruction：", RTSPWidget);
+    QLabel *lbl2 = new QLabel("URL例子：", RTSPWidget);
     QLabel *lbl3 = new QLabel("rtsp://IP:PORT/H264?channel=1&subtype=A&unicast=true&proto=Onvif/video\n"
                               "A:0(Main Steam) 1(Sub Stream)", RTSPWidget);
     lbl3->setFixedWidth(450);

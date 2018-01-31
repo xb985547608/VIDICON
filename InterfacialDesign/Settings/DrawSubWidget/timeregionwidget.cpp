@@ -4,8 +4,8 @@
 
 TimeRegionWidget::TimeRegionWidget(QWidget *parent) : QWidget(parent)
 {
-    wordList  << "Sunday" << "Monday" << "Tuesday" << "Wednesday" << "Thursday"
-             << "Friday" << "Saturday";
+    wordList << "周天" << "周一" << "周二" << "周三" << "周四"
+             << "周五" << "周六";
 
     plans = new VidiconProtocol::Plan *[7];
     for(int i=0; i<7; i++) {

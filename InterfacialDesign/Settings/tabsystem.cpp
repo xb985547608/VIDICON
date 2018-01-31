@@ -42,8 +42,8 @@ void TabSystem::initMaintenanceWidget()
     QStringList list;
     maintenanceWidget = new QWidget(this);
 
-    QLabel *lbl1 = new QLabel("Factory Default", maintenanceWidget);
-    QPushButton *btn1 = new QPushButton("Default");
+    QLabel *lbl1 = new QLabel("恢复出厂设置", maintenanceWidget);
+    QPushButton *btn1 = new QPushButton("确定");
     btn1->setFixedWidth(80);
     connect(btn1, &QPushButton::clicked, this, [this]() {
         if(QMessageBox::question(this, "警告", "确定需要恢复出厂设置吗？") == QMessageBox::Yes) {
@@ -51,8 +51,8 @@ void TabSystem::initMaintenanceWidget()
         }
     });
 
-    QLabel *lbl2 = new QLabel("Reboot", maintenanceWidget);
-    QPushButton *btn2 = new QPushButton("OK");
+    QLabel *lbl2 = new QLabel("重启设备", maintenanceWidget);
+    QPushButton *btn2 = new QPushButton("确定");
     btn2->setFixedWidth(80);
     connect(btn2, &QPushButton::clicked, this, [this]() {
         if(QMessageBox::question(this, "警告", "确定需要重启吗？") == QMessageBox::Yes) {
@@ -60,14 +60,14 @@ void TabSystem::initMaintenanceWidget()
         }
     });
 
-    QRadioButton *rBtn = new QRadioButton("Auto Reboot", maintenanceWidget);
+    QRadioButton *rBtn = new QRadioButton("自动重启", maintenanceWidget);
 
     QComboBox *comboBox = new QComboBox(maintenanceWidget);
-    list << "Every Day" << "Monday" << "Tuesday" << "Wednesday"
-         << "Thursday" << "Friday" << "Saturday" << "Sunday";
+    list << "每天" << "周一" << "周二" << "周三"
+         << "周四" << "周五" << "周六" << "周天";
     comboBox->addItems(list);
     QTimeEdit *time1 = new QTimeEdit(maintenanceWidget);
-    QPushButton *btn3 = new QPushButton("OK");
+    QPushButton *btn3 = new QPushButton("确定");
     btn3->setFixedWidth(80);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -91,29 +91,29 @@ void TabSystem::initMaintenanceWidget()
     layout3->addLayout(layout2);
     layout3->addStretch();
 
-    addTab(maintenanceWidget, "Maintenance");
+    addTab(maintenanceWidget, "维护");
 }
 
 void TabSystem::initDeviceInfoWidget()
 {
     deviceInfoWidget = new QWidget(this);
 
-    QLabel *lbl1 = new QLabel("DeviceName:", deviceInfoWidget);
+    QLabel *lbl1 = new QLabel("设备名:", deviceInfoWidget);
     QLineEdit *lineEdit1 = new QLineEdit(deviceInfoWidget);
     lineEdit1->setReadOnly(true);
     deviceInfoMap.insert("DeviceName", lineEdit1);
 
-    QLabel *lbl2 = new QLabel("DeviceModel:", deviceInfoWidget);
+    QLabel *lbl2 = new QLabel("设备模式:", deviceInfoWidget);
     QLineEdit *lineEdit2 = new QLineEdit(deviceInfoWidget);
     lineEdit2->setReadOnly(true);
     deviceInfoMap.insert("DeviceModel", lineEdit2);
 
-    QLabel *lbl3 = new QLabel("SoftwareVer:", deviceInfoWidget);
+    QLabel *lbl3 = new QLabel("软件版本:", deviceInfoWidget);
     QLineEdit *lineEdit3 = new QLineEdit(deviceInfoWidget);
     lineEdit3->setReadOnly(true);
     deviceInfoMap.insert("SoftwareVer", lineEdit3);
 
-    QLabel *lbl4 = new QLabel("DeviceID:", deviceInfoWidget);
+    QLabel *lbl4 = new QLabel("设备ID:", deviceInfoWidget);
     QLineEdit *lineEdit4 = new QLineEdit(deviceInfoWidget);
     lineEdit4->setReadOnly(true);
     deviceInfoMap.insert("DeviceID", lineEdit4);
@@ -140,7 +140,7 @@ void TabSystem::initDeviceInfoWidget()
     layout3->addLayout(layout2);
     layout3->addStretch();
 
-    addTab(deviceInfoWidget, "Device Info");
+    addTab(deviceInfoWidget, "设备信息");
 }
 
 void TabSystem::initSetTimeWidget()
@@ -148,7 +148,7 @@ void TabSystem::initSetTimeWidget()
     QStringList list;
     setTimeWidget = new QWidget(this);
 
-    QLabel *lbl1 = new QLabel("Device Model：", setTimeWidget);
+    QLabel *lbl1 = new QLabel("时区：", setTimeWidget);
     QComboBox *comboBox1 = new QComboBox(setTimeWidget);
     for(int i=12; i>0; i--){
         list.append(QString("GMT-%1:00").arg(i, 2, 10, QChar('0')));
@@ -160,7 +160,7 @@ void TabSystem::initSetTimeWidget()
     list.clear();
     setTimeMap.insert("Time Zone", comboBox1);
 
-    QLabel *lbl2 = new QLabel("Date/Time：", setTimeWidget);
+    QLabel *lbl2 = new QLabel("时间设置：", setTimeWidget);
     QDateEdit *date = new QDateEdit(setTimeWidget);
     date->setDate(QDate::currentDate());
     date->setCalendarPopup(true);
@@ -170,25 +170,25 @@ void TabSystem::initSetTimeWidget()
     time->setCalendarPopup(true);
     setTimeMap.insert("time", time);
 
-    QLabel *lbl3 = new QLabel("PC Time Sync：", setTimeWidget);
+    QLabel *lbl3 = new QLabel("同步电脑时间：", setTimeWidget);
     QComboBox *comboBox2 = new QComboBox(setTimeWidget);
     list << "NO" << "YES";
     comboBox2->addItems(list);
     list.clear();
     setTimeMap.insert("PC Time Sync", comboBox2);
 
-    QLabel *lbl4 = new QLabel("NTP：", setTimeWidget);
+    QLabel *lbl4 = new QLabel("是否启用NTP：", setTimeWidget);
     QComboBox *comboBox3 = new QComboBox(setTimeWidget);
     list << "Disable" << "Enable";
     comboBox3->addItems(list);
     list.clear();
     setTimeMap.insert("NTP", comboBox3);
 
-    QLabel *lbl5 = new QLabel("NTP Server：", setTimeWidget);
+    QLabel *lbl5 = new QLabel("NTP服务器：", setTimeWidget);
     QLineEdit *lineEdit1 = new QLineEdit(setTimeWidget);
     setTimeMap.insert("NTP Server", lineEdit1);
 
-    QPushButton *btn = new QPushButton("Save", setTimeWidget);
+    QPushButton *btn = new QPushButton("保存", setTimeWidget);
     btn->setFixedWidth(50);
     connect(btn, &QPushButton::clicked, this, &TabSystem::handlerPrepareData);
 
@@ -220,7 +220,7 @@ void TabSystem::initSetTimeWidget()
     layout3->addLayout(layout2);
     layout3->addStretch();
 
-    addTab(setTimeWidget, "Set Time");
+    addTab(setTimeWidget, "时间设置");
 }
 
 void TabSystem::initUserAdminWidget()

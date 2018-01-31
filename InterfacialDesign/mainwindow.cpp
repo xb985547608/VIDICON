@@ -66,6 +66,7 @@ void MainWindow::loginHandler(LoginWidget::LoginState state)
     LoginWidget::getInstance()->setVisible(false);
     activateWindow();
     setVisible(true);
+    switchStateHandler(SwitchWidget::Preview);
 }
 
 void MainWindow::logoutHandler()

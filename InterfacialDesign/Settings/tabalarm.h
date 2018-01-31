@@ -28,7 +28,6 @@ public slots:
     void handlerPrepareData();
     void handlerReceiveData(int type, QByteArray data);
 
-
 private:
     QWidget *motionDetectionWidget;
     QMap<QString, QWidget *> motionDetectionMap;

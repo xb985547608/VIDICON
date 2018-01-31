@@ -46,13 +46,13 @@ void TabRecord::initScheduleWidget()
     QStringList list;
     scheduleWidget = new QWidget(this);
 
-    QCheckBox *cb1 = new QCheckBox("Enable", scheduleWidget);
+    QCheckBox *cb1 = new QCheckBox("启用录像计划", scheduleWidget);
     scheduleMap.insert("Enable", cb1);
 
     TimeRegionWidget *region = new TimeRegionWidget(scheduleWidget);
     scheduleMap.insert("region", region);
 
-    QCheckBox *cb2 = new QCheckBox("Time Period 0", scheduleWidget);
+    QCheckBox *cb2 = new QCheckBox("时间段1", scheduleWidget);
     cb2->setObjectName("Time Period 0");
     connect(cb2, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
     connect(cb2, &QCheckBox::stateChanged, this, &TabRecord::handlerTimeSelect);
@@ -70,7 +70,7 @@ void TabRecord::initScheduleWidget()
     connect(time2, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
     scheduleMap.insert("Time Period 0 end", time2);
 
-    QCheckBox *cb3 = new QCheckBox("Time Period 1", scheduleWidget);
+    QCheckBox *cb3 = new QCheckBox("时间段2", scheduleWidget);
     cb3->setObjectName("Time Period 1");
     connect(cb3, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
     connect(cb3, &QCheckBox::stateChanged, this, &TabRecord::handlerTimeSelect);
@@ -88,7 +88,7 @@ void TabRecord::initScheduleWidget()
     connect(time4, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
     scheduleMap.insert("Time Period 1 end", time4);
 
-    QCheckBox *cb4 = new QCheckBox("Time Period 2", scheduleWidget);
+    QCheckBox *cb4 = new QCheckBox("时间段3", scheduleWidget);
     cb4->setObjectName("Time Period 2");
     connect(cb4, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
     connect(cb4, &QCheckBox::stateChanged, this, &TabRecord::handlerTimeSelect);
@@ -106,7 +106,7 @@ void TabRecord::initScheduleWidget()
     connect(time6, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
     scheduleMap.insert("Time Period 2 end", time6);
 
-    QCheckBox *cb5 = new QCheckBox("Time Period 3", scheduleWidget);
+    QCheckBox *cb5 = new QCheckBox("时间段4", scheduleWidget);
     cb5->setObjectName("Time Period 3");
     connect(cb5, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
     connect(cb5, &QCheckBox::stateChanged, this, &TabRecord::handlerTimeSelect);
@@ -124,45 +124,45 @@ void TabRecord::initScheduleWidget()
     connect(time8, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
     scheduleMap.insert("Time Period 3 end", time8);
 
-    QPushButton *btn1 = new QPushButton("Select All", scheduleWidget);
+    QPushButton *btn1 = new QPushButton("全选", scheduleWidget);
     connect(btn1, &QPushButton::clicked, this, &TabRecord::handlerSelectAllWeek);
 
-    QCheckBox *cb6 = new QCheckBox("Sunday", scheduleWidget);
+    QCheckBox *cb6 = new QCheckBox("周天", scheduleWidget);
     cb6->setObjectName("week 0");
     connect(cb6, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
     scheduleMap.insert("week 0", cb6);
 
-    QCheckBox *cb7 = new QCheckBox("Monday", scheduleWidget);
+    QCheckBox *cb7 = new QCheckBox("周一", scheduleWidget);
     cb7->setObjectName("week 1");
     connect(cb7, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
     scheduleMap.insert("week 1", cb7);
 
-    QCheckBox *cb8 = new QCheckBox("Tuesday", scheduleWidget);
+    QCheckBox *cb8 = new QCheckBox("周二", scheduleWidget);
     cb8->setObjectName("week 2");
     connect(cb8, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
     scheduleMap.insert("week 2", cb8);
 
-    QCheckBox *cb9 = new QCheckBox("Wednesday", scheduleWidget);
+    QCheckBox *cb9 = new QCheckBox("周三", scheduleWidget);
     cb9->setObjectName("week 3");
     connect(cb9, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
     scheduleMap.insert("week 3", cb9);
 
-    QCheckBox *cb10 = new QCheckBox("Thursday", scheduleWidget);
+    QCheckBox *cb10 = new QCheckBox("周四", scheduleWidget);
     cb10->setObjectName("week 4");
     connect(cb10, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
     scheduleMap.insert("week 4", cb10);
 
-    QCheckBox *cb11 = new QCheckBox("Friday", scheduleWidget);
+    QCheckBox *cb11 = new QCheckBox("周五", scheduleWidget);
     cb11->setObjectName("week 5");
     connect(cb11, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
     scheduleMap.insert("week 5", cb11);
 
-    QCheckBox *cb12 = new QCheckBox("Saturday", scheduleWidget);
+    QCheckBox *cb12 = new QCheckBox("周六", scheduleWidget);
     cb12->setObjectName("week 6");
     connect(cb12, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
     scheduleMap.insert("week 6", cb12);
 
-    QPushButton *btn2 = new QPushButton("Save", scheduleWidget);
+    QPushButton *btn2 = new QPushButton("保存", scheduleWidget);
     connect(btn2, &QPushButton::clicked, this, &TabRecord::handlerPrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -218,7 +218,7 @@ void TabRecord::initScheduleWidget()
     layout3->addLayout(layout2, 4);
     layout3->addStretch(1);
 
-    addTab(scheduleWidget, "Schedule");
+    addTab(scheduleWidget, "远程录像计划");
 }
 
 void TabRecord::initSDStorageWidget()
@@ -226,20 +226,20 @@ void TabRecord::initSDStorageWidget()
     QStringList list;
     SDStorageWidget = new QWidget(this);
 
-    QRadioButton *rBtn1 = new QRadioButton("Offline Record", SDStorageWidget);
+    QRadioButton *rBtn1 = new QRadioButton("掉线自动录像", SDStorageWidget);
     SDStorageMap.insert("Offline Record", rBtn1);
-    QRadioButton *rBtn2 = new QRadioButton("Auto Upload", SDStorageWidget);
+    QRadioButton *rBtn2 = new QRadioButton("自动续传", SDStorageWidget);
     SDStorageMap.insert("Auto Upload", rBtn2);
 
-    QLabel *lbl1 = new QLabel("Total Space:", SDStorageWidget);
+    QLabel *lbl1 = new QLabel("SD总大小：", SDStorageWidget);
     QLineEdit *lineEdit1 = new QLineEdit(SDStorageWidget);
     SDStorageMap.insert("Total Space", lineEdit1);
 
-    QLabel *lbl2 = new QLabel("Used Space:", SDStorageWidget);
+    QLabel *lbl2 = new QLabel("SD已使用大小：", SDStorageWidget);
     QLineEdit *lineEdit2 = new QLineEdit(SDStorageWidget);
     SDStorageMap.insert("Used Space", lineEdit2);
 
-    QLabel *lbl3 = new QLabel("Available Space:", SDStorageWidget);
+    QLabel *lbl3 = new QLabel("SD未使用大小：", SDStorageWidget);
     QLineEdit *lineEdit3 = new QLineEdit(SDStorageWidget);
     SDStorageMap.insert("Available Space", lineEdit3);
 
@@ -252,32 +252,32 @@ void TabRecord::initSDStorageWidget()
         }
     });
 
-    QLabel *lbl4 = new QLabel("Overwrite:", SDStorageWidget);
+    QLabel *lbl4 = new QLabel("SD内存已满时：", SDStorageWidget);
     QComboBox *comboBox1 = new QComboBox(SDStorageWidget);
-    list << "On" << "Off";
+    list << "循环录像" << "停止录像";
     comboBox1->addItems(list);
     list.clear();
     SDStorageMap.insert("Overwrite", comboBox1);
 
-    QLabel *lbl5 = new QLabel("Stream:", SDStorageWidget);
+    QLabel *lbl5 = new QLabel("录像码流：", SDStorageWidget);
     QComboBox *comboBox2 = new QComboBox(SDStorageWidget);
-    list << "Main Stream" << "Sub Stream";
+    list << "主码流" << "子码流";
     comboBox2->addItems(list);
     list.clear();
     SDStorageMap.insert("Stream", comboBox2);
 
-    QLabel *lbl6 = new QLabel("Overwrite:", SDStorageWidget);
+    QLabel *lbl6 = new QLabel("录像类型：", SDStorageWidget);
     QComboBox *comboBox3 = new QComboBox(SDStorageWidget);
     list << "ivd" << "mp4";
     comboBox3->addItems(list);
     list.clear();
     SDStorageMap.insert("Record Type", comboBox1);
 
-    QLabel *lbl7 = new QLabel("Record Time:", SDStorageWidget);
+    QLabel *lbl7 = new QLabel("报警持续录像时间：", SDStorageWidget);
     QLineEdit *lineEdit4 = new QLineEdit(SDStorageWidget);
     SDStorageMap.insert("Record Time", lineEdit4);
 
-    QPushButton *btn3 = new QPushButton("Save", SDStorageWidget);
+    QPushButton *btn3 = new QPushButton("保存", SDStorageWidget);
     connect(btn3, &QPushButton::clicked, this, &TabRecord::handlerPrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -319,24 +319,24 @@ void TabRecord::initSDStorageWidget()
     layout3->addLayout(layout2, 4);
     layout3->addStretch(1);
 
-    addTab(SDStorageWidget, "SD Storage");
+    addTab(SDStorageWidget, "SD卡管理");
 }
 
 void TabRecord::initSnapshotWidget()
 {
     snapshotWidget = new QWidget(this);
 
-    QCheckBox *cb1 = new QCheckBox("Enable", snapshotWidget);
+    QCheckBox *cb1 = new QCheckBox("启用抓拍设置", snapshotWidget);
     snapshotMap.insert("Enable", cb1);
 
-    QLabel *lbl1 = new QLabel("Interval(1-600):", snapshotWidget);
+    QLabel *lbl1 = new QLabel("抓拍时间间隔(秒)(1-600):", snapshotWidget);
     QLineEdit *lineEdit1 = new QLineEdit(snapshotWidget);
     snapshotMap.insert("Interval", lineEdit1);
 
     TimeRegionWidget *region = new TimeRegionWidget(snapshotWidget);
     snapshotMap.insert("region", region);
 
-    QCheckBox *cb2 = new QCheckBox("Time Period 0", snapshotWidget);
+    QCheckBox *cb2 = new QCheckBox("时间段1", snapshotWidget);
     cb2->setObjectName("Time Period 0");
     connect(cb2, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
     connect(cb2, &QCheckBox::stateChanged, this, &TabRecord::handlerTimeSelect);
@@ -354,7 +354,7 @@ void TabRecord::initSnapshotWidget()
     connect(time2, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
     snapshotMap.insert("Time Period 0 end", time2);
 
-    QCheckBox *cb3 = new QCheckBox("Time Period 1", snapshotWidget);
+    QCheckBox *cb3 = new QCheckBox("时间段2", snapshotWidget);
     cb3->setObjectName("Time Period 1");
     connect(cb3, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
     connect(cb3, &QCheckBox::stateChanged, this, &TabRecord::handlerTimeSelect);
@@ -372,7 +372,7 @@ void TabRecord::initSnapshotWidget()
     connect(time4, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
     snapshotMap.insert("Time Period 1 end", time4);
 
-    QCheckBox *cb4 = new QCheckBox("Time Period 2", snapshotWidget);
+    QCheckBox *cb4 = new QCheckBox("时间段3", snapshotWidget);
     cb4->setObjectName("Time Period 2");
     connect(cb4, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
     connect(cb4, &QCheckBox::stateChanged, this, &TabRecord::handlerTimeSelect);
@@ -390,7 +390,7 @@ void TabRecord::initSnapshotWidget()
     connect(time6, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
     snapshotMap.insert("Time Period 2 end", time6);
 
-    QCheckBox *cb5 = new QCheckBox("Time Period 3", snapshotWidget);
+    QCheckBox *cb5 = new QCheckBox("时间段4", snapshotWidget);
     cb5->setObjectName("Time Period 3");
     connect(cb5, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
     connect(cb5, &QCheckBox::stateChanged, this, &TabRecord::handlerTimeSelect);
@@ -408,45 +408,45 @@ void TabRecord::initSnapshotWidget()
     connect(time8, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
     snapshotMap.insert("Time Period 3 end", time8);
 
-    QPushButton *btn1 = new QPushButton("Select All", snapshotWidget);
+    QPushButton *btn1 = new QPushButton("全选", snapshotWidget);
     connect(btn1, &QPushButton::clicked, this, &TabRecord::handlerSelectAllWeek);
 
-    QCheckBox *cb6 = new QCheckBox("Sunday", snapshotWidget);
+    QCheckBox *cb6 = new QCheckBox("周天", snapshotWidget);
     cb6->setObjectName("week 0");
     connect(cb6, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
     snapshotMap.insert("week 0", cb6);
 
-    QCheckBox *cb7 = new QCheckBox("Monday", snapshotWidget);
+    QCheckBox *cb7 = new QCheckBox("周一", snapshotWidget);
     cb7->setObjectName("week 1");
     connect(cb7, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
     snapshotMap.insert("week 1", cb7);
 
-    QCheckBox *cb8 = new QCheckBox("Tuesday", snapshotWidget);
+    QCheckBox *cb8 = new QCheckBox("周二", snapshotWidget);
     cb8->setObjectName("week 2");
     connect(cb8, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
     snapshotMap.insert("week 2", cb8);
 
-    QCheckBox *cb9 = new QCheckBox("Wednesday", snapshotWidget);
+    QCheckBox *cb9 = new QCheckBox("周三", snapshotWidget);
     cb9->setObjectName("week 3");
     connect(cb9, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
     snapshotMap.insert("week 3", cb9);
 
-    QCheckBox *cb10 = new QCheckBox("Thursday", snapshotWidget);
+    QCheckBox *cb10 = new QCheckBox("周四", snapshotWidget);
     cb10->setObjectName("week 4");
     connect(cb10, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
     snapshotMap.insert("week 4", cb10);
 
-    QCheckBox *cb11 = new QCheckBox("Friday", snapshotWidget);
+    QCheckBox *cb11 = new QCheckBox("周五", snapshotWidget);
     cb11->setObjectName("week 5");
     connect(cb11, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
     snapshotMap.insert("week 5", cb11);
 
-    QCheckBox *cb12 = new QCheckBox("Saturday", snapshotWidget);
+    QCheckBox *cb12 = new QCheckBox("周六", snapshotWidget);
     cb12->setObjectName("week 6");
     connect(cb12, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
     snapshotMap.insert("week 6", cb12);
 
-    QPushButton *btn2 = new QPushButton("Save", snapshotWidget);
+    QPushButton *btn2 = new QPushButton("保存", snapshotWidget);
     connect(btn2, &QPushButton::clicked, this, &TabRecord::handlerPrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -505,7 +505,7 @@ void TabRecord::initSnapshotWidget()
     layout3->addLayout(layout2, 4);
     layout3->addStretch(1);
 
-    addTab(snapshotWidget, "Snapshot");
+    addTab(snapshotWidget, "抓拍设置");
 }
 
 void TabRecord::initDestinationWidget()

@@ -56,14 +56,14 @@ void TabMedia::initAudioVideoWidget()
     list.clear();
     audioVideoMap.insert("Standard 1", comboBox13);
 
-    QLabel *lbl2 = new QLabel("Stream Type", audioVideoWidget);
-    QLabel *lbl3 = new QLabel("Main Stream", audioVideoWidget);
+    QLabel *lbl2 = new QLabel("码流类型", audioVideoWidget);
+    QLabel *lbl3 = new QLabel("主码流", audioVideoWidget);
 
-    QLabel *lbl4 = new QLabel("Stream Type", audioVideoWidget);
-    QLabel *lbl5 = new QLabel("Sub Stream", audioVideoWidget);
+    QLabel *lbl4 = new QLabel("码流类型", audioVideoWidget);
+    QLabel *lbl5 = new QLabel("子码流", audioVideoWidget);
 
 
-    QLabel *lbl6 = new QLabel("Frame Rate", audioVideoWidget);
+    QLabel *lbl6 = new QLabel("帧率", audioVideoWidget);
     QComboBox *comboBox2 = new QComboBox(audioVideoWidget);
     for(int i=1; i<=25; i++){
         list.append(QString::number(i));
@@ -72,7 +72,7 @@ void TabMedia::initAudioVideoWidget()
     list.clear();
     audioVideoMap.insert("Frame Rate 0", comboBox2);
 
-    QLabel *lbl7 = new QLabel("Frame Rate", audioVideoWidget);
+    QLabel *lbl7 = new QLabel("帧率", audioVideoWidget);
     QComboBox *comboBox3 = new QComboBox(audioVideoWidget);
     for(int i=1; i<=25; i++){
         list.append(QString::number(i));
@@ -81,97 +81,97 @@ void TabMedia::initAudioVideoWidget()
     list.clear();
     audioVideoMap.insert("Frame Rate 1", comboBox3);
 
-    QLabel *lbl8 = new QLabel("Codec", audioVideoWidget);
+    QLabel *lbl8 = new QLabel("编码类型", audioVideoWidget);
     QComboBox *comboBox4 = new QComboBox(audioVideoWidget);
     list << "H264" << "H265";
     comboBox4->addItems(list);
     list.clear();
     audioVideoMap.insert("Codec 0", comboBox4);
 
-    QLabel *lbl9 = new QLabel("Codec", audioVideoWidget);
+    QLabel *lbl9 = new QLabel("编码类型", audioVideoWidget);
     QComboBox *comboBox5 = new QComboBox(audioVideoWidget);
     list << "H264" << "H265";
     comboBox5->addItems(list);
     list.clear();
     audioVideoMap.insert("Codec 1", comboBox5);
 
-    QLabel *lbl10 = new QLabel("Bitrate Mode", audioVideoWidget);
+    QLabel *lbl10 = new QLabel("码流模式", audioVideoWidget);
     QComboBox *comboBox6 = new QComboBox(audioVideoWidget);
     list << "CBR" << "VBR";
     comboBox6->addItems(list);
     list.clear();
     audioVideoMap.insert("Bitrate Mode 0", comboBox6);
 
-    QLabel *lbl11 = new QLabel("Bitrate Mode", audioVideoWidget);
+    QLabel *lbl11 = new QLabel("码流模式", audioVideoWidget);
     QComboBox *comboBox7 = new QComboBox(audioVideoWidget);
     list << "CBR" << "VBR";
     comboBox7->addItems(list);
     list.clear();
     audioVideoMap.insert("Bitrate Mode 1", comboBox7);
 
-    QLabel *lbl12 = new QLabel("Resolution", audioVideoWidget);
+    QLabel *lbl12 = new QLabel("分辨率", audioVideoWidget);
     QComboBox *comboBox8 = new QComboBox(audioVideoWidget);
     list << "1920*1080" << "1280*720";
     comboBox8->addItems(list);
     list.clear();
     audioVideoMap.insert("Resolution 0", comboBox8);
 
-    QLabel *lbl13 = new QLabel("Resolution", audioVideoWidget);
+    QLabel *lbl13 = new QLabel("分辨率", audioVideoWidget);
     QComboBox *comboBox9 = new QComboBox(audioVideoWidget);
     list << "352*288" << "704*576";
     comboBox9->addItems(list);
     list.clear();
     audioVideoMap.insert("Resolution 1", comboBox9);
 
-    QLabel *lbl14 = new QLabel("Video quality", audioVideoWidget);
+    QLabel *lbl14 = new QLabel("视频质量", audioVideoWidget);
     QComboBox *comboBox10 = new QComboBox(audioVideoWidget);
-    list << "Worst" << "Normal" << "Good" << "Better" << "Best";
+    list << "差" << "正常" << "好" << "更好" << "最好";
     comboBox10->addItems(list);
     list.clear();
     audioVideoMap.insert("Video quality 0", comboBox10);
 
-    QLabel *lbl15 = new QLabel("Video quality", audioVideoWidget);
+    QLabel *lbl15 = new QLabel("视频质量", audioVideoWidget);
     QComboBox *comboBox11 = new QComboBox(audioVideoWidget);
-    list << "Worst" << "Normal" << "Good" << "Better" << "Best";
+    list << "差" << "正常" << "好" << "更好" << "最好";
     comboBox11->addItems(list);
     list.clear();
     audioVideoMap.insert("Video quality 1", comboBox11);
 
-    QLabel *lbl16 = new QLabel("Video Rate", audioVideoWidget);
+    QLabel *lbl16 = new QLabel("码流大小", audioVideoWidget);
     QLineEdit *lineEdit1 = new QLineEdit(audioVideoWidget);
     lineEdit1->setValidator(new QIntValidator(36, 10240, this));
     QLabel *lbl17 = new QLabel("(Kbit)(36-10240)", audioVideoWidget);
     audioVideoMap.insert("Video Rate 0", lineEdit1);
 
-    QLabel *lbl18 = new QLabel("Video Rate", audioVideoWidget);
+    QLabel *lbl18 = new QLabel("码流大小", audioVideoWidget);
     QLineEdit *lineEdit2 = new QLineEdit(audioVideoWidget);
     lineEdit2->setValidator(new QIntValidator(20, 2048, this));
     QLabel *lbl19 = new QLabel("(Kbit)(20-2048)", audioVideoWidget);
     audioVideoMap.insert("Video Rate 1", lineEdit2);
 
-    QLabel *lbl20 = new QLabel("I Frame Interval", audioVideoWidget);
+    QLabel *lbl20 = new QLabel("I帧间隔", audioVideoWidget);
     QLineEdit *lineEdit3 = new QLineEdit(audioVideoWidget);
     lineEdit3->setValidator(new QIntValidator(1, 150, this));
     QLabel *lbl21 = new QLabel("(FPS)(1-150)", audioVideoWidget);
     audioVideoMap.insert("I Frame Interval 0", lineEdit3);
 
-    QLabel *lbl22 = new QLabel("I Frame Interval", audioVideoWidget);
+    QLabel *lbl22 = new QLabel("I帧间隔", audioVideoWidget);
     QLineEdit *lineEdit4 = new QLineEdit(audioVideoWidget);
     lineEdit4->setValidator(new QIntValidator(1, 150, this));
     QLabel *lbl23 = new QLabel("(FPS)(1-150)", audioVideoWidget);
     audioVideoMap.insert("I Frame Interval 1", lineEdit4);
 
-    QRadioButton *radioBtn = new QRadioButton("Audio Enable", audioVideoWidget);
+    QRadioButton *radioBtn = new QRadioButton("启用音频", audioVideoWidget);
     audioVideoMap.insert("Audio Enable", radioBtn);
 
-    QLabel *lbl24 = new QLabel("Codec", audioVideoWidget);
+    QLabel *lbl24 = new QLabel("编码类型", audioVideoWidget);
     QComboBox *comboBox12 = new QComboBox(audioVideoWidget);
     list << "G711A" << "G711U" /*<< "G726" << "AAC"*/;
     comboBox12->addItems(list);
     list.clear();
     audioVideoMap.insert("Audio Codec", comboBox12);
 
-    QPushButton *btn = new QPushButton("Save", audioVideoWidget);
+    QPushButton *btn = new QPushButton("保存", audioVideoWidget);
     connect(btn, &QPushButton::clicked, this, [this](){handlerPrepareData();});
 
     QGridLayout *layout = new QGridLayout;
@@ -242,7 +242,7 @@ void TabMedia::initAudioVideoWidget()
     vLayout->addLayout(layout);
     vLayout->addStretch();
 
-    addTab(audioVideoWidget, "Audio Video");
+    addTab(audioVideoWidget, "音视频");
 }
 
 void TabMedia::initPrivacyWidget()
@@ -254,16 +254,16 @@ void TabMedia::initPrivacyWidget()
     displayArea->setStyleSheet("background-color:black");
     privacyMap.insert("DisplayArea", displayArea);
 
-    QRadioButton *radioBtn1 = new QRadioButton("Enable (Support 4 Zone)", privacyWidget);
+    QRadioButton *radioBtn1 = new QRadioButton("使能(支持4个区域)", privacyWidget);
     privacyMap.insert("Enable", radioBtn1);
 
-    QPushButton *btn1 = new QPushButton("FullScreen", privacyWidget);
+    QPushButton *btn1 = new QPushButton("全屏", privacyWidget);
     privacyMap.insert("FullScreen", btn1);
 
-    QPushButton *btn2 = new QPushButton("ClearScreen", privacyWidget);
+    QPushButton *btn2 = new QPushButton("清屏", privacyWidget);
     privacyMap.insert("ClearScreen", btn2);
 
-    QPushButton *btn3 = new QPushButton("Save", privacyWidget);
+    QPushButton *btn3 = new QPushButton("保存", privacyWidget);
     privacyMap.insert("Save", btn3);
     connect(btn3, &QPushButton::clicked, this, &TabMedia::handlerPrepareData);
 
@@ -292,7 +292,7 @@ void TabMedia::initPrivacyWidget()
     layout5->addLayout(layout4);
     layout5->addStretch();
 
-    addTab(privacyWidget, "Privacy");
+    addTab(privacyWidget, "隐私遮蔽");
 }
 
 void TabMedia::initImageWidget()
@@ -358,28 +358,28 @@ void TabMedia::initImageWidget()
 
     QLabel *lbl11 = new QLabel("镜像：", imageWidget);
     QComboBox *comboBox1 = new QComboBox(imageWidget);
-    list << "Left" << "Right";
+    list << "左" << "右";
     comboBox1->addItems(list);
     list.clear();
     imageMap.insert("Mirror", comboBox1);
 
     QLabel *lbl12 = new QLabel("翻转：", imageWidget);
     QComboBox *comboBox2 = new QComboBox(imageWidget);
-    list << "Up" << "Down";
+    list << "上" << "下";
     comboBox2->addItems(list);
     list.clear();
     imageMap.insert("Turn", comboBox2);
 
     QLabel *lbl13 = new QLabel("视角：", imageWidget);
     QComboBox *comboBox3 = new QComboBox(imageWidget);
-    list << "Normal" << "Corridor 90" << "Corridor 270" << "Invert";
+    list << "正常" << "顺时针旋转90" << "顺时针旋转270" << "顺时针旋转180";
     comboBox3->addItems(list);
     list.clear();
     imageMap.insert("VisionMode", comboBox3);
 
     QLabel *lbl14 = new QLabel("3D降噪：", imageWidget);
     QComboBox *comboBox4 = new QComboBox(imageWidget);
-    list << "Disable" << "Enable";
+    list << "失能" << "使能";
     comboBox4->addItems(list);
     list.clear();
     imageMap.insert("NoiseReduceMode", comboBox4);
@@ -394,28 +394,28 @@ void TabMedia::initImageWidget()
 
     QLabel *lbl16 = new QLabel("鱼眼矫正：", imageWidget);
     QComboBox *comboBox6 = new QComboBox(imageWidget);
-    list << "Disable" << "Enable";
+    list << "失能" << "使能";
     comboBox6->addItems(list);
     list.clear();
     imageMap.insert("Fisheye correction", comboBox6);
 
     QLabel *lbl17 = new QLabel("防闪烁：", imageWidget);
     QComboBox *comboBox7 = new QComboBox(imageWidget);
-    list << "Disable" << "Enable";
+    list << "失能" << "使能";
     comboBox7->addItems(list);
     list.clear();
     imageMap.insert("AntiFlashMode", comboBox7);
 
     QLabel *lbl18 = new QLabel("曝光：", imageWidget);
     QComboBox *comboBox8 = new QComboBox(imageWidget);
-    list << "Auto" << "Manual";
+    list << "自动" << "手动";
     comboBox8->addItems(list);
     list.clear();
     imageMap.insert("ExposureMode", comboBox8);
 
     QLabel *lbl19 = new QLabel("背光补偿：", imageWidget);
     QComboBox *comboBox9 = new QComboBox(imageWidget);
-    list << "Disable" << "BLC" << "WDR" << "HLC" << "DWDR";
+    list << "失能" << "背光补偿" << "宽动态" << "强光抑制" << "数字宽动态";
     comboBox9->addItems(list);
     list.clear();
     connect(comboBox9, static_cast<void (QComboBox:: *)(int)>(&QComboBox::currentIndexChanged), this, [this](int index){
@@ -436,9 +436,9 @@ void TabMedia::initImageWidget()
         lbl20->setText(QString::number(value));
     });
 
-    QLabel *lbl21 = new QLabel("Day/Night", imageWidget);
+    QLabel *lbl21 = new QLabel("昼夜模式", imageWidget);
     QComboBox *comboBox10 = new QComboBox(imageWidget);
-    list << "Color" << "Monochrome" << "Auto" << "Time Control";
+    list << "全彩" << "全黑白" << "自动调节" << "时间调节";
     comboBox10->addItems(list);
     list.clear();
     connect(comboBox10, static_cast<void (QComboBox:: *)(int)>(&QComboBox::currentIndexChanged), this, [this](int index){
@@ -450,16 +450,16 @@ void TabMedia::initImageWidget()
     });
     imageMap.insert("Day/Night", comboBox10);
 
-    QLabel *lbl22 = new QLabel("Black To Color:", imageWidget);
+    QLabel *lbl22 = new QLabel("白昼开始点:", imageWidget);
     imageMap.insert("time1tag", lbl22);
     QTimeEdit *time1 = new QTimeEdit(imageWidget);
     imageMap.insert("time1", time1);
-    QLabel *lbl23 = new QLabel("Color To Black:", imageWidget);
+    QLabel *lbl23 = new QLabel("黑夜开始点:", imageWidget);
     imageMap.insert("time2tag", lbl23);
     QTimeEdit *time2 = new QTimeEdit(imageWidget);
     imageMap.insert("time2", time2);
 
-    QPushButton *btn = new QPushButton("Save", imageWidget);
+    QPushButton *btn = new QPushButton("保存", imageWidget);
     connect(btn, &QPushButton::clicked, this, &TabMedia::handlerPrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -533,7 +533,7 @@ void TabMedia::initImageWidget()
     layout3->addLayout(layout2, 10);
     layout3->addStretch(1);
 
-    addTab(imageWidget, "Image");
+    addTab(imageWidget, "图像参数");
 }
 
 void TabMedia::initROIWidget()
@@ -546,25 +546,25 @@ void TabMedia::initROIWidget()
     displayArea->setStyleSheet("background-color:black");
     ROIMap.insert("DisplayArea", displayArea);
 
-    QRadioButton *radioBtn1 = new QRadioButton("Enable (Support 4 Zone)", roiWidget);
+    QRadioButton *radioBtn1 = new QRadioButton("使能(支持4个区域)", roiWidget);
     ROIMap.insert("Enable", radioBtn1);
 
-    QLabel *lbl1 = new QLabel("Mode", roiWidget);
+    QLabel *lbl1 = new QLabel("模式", roiWidget);
     lbl1->setFixedWidth(50);
     QComboBox *comboBox = new QComboBox(roiWidget);
     comboBox->setFixedWidth(150);
-    list << "clear" << "Fuzzy";
+    list << "清晰" << "模式";
     comboBox->addItems(list);
     list.clear();
     ROIMap.insert("Mode", comboBox);
 
-    QPushButton *btn1 = new QPushButton("FullScreen", roiWidget);
+    QPushButton *btn1 = new QPushButton("全屏", roiWidget);
     ROIMap.insert("FullScreen", btn1);
 
-    QPushButton *btn2 = new QPushButton("ClearScreen", roiWidget);
+    QPushButton *btn2 = new QPushButton("清屏", roiWidget);
     ROIMap.insert("ClearScreen", btn2);
 
-    QPushButton *btn3 = new QPushButton("Save", roiWidget);
+    QPushButton *btn3 = new QPushButton("保存", roiWidget);
     ROIMap.insert("Save", btn3);
 
     QHBoxLayout *layout1 = new QHBoxLayout;
@@ -611,25 +611,25 @@ void TabMedia::initOSDWidget()
     displayArea->setStyleSheet("background-color:black");
     OSDMap.insert("DisplayArea", displayArea);
 
-    QCheckBox *cb1 = new QCheckBox("Show Clock", osdWidget);
+    QCheckBox *cb1 = new QCheckBox("显示时间", osdWidget);
     OSDMap.insert("Show Clock", cb1);
 
-    QCheckBox *cb2 = new QCheckBox("Show FPS", osdWidget);
+    QCheckBox *cb2 = new QCheckBox("显示帧率码率", osdWidget);
     OSDMap.insert("Show FPS", cb2);
 
-    QCheckBox *cb3 = new QCheckBox("Show Channel Name", osdWidget);
+    QCheckBox *cb3 = new QCheckBox("显示通道名称", osdWidget);
     OSDMap.insert("Show Channel Name", cb3);
     QLineEdit *lineEdit1 = new QLineEdit("cam00", osdWidget);
     lineEdit1->setAttribute(Qt::WA_InputMethodEnabled, false);
     OSDMap.insert("Channel Name", lineEdit1);
 
-    QCheckBox *cb4 = new QCheckBox("Show User Info", osdWidget);
+    QCheckBox *cb4 = new QCheckBox("显示车号-车厢号-车位号", osdWidget);
     OSDMap.insert("Show User Info", cb4);
-    QLineEdit *lineEdit2 = new QLineEdit("sunniwell", osdWidget);
+    QLineEdit *lineEdit2 = new QLineEdit(osdWidget);
     lineEdit2->setAttribute(Qt::WA_InputMethodEnabled, false);
     OSDMap.insert("User Info", lineEdit2);
 
-    QPushButton *btn = new QPushButton("Save", osdWidget);
+    QPushButton *btn = new QPushButton("保存", osdWidget);
     btn->setFixedWidth(50);
     connect(btn, &QPushButton::clicked, this, &TabMedia::handlerPrepareData);
 

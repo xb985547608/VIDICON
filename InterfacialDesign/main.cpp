@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
     lbl->setAlignment(Qt::AlignCenter);
     lbl->setFixedSize(200, 100);
     lbl->show();
+
     QObject::connect(s, &SearchDeviceThread::signalDeviceInfo, lbl, [lbl](SearchDeviceThread::DeviceInfo *info){
         QThread *t = new QThread();
 

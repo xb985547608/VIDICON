@@ -7,7 +7,7 @@ VlcControl::VlcControl(QObject *parent) : QObject(parent),
     vlcInstance(NULL),
     vlcMedia(NULL),
     vlcMediaPlayer(NULL),
-    vlcCache(2000),
+    vlcCache(300),
     vlcState(VLCSTOP),
     vlcVolume(50),
     dstIPAddr("192.168.0.66"),
@@ -132,6 +132,9 @@ int VlcControl::play()
 {
     int ret = -1;
     if(vlcMediaPlayer != NULL){
+        QString para = "network-caching=" + QString::number(vlcCache);
+        libvlc_media_add_option(vlcMedia, para.toStdString().data());
+
         ret = libvlc_media_player_play(vlcMediaPlayer);
         if(ret == 0) {
             vlcState = VLCPLAY;

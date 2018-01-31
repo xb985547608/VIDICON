@@ -60,34 +60,34 @@ void SettinsWidget::initSideBar()
 
     boxMedia = new BoxView(toolbox);
     boxMedia->setFrameShape(QFrame::NoFrame);
-    list << "Audio Video" << "Privacy" << "Image" << "ROI" << "OSD";
+    list << "音视频" << "隐私遮蔽" << "图像参数" << "ROI" << "OSD";
     boxMedia->setData(list);
-    toolbox->addItem(boxMedia, QIcon(":/images/media.png"), "Media Config");
+    toolbox->addItem(boxMedia, QIcon(":/images/media.png"), "媒体设置");
 
     list.clear();
     boxNetwork = new BoxView(toolbox);
     list << "TCP/IP" << "PPPOE" << "DDNS Client" << "Email" << "FTP"
          << "Bonjour" << "SNMP" << "UPNP" << "HTTPs" << "P2P" << "RTSP";
     boxNetwork->setData(list);
-    toolbox->addItem(boxNetwork, QIcon(":/images/network.png"), "Network Config");
+    toolbox->addItem(boxNetwork, QIcon(":/images/network.png"), "网络设置");
 
     list.clear();
     boxAlarm = new BoxView(toolbox);
-    list << "Motion Detection" << "Video Blind" << "Alarm";
+    list << "移动侦测" << "遮挡报警" << "探头报警";
     boxAlarm->setData(list);
-    toolbox->addItem(boxAlarm, QIcon(":/images/alarm.png"), "Alarm Config");
+    toolbox->addItem(boxAlarm, QIcon(":/images/alarm.png"), "报警设置");
 
     list.clear();
     boxRecord = new BoxView(toolbox);
-    list << "Schedule" << "SD Storage" << "Snapshot" /*<< "Destination" << "NAS"*/;
+    list << "远程录像计划" << "SD卡管理" << "抓拍设置" /*<< "Destination" << "NAS"*/;
     boxRecord->setData(list);
-    toolbox->addItem(boxRecord, QIcon(":/images/record.png"), "Record");
+    toolbox->addItem(boxRecord, QIcon(":/images/record.png"), "记录");
 
     list.clear();
     boxSystem = new BoxView(toolbox);
-    list << "Maintenance" << "Device Info" << "Set Time"/* << "User Admin"*/;
+    list << "维护" << "设备信息" << "时间设置"/* << "User Admin"*/;
     boxSystem->setData(list);
-    toolbox->addItem(boxSystem, QIcon(":/images/system.png"), "System Config");
+    toolbox->addItem(boxSystem, QIcon(":/images/system.png"), "系统设置");
 }
 
 void SettinsWidget::initDisplayArea()
