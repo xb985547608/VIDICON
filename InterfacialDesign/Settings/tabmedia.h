@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QMap>
 #include <QTabWidget>
+#include "waitingshade.h"
 
 #define TABMEDIANUM 5
 

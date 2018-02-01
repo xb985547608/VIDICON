@@ -49,7 +49,6 @@ protected:
 
 private:
     QUdpSocket *udpSocket;
-    QMutex mutex;
     QHostAddress specifiedIP;
     bool isRun;
 };

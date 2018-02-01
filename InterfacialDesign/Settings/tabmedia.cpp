@@ -814,6 +814,7 @@ void TabMedia::handlerPrepareData()
     default:
         break;
     }
+    WaitingShade::getInstance()->show();
 }
 
 void TabMedia::handlerReceiveData(int type, QByteArray data)

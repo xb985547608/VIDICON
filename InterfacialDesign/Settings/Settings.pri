@@ -12,7 +12,8 @@ HEADERS += \
     $$PWD/tabrecord.h \
     $$PWD/tabsystem.h \
     $$PWD/boxwidget.h \
-    $$PWD/tableview.h
+    $$PWD/tableview.h \
+    $$PWD/waitingshade.h
 
 SOURCES += \
     $$PWD/settingswidget.cpp \
@@ -22,7 +23,8 @@ SOURCES += \
     $$PWD/tabrecord.cpp \
     $$PWD/tabsystem.cpp \
     $$PWD/boxwidget.cpp \
-    $$PWD/tableview.cpp
+    $$PWD/tableview.cpp \
+    $$PWD/waitingshade.cpp
 
 RESOURCES += \
     $$PWD/settings.qrc

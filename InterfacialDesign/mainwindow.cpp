@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include "Protocol/vidiconprotocol.h"
 #include "parsexml.h"
+#include "Settings/waitingshade.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -31,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     settinsWidget = new SettinsWidget(ui->frameContent);
     settinsWidget->setVisible(false);
+
+    WaitingShade::getInstance(this);
 
     QVBoxLayout *layout2 = new QVBoxLayout(ui->frameContent);
     layout2->setSpacing(0);
@@ -103,6 +106,8 @@ void MainWindow::switchStateHandler(SwitchWidget::SwitchState form)
 
 void MainWindow::handlerReceiveData(int type, QByteArray data)
 {
+    WaitingShade *w = WaitingShade::getInstance();
+
     switch(type) {
     case RESPONSESTATUS: {
         VidiconProtocol::ResponseStatus reply;
@@ -113,6 +118,17 @@ void MainWindow::handlerReceiveData(int type, QByteArray data)
                 QMessageBox::information(this, "参数设置", QString("参数设置成功"));
             }
         }
+        if(w->isVisible()) {
+            w->hide();
+        }
+        break;
+    }
+    case NETWORKERROR: {
+        QMessageBox::information(this, "参数设置", QString("网络错误，请稍后重试"));
+        if(w->isVisible()) {
+            w->hide();
+        }
+        break;
     }
     default:
         break;

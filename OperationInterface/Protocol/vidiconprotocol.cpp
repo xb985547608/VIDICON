@@ -1688,9 +1688,6 @@ void VidiconProtocol::downloadFile(QString fileName)
 
 void VidiconProtocol::handlerTimeout()
 {
-//    currentState = Leisure;
-//    currentType = -1;
-//    reply = NULL;
 }
 
 void VidiconProtocol::handlerPrePare(QNetworkRequest &request, QString RequestBody)
@@ -1719,6 +1716,7 @@ void VidiconProtocol::handlerReply(QNetworkReply *reply)
         qDebug() << "#VidiconProtocol# hanndlerReply,"
                  << "StatusCode:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
                  << "ErrorType:" << reply->error();
+        emit signalSendData(NETWORKERROR, QByteArray());
     }else {
         qDebug("#VidiconProtocol# hanndlerReply, response content start............");
         QByteArray bytes = reply->readAll();

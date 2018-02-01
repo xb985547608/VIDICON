@@ -11,7 +11,6 @@ SearchDeviceThread::SearchDeviceThread(QObject *parent) :
 
 void SearchDeviceThread::setSpecifiedIP(const QHostAddress &ip)
 {
-    QMutexLocker locker(&mutex);
     specifiedIP = ip;
 }
 
@@ -26,8 +25,6 @@ void SearchDeviceThread::run()
 
     while(isRun) {
         while(!(udpSocket->isValid()) || udpSocket->state() != QUdpSocket::BoundState) {
-            QMutexLocker locker(&mutex);
-
             udpSocket->abort();
             udpSocket->close();
             delete udpSocket;
@@ -35,20 +32,15 @@ void SearchDeviceThread::run()
 
             if (!udpSocket->bind(specifiedIP, UDPMULTICASTRECEIVEPORT, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint)) {
                 qDebug() << "#SearchDeviceThread# udp socket bind error!";
-                break;
             }
             udpSocket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
             if (!udpSocket->joinMulticastGroup(QHostAddress(UDPMULTICASTADDR))) {
                 qDebug() << "#SearchDeviceThread# udp socket join group " << " fail!";
-                break;
             }
             msleep(1000);
         }
 
-        {
-            QMutexLocker locker(&mutex);
-            udpSocket->writeDatagram("<Discovery/>\r\n", QHostAddress(UDPMULTICASTADDR), UDPMULTICASTSENDPORT);
-        }
+        udpSocket->writeDatagram("<Discovery/>\r\n", QHostAddress(UDPMULTICASTADDR), UDPMULTICASTSENDPORT);
         if(udpSocket->waitForReadyRead(1000)) {
             readyRead();
         }else {
@@ -71,10 +63,8 @@ void SearchDeviceThread::readyRead()
 
     char buff[length];
     int ret;
-    {
-        QMutexLocker locker(&mutex);
-        ret = udpSocket->readDatagram(buff, length, &ip, &port);
-    }
+    ret = udpSocket->readDatagram(buff, length, &ip, &port);
+
     buff[ret] = '\0';
     qDebug() << "Sender IP:" << ip.toString() << "Port:" << port;
     qDebug() << "Data Length:" << ret << "Data Content:" << buff;

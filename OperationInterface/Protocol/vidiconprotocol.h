@@ -55,7 +55,8 @@
 #define LOGIN                1063
 #define DOWNLOAD             1064
 
-#define RESPONSESTATUS       0x8888
+#define RESPONSESTATUS       8888
+#define NETWORKERROR         8889
 
 #define TIMEOUTMSEC          2000
 
