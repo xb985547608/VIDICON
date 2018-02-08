@@ -1,5 +1,9 @@
 debug
 release
+moc
+ui
+obj
+rcc
 Makefile*
 *.user*
 object_script*

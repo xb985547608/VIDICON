@@ -8,6 +8,7 @@
 #include <QHeaderView>
 
 #define CHECKBOXCOLUMN 0
+#define OPERATIONCOLUMN 2
 #define PRESSEDROLE   Qt::UserRole + 1
 #define MOVINGROLE   Qt::UserRole + 2
 #define RESETMOVINGALLROLE   Qt::UserRole + 3
@@ -65,10 +66,11 @@ public:
     const QList<FileModel::FileInfo> &dataSource();
 
 protected:
-    virtual void mousePressEvent(QMouseEvent *event);
-    virtual void mouseReleaseEvent(QMouseEvent *event);
+    virtual void mousePressEvent(QMouseEvent *event) override;
+    virtual void mouseReleaseEvent(QMouseEvent *event) override;
 
 private:
+    QList<QPushButton *> btnList;
 };
 
 class FileViewDelegate : public QItemDelegate
@@ -88,7 +90,7 @@ protected:
                            const QStyleOptionViewItem &option,
                            const QModelIndex &index) const;
 };
-
+//主要实现表头复选框功能
 class FileViewHeaderView : public QHeaderView
 {
     Q_OBJECT

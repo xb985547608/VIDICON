@@ -12,6 +12,11 @@ TARGET = VIDICON
 TEMPLATE = app
 CONFIG += c++11
 
+MOC_DIR = $$PWD/moc
+RCC_DIR = $$PWD/rcc
+UI_DIR  = $$PWD/ui
+OBJECTS_DIR = $$PWD/obj
+
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the

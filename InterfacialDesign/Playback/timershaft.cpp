@@ -31,6 +31,7 @@ void TimerShaft::drawTick(QPainter &p)
         //整点
         int x = startPos.x() + i * halfHourTickInterval * 2;
         if((x >= margin) && (x <= (margin + width))){
+            p.setPen(QPen());
             p.drawLine(QPointF(x,  startPos.y() - TICKMAXHEIGHT),
                        QPointF(x,  startPos.y()));
         }

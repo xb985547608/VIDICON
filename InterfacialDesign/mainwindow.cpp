@@ -107,6 +107,9 @@ void MainWindow::switchStateHandler(SwitchWidget::SwitchState form)
 void MainWindow::handlerReceiveData(int type, QByteArray data)
 {
     WaitingShade *w = WaitingShade::getInstance();
+    if(!isVisible()) {
+        return;
+    }
 
     switch(type) {
     case RESPONSESTATUS: {

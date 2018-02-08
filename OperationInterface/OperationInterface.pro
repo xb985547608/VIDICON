@@ -27,6 +27,10 @@ CONFIG(debug, debug|release){
 }else{
     DESTDIR = ../InterfacialDesign/release/
 }
+MOC_DIR = $$PWD/moc
+RCC_DIR = $$PWD/rcc
+UI_DIR  = $$PWD/ui
+OBJECTS_DIR = $$PWD/obj
 
 SOURCES += \
     settings.cpp \

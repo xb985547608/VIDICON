@@ -16,36 +16,44 @@
 
 FileView::FileView(QWidget *parent) : QTableView(parent)
 {
+    FileModel *model = new FileModel(this);
+    setModel(model);
     FileViewHeaderView *header = new FileViewHeaderView(Qt::Horizontal, this);
     setHorizontalHeader(header);
-    FileModel *model = new FileModel(this);
-    QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel(this);
-    proxyModel->setSourceModel(model);
-    setModel(proxyModel);
-    setSortingEnabled(false);
-    setMouseTracking(true);
+    //设置自定义委托
     setItemDelegate(new FileViewDelegate(this));
+    //水平头最后一列自动充满
     horizontalHeader()->setStretchLastSection(true);
+    //单行选中
     setSelectionBehavior(QAbstractItemView::SelectRows);
+    //选择模式-->单选
+    setSelectionMode(QTableView::SingleSelection);
+    //表头不高亮
     horizontalHeader()->setHighlightSections(false);
+    //隐藏列头
     verticalHeader()->setVisible(false);
+    //显示网格
     setShowGrid(true);
+    //外框风格-->无边框
     setFrameShape(QFrame::NoFrame);
-    setMouseTracking(true);
-    setStyleSheet("QTableView::item:selected{ background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #c2e9fb, stop:1 #a1c4fd );}\
-                    QCheckBox::indicator:unchecked { border-image: url(:/images/unchecked.png)0 0 0 28;}\
-                    QCheckBox::indicator:unchecked:hover { border-image: url(:/images/unchecked.png)0 14 0 14;}\
-                    QCheckBox::indicator:unchecked:pressed { border-image: url(:/images/unchecked.png)0 28 0 0;}\
-                    QCheckBox::indicator:checked { border-image: url(:/images/checked.png)0 0 0 28;}\
-                    QCheckBox::indicator:checked:hover { border-image: url(:/images/checked.png)0 14 0 14;}\
-                    QCheckBox::indicator:checked:pressed { border-image: url(:/images/checked.png)0 28 0 0;}");
+    //预设每列宽度
+    setColumnWidth(0, 40);
+    setColumnWidth(1, 250);
+    setColumnWidth(2, 60);
+
+    setStyleSheet("QTableView{selection-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #37ecba, stop: 1 #72afd3);}\
+                   QCheckBox::indicator:unchecked { border-image: url(:/images/unchecked.png)0 0 0 28;}\
+                   QCheckBox::indicator:unchecked:hover { border-image: url(:/images/unchecked.png)0 14 0 14;}\
+                   QCheckBox::indicator:unchecked:pressed { border-image: url(:/images/unchecked.png)0 28 0 0;}\
+                   QCheckBox::indicator:checked { border-image: url(:/images/checked.png)0 0 0 28;}\
+                   QCheckBox::indicator:checked:hover { border-image: url(:/images/checked.png)0 14 0 14;}\
+                   QCheckBox::indicator:checked:pressed { border-image: url(:/images/checked.png)0 28 0 0;}\
+                   QPushButton{border:0px;color:black;text-decoration:underline;font:bold arial,sans-serif;}\
+                   QPushButton:hover{color:blue}\
+                   QPushButton:pressed{color:red}");
 
     connect(header, &FileViewHeaderView::signalStateChange, model, &FileModel::handlerStateChange);
     connect(model, &FileModel::signalStateChange, header, &FileViewHeaderView::handlerStateChange);
-
-    horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    horizontalHeader()->setMaximumSectionSize(40);
-    horizontalHeader()->setMinimumSectionSize(40);
 }
 
 FileView::~FileView()
@@ -54,12 +62,28 @@ FileView::~FileView()
 
 void FileView::setDataSource(const QStringList &list)
 {
-    static_cast<FileModel *>(static_cast<QSortFilterProxyModel *>(model())->sourceModel())->setDataSource(list);
+    static_cast<FileModel *>(model())->setDataSource(list);
+
+    for(int i=0; i<btnList.length(); i++) {
+        delete btnList.at(i);
+    }
+    btnList.clear();
+
+    for(int i=0; i<list.length(); i++) {
+        QPushButton *btn = new QPushButton("查看", this);
+        btn->setObjectName(QString::number(i));
+        connect(btn, &QPushButton::clicked, this, [btn, this](){
+            int row = btn->objectName().toInt();
+            qDebug() << dataSource().at(row).fileName;
+        });
+        setIndexWidget(model()->index(i, OPERATIONCOLUMN), btn);
+        btnList.append(btn);
+    }
 }
 
 const QList<FileModel::FileInfo> &FileView::dataSource()
 {
-    return static_cast<FileModel *>(static_cast<QSortFilterProxyModel *>(model())->sourceModel())->getDataSource();
+    return static_cast<FileModel *>(model())->getDataSource();
 }
 
 void FileView::mousePressEvent(QMouseEvent *event)
@@ -70,7 +94,7 @@ void FileView::mousePressEvent(QMouseEvent *event)
             model()->setData(index, true, PRESSEDROLE);
         }
     }
-    return QTableView::mouseReleaseEvent(event);
+    QTableView::mousePressEvent(event);
 }
 
 void FileView::mouseReleaseEvent(QMouseEvent *event)
@@ -79,13 +103,13 @@ void FileView::mouseReleaseEvent(QMouseEvent *event)
     if(index.isValid() && index.column() == CHECKBOXCOLUMN) {
         model()->setData(index, false, PRESSEDROLE);
     }
-    return QTableView::mouseReleaseEvent(event);
+    QTableView::mouseReleaseEvent(event);
 }
 
 FileModel::FileModel(QObject *parent) : QAbstractTableModel(parent),
-    column(2)
+    column(3)
 {
-    headList << "" << "文件名";
+    headList << "" << "文件名" << "操作";
 }
 
 FileModel::~FileModel()
@@ -132,18 +156,14 @@ QVariant FileModel::data(const QModelIndex &index, int role) const
     //文本对齐方式
     case Qt::TextAlignmentRole:
         return Qt::AlignCenter;
-    //前景色
-    case Qt::ForegroundRole: {
-        return QColor(0, 0, 0);
-    }
-    //背景色
-    case Qt::BackgroundRole: {
-        return QBrush(QColor(255, 255, 255));
-    }
-    case Qt::SizeHintRole: {
-        return QSize(100, 100);
-        break;
-    }
+//    //前景色
+//    case Qt::ForegroundRole: {
+//        return QColor(0, 0, 0);
+//    }
+//    //背景色
+//    case Qt::BackgroundRole: {
+//        return QBrush(QColor(255, 255, 255));
+//    }
     case Qt::CheckStateRole:{
         if (index.column() == CHECKBOXCOLUMN) {
             return fileList.at(index.row()).CheckState;
@@ -169,12 +189,14 @@ bool FileModel::setData(const QModelIndex &index, const QVariant &value, int rol
         return false;
 
     switch (role) {
-    case Qt::CheckStateRole:{
+    //保存每个item的checkbox状态
+    case Qt::CheckStateRole: {
         fileList[index.row()].CheckState = value.toInt();
         checkState();
         emit dataChanged(index, index);
         return true;
     }
+    //显示按压效果
     case PRESSEDROLE: {
         if (index.column() == CHECKBOXCOLUMN) {
             fileList[index.row()].bPressed = value.toBool();
@@ -220,15 +242,16 @@ QVariant FileModel::headerData(int section, Qt::Orientation orientation, int rol
 
 Qt::ItemFlags FileModel::flags(const QModelIndex &index) const
 {
-    if(!index.isValid()){
+    if(!index.isValid()) {
         return Qt::NoItemFlags;
     }
 
-    Qt::ItemFlags flags = QAbstractTableModel::flags(index);
+    Qt::ItemFlags flags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
 
     return flags;
 }
 
+//根据头列表复选框状态的改变来确定列表所有item的状态
 void FileModel::handlerStateChange(int state)
 {
     if(fileList.length() == 0)
@@ -237,12 +260,13 @@ void FileModel::handlerStateChange(int state)
     for(int i=0; i<fileList.length(); i++) {
         fileList[i].CheckState = state;
     }
-    beginResetModel();
-    endResetModel();
+    emit dataChanged(index(0, CHECKBOXCOLUMN), index(fileList.length(), CHECKBOXCOLUMN));
 }
 
+//设置显示的数据源
 void FileModel::setDataSource(const QStringList &l)
 {
+    emit signalStateChange(Qt::Unchecked);
     fileList.clear();
     FileInfo info;
     info.CheckState = Qt::Unchecked;
@@ -255,6 +279,7 @@ void FileModel::setDataSource(const QStringList &l)
     endResetModel();
 }
 
+//根据列表中item的状态来确定目前头列表复选框的状态
 void FileModel::checkState()
 {
     if(fileList.length() == 0) {
@@ -268,6 +293,7 @@ void FileModel::checkState()
             count++;
         }
     }
+
     if(count == 0) {
         emit signalStateChange(Qt::Unchecked);
     }else if(count < fileList.length()) {
@@ -356,6 +382,8 @@ FileViewHeaderView::FileViewHeaderView(Qt::Orientation orientation, QWidget *par
 {
     setHighlightSections(false);
     setMouseTracking(true);
+
+//    setIndexWidget(model()->index(0, 0), new QCheckBox);
 
     // 响应鼠标
     setSectionsClickable(true);

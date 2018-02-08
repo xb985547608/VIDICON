@@ -76,7 +76,7 @@ void FileManagerDialog::handlerDownload()
     foreach (FileModel::FileInfo info, list) {
         if(info.CheckState) {
             qDebug() << info.fileName;
-            QMetaObject::invokeMethod(VidiconProtocol::getInstance(), "downloadFile", Q_ARG(QString, info.fileName));
+//            QMetaObject::invokeMethod(VidiconProtocol::getInstance(), "downloadFile", Q_ARG(QString, info.fileName));
         }
     }
 }
