@@ -1,6 +1,6 @@
 #include "imagewidget.h"
 #include <QTimer>
-#include "Network/http.h"
+#include "Network/httpdownload.h"
 #include <QPainter>
 #include <QFont>
 #include <QMouseEvent>
@@ -11,7 +11,7 @@ ImageWidget::ImageWidget(QWidget *parent) : QWidget(parent)
     QTimer *timer = new QTimer(this);
     timer->start(100);
     connect(timer, &QTimer::timeout, this, &ImageWidget::handlerTimeout);
-    connect(Http::getInstance(), &Http::signalImage, this, &ImageWidget::handlerReceiveImage);
+    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &ImageWidget::handlerReceiveImage);
 }
 
 void ImageWidget::paintEvent(QPaintEvent *event)
@@ -34,8 +34,8 @@ void ImageWidget::handlerReceiveImage(QPixmap pixmap)
 void ImageWidget::handlerTimeout()
 {
     if(isVisible()) {
-        if(Http::getInstance()->isLeisure()){
-            Http::getInstance()->getImage();
+        if(HttpDownload::getInstance()->isLeisure()){
+            HttpDownload::getInstance()->getImage();
         }
     }
 }

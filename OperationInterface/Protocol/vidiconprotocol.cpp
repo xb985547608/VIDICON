@@ -6,7 +6,7 @@
 
 VidiconProtocol *VidiconProtocol::_instance = NULL;
 VidiconProtocol::VidiconProtocol(QString host, QString port, QObject *parent) : QObject(parent) ,
-    reply(NULL), targetHost(host), targetPort(port), currentType(-1), currentState(Leisure)
+    reply(NULL), targetHost(host), targetPort(port), currentState(Leisure), currentType(-1)
 {
 }
 

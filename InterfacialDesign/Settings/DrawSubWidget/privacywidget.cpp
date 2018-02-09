@@ -1,6 +1,6 @@
 #include "privacywidget.h"
 #include <QTimer>
-#include "Network/http.h"
+#include "Network/httpdownload.h"
 #include <QPainter>
 #include <QFont>
 #include <QMouseEvent>
@@ -13,7 +13,7 @@ PrivacyWidget::PrivacyWidget(QWidget *parent) : QWidget(parent)
     QTimer *timer = new QTimer(this);
     timer->start(100);
     connect(timer, &QTimer::timeout, this, &PrivacyWidget::handlerTimeout);
-    connect(Http::getInstance(), &Http::signalImage, this, &PrivacyWidget::handlerReceiveImage);
+    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &PrivacyWidget::handlerReceiveImage);
 
     reset();
 }
@@ -85,8 +85,8 @@ void PrivacyWidget::handlerReceiveImage(QPixmap pixmap)
 void PrivacyWidget::handlerTimeout()
 {
     if(isVisible()) {
-        if(Http::getInstance()->isLeisure()){
-            Http::getInstance()->getImage();
+        if(HttpDownload::getInstance()->isLeisure()){
+            HttpDownload::getInstance()->getImage();
         }
     }
 }

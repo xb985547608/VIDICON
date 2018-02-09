@@ -1472,7 +1472,7 @@ bool ParseXML::parseBackUpQueryParameter(VidiconProtocol::BackUpQueryParameter *
                     child2 = child2.nextSiblingElement();
                 }
 
-                param->TimeParamMap->insert(child.tagName().right(1).toInt(), timeParam);
+                param->TimeParamMap.insert(child.tagName().right(1).toInt(), timeParam);
             }
             child = child.nextSiblingElement();
         }

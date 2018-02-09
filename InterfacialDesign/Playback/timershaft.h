@@ -11,6 +11,8 @@
 #define TRIANGLEWIDTH  10
 #define TRIANGLEHEIGHT  8
 #define ZOOMDELTA      0.3
+#define HALFHOURSEC    1800
+#define ONEDAYSEC    86399
 
 class TimerShaft : public QWidget
 {

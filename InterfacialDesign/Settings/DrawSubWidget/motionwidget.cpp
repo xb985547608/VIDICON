@@ -2,7 +2,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QApplication>
-#include "Network/http.h"
+#include "Network/httpdownload.h"
 
 MotionWidget::MotionWidget(QWidget *parent) : QWidget(parent)
 {
@@ -14,7 +14,7 @@ MotionWidget::MotionWidget(QWidget *parent) : QWidget(parent)
     timer = new QTimer(this);
     timer->start(100);
     connect(timer, &QTimer::timeout, this, &MotionWidget::handlerTimeout);
-    connect(Http::getInstance(), &Http::signalImage, this, &MotionWidget::handlerReceiveImage);
+    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &MotionWidget::handlerReceiveImage);
 }
 
 void MotionWidget::handlerFullScreen()
@@ -46,8 +46,8 @@ void MotionWidget::handlerReceiveImage(QPixmap pixmap)
 void MotionWidget::handlerTimeout()
 {
     if(isVisible()){
-        if(Http::getInstance()->isLeisure()){
-            Http::getInstance()->getImage();
+        if(HttpDownload::getInstance()->isLeisure()){
+            HttpDownload::getInstance()->getImage();
         }
     }
 }

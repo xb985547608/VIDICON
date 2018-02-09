@@ -1,5 +1,5 @@
 HEADERS += \
-    $$PWD/http.h
+    $$PWD/httpdownload.h
 
 SOURCES += \
-    $$PWD/http.cpp
+    $$PWD/httpdownload.cpp

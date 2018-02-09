@@ -1,7 +1,7 @@
 #include "osdwidget.h"
 #include "parsexml.h"
 #include <QTimer>
-#include "Network/http.h"
+#include "Network/httpdownload.h"
 #include <QPainter>
 #include <QFont>
 #include <QMouseEvent>
@@ -19,7 +19,7 @@ OSDWidget::OSDWidget(QWidget *parent) : QWidget(parent) ,
     QTimer *timer = new QTimer(this);
     timer->start(100);
     connect(timer, &QTimer::timeout, this, &OSDWidget::handlerTimeout);
-    connect(Http::getInstance(), &Http::signalImage, this, &OSDWidget::handlerReceiveImage);
+    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &OSDWidget::handlerReceiveImage);
 }
 
 OSDWidget::~OSDWidget()
@@ -118,8 +118,8 @@ void OSDWidget::handlerReceiveImage(QPixmap pixmap)
 void OSDWidget::handlerTimeout()
 {
     if(isVisible()) {
-        if(Http::getInstance()->isLeisure()){
-            Http::getInstance()->getImage();
+        if(HttpDownload::getInstance()->isLeisure()){
+            HttpDownload::getInstance()->getImage();
         }
     }
 }

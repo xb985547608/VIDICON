@@ -483,7 +483,7 @@ public:
         QDate Date;
         QStringList fileList;
         QMap<int, int>    *MonthMap;
-        QMap<int, TimeParameter> *TimeParamMap;
+        QMap<int, TimeParameter> TimeParamMap;
     }BackUpQueryParameter;
     void backUpQuery(QString SessionID, const BackUpQueryParameter &param);
     typedef struct StartPlayingParameter{

@@ -78,8 +78,34 @@ void TimerShaft::drawGroove(QPainter &p)
 void TimerShaft::drawHighlight(QPainter &p)
 {
     p.save();
-
+    p.setPen(Qt::NoPen);
     p.setBrush(QBrush(Qt::green));
+    qDebug("321");
+    qDebug() << TimeParamMap.count();
+
+    for(int i=0; i<TimeParamMap.count(); i++) {
+        int leftSec = qAbs(TimeParamMap[i].StarTime.secsTo(QTime(0, 0, 0)));
+        int left = leftSec / HALFHOURSEC * halfHourTickInterval;
+        left += leftSec % HALFHOURSEC * halfHourTickInterval / HALFHOURSEC + margin;
+
+        int rightSec = qAbs(TimeParamMap[i].EndTime.secsTo(QTime(0, 0, 0)));
+        int right = rightSec / HALFHOURSEC * halfHourTickInterval;
+        right += rightSec % HALFHOURSEC * halfHourTickInterval / HALFHOURSEC + margin;
+
+        left -= qAbs(leftPos);
+        right -= qAbs(leftPos);
+
+        qDebug() << left << right;
+        left = qMax(left, margin);
+        right = qMin(right, width + margin);
+
+        if(left >= right)
+            continue;
+
+        QRectF rect(left, (height - GROOVEHEIGHT) / 2, right - left, GROOVEHEIGHT);
+        p.drawRect(rect);
+        qDebug() << rect << stretchScale;
+    }
 
     p.restore();
 }
@@ -197,7 +223,7 @@ void TimerShaft::drawFloatingFrame(QPainter &p)
         }
         //确定显示的字符串
         qreal percent = (qreal)(movePos.x() - margin + qAbs(leftPos)) / (width * stretchScale);
-        QString timeStr = QTime(0, 0, 0).addSecs(86399 * percent).toString("HH:mm:ss");
+        QString timeStr = QTime(0, 0, 0).addSecs(ONEDAYSEC * percent).toString("HH:mm:ss");
         int strWidth = p.fontMetrics().width(timeStr);
         //第二次矫正保证浮动框在有效范围内显示
         if(movePos.x() > (size().width() - strWidth - margin)) {
@@ -217,11 +243,12 @@ void TimerShaft::handlerReceiveData(int type, QByteArray data)
         VidiconProtocol::BackUpQueryParameter param;
         TimeParamMap.clear();
         param.Type = 0;
-        param.TimeParamMap = &TimeParamMap;
         if(ParseXML::getInstance()->parseBackUpQueryParameter(&param, data)) {
-            for(int i=0; i<TimeParamMap.size(); i++) {
+            TimeParamMap = param.TimeParamMap;
+            for(int i=0;i< TimeParamMap.count(); i++) {
                 qDebug() << TimeParamMap[i].StarTime;
             }
+            update();
             qDebug() << "#TimerShaft# handlerReceiveData, ParameterType:" << type << "parse data success...";
         }else {
             qDebug() << "#TimerShaft# handlerReceiveData, ParameterType:" << type << "parse data error...";
