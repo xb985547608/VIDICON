@@ -1,6 +1,6 @@
 #include "homewidget.h"
 #include <QDebug>
-#include "ui_homeform.h"
+#include "ui/ui_homeform.h"
 
 HomeWidget::HomeWidget(QWidget *parent) :
     QWidget(parent),

@@ -1,5 +1,5 @@
 #include "photowidget.h"
-#include "ui_photoform.h"
+#include "ui/ui_photoform.h"
 
 PhotoWidget::PhotoWidget(QWidget *parent) :
     QWidget(parent),

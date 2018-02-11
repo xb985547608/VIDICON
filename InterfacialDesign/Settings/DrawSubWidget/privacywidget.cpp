@@ -40,12 +40,15 @@ void PrivacyWidget::paintEvent(QPaintEvent *event)
     p.setPen(pen);
 
     p.fillRect(rect(), Qt::black);
+    qDebug("paint start");
+
     p.drawPixmap(rect(), backgroundPixmap);
 
     for(int i=0; i<4; i++) {
         p.fillRect(rects[i], Qt::black);
         p.drawRect(rects[i]);
     }
+    qDebug("paint");
 }
 
 void PrivacyWidget::mousePressEvent(QMouseEvent *event)
@@ -74,11 +77,12 @@ void PrivacyWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void PrivacyWidget::handlerReceiveImage(QPixmap pixmap)
+void PrivacyWidget::handlerReceiveImage(QPixmap *pixmap)
 {
-    if(!pixmap.isNull()){
-        backgroundPixmap = pixmap;
+    if(isVisible() && !pixmap->isNull()){
+        backgroundPixmap = *pixmap;
         update();
+        delete pixmap;
     }
 }
 
@@ -86,7 +90,7 @@ void PrivacyWidget::handlerTimeout()
 {
     if(isVisible()) {
         if(HttpDownload::getInstance()->isLeisure()){
-            HttpDownload::getInstance()->getImage();
+            QMetaObject::invokeMethod(HttpDownload::getInstance(), "getImage", Qt::QueuedConnection);
         }
     }
 }

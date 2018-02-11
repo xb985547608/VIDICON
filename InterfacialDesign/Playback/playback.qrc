@@ -5,5 +5,7 @@
         <file>images/checked.png</file>
         <file>images/unchecked.png</file>
         <file>images/tristate.png</file>
+        <file>images/pause.png</file>
+        <file>images/play.png</file>
     </qresource>
 </RCC>

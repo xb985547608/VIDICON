@@ -32,10 +32,10 @@ public:
         VLCSTOP  = 0x02,
         VLCPAUSE = 0x04
     };
-    static VlcControl *getInstance()
+    static VlcControl *getInstance(QString host = "", int port = -1)
     {
         if(_instance == NULL){
-            _instance = new VlcControl();
+            _instance = new VlcControl(host, QString::number(port));
         }
         return _instance;
     }
@@ -67,7 +67,7 @@ public:
     int stop();
 
 private:
-    VlcControl(QObject *parent = Q_NULLPTR);
+    VlcControl(QString host, QString port, QObject *parent = Q_NULLPTR);
 
 public slots:
     void handlerVlcControl(int type, int subtype, WId id);

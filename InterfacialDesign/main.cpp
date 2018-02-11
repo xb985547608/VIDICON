@@ -13,6 +13,7 @@
 #include "selectcurrentipdialog.h"
 #include <QLabel>
 #include <QPropertyAnimation>
+#include "Network/httpdownload.h"
 
 int main(int argc, char *argv[])
 {
@@ -41,18 +42,23 @@ int main(int argc, char *argv[])
     lbl->show();
 
     QObject::connect(s, &SearchDeviceThread::signalDeviceInfo, lbl, [lbl](SearchDeviceThread::DeviceInfo *info){
-        QThread *t = new QThread();
-
+        QThread *t1 = new QThread;
         VidiconProtocol *vp = VidiconProtocol::getInstance(info->IPAddr, info->HTTPPort);
-        vp->moveToThread(t);
-        QObject::connect(t, &QThread::started, vp, &VidiconProtocol::init);
+        vp->moveToThread(t1);
+        QObject::connect(t1, &QThread::started, vp, &VidiconProtocol::init);
 
-        VlcControl::getInstance()->setHost(info->IPAddr);
-        VlcControl::getInstance()->setPort(QString::number(info->RTSPPort));
-        VlcControl::getInstance()->moveToThread(t);
+        QThread *t2 = new QThread;
+        VlcControl *vc = VlcControl::getInstance(info->IPAddr, info->RTSPPort);
+        vc->moveToThread(t2);
 
-        QObject::connect(t, SIGNAL(finished()), t, SLOT(deleteLater()));
-        t->start();
+        QThread *t3 = new QThread;
+        HttpDownload *hd = HttpDownload::getInstance(info->IPAddr, info->HTTPPort);
+        hd->moveToThread(t3);
+        QObject::connect(t3, &QThread::started, hd, &HttpDownload::init);
+
+        t1->start();
+        t2->start();
+        t3->start();
         delete info;
 
         lbl->setText("搜寻设备成功");

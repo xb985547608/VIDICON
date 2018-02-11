@@ -1,5 +1,5 @@
 #include "switchwidget.h"
-#include "ui_switchform.h"
+#include "ui/ui_switchform.h"
 #include <QDebug>
 
 SwitchWidget::SwitchWidget(QWidget *parent) :

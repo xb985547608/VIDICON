@@ -5,6 +5,7 @@
 #include <QVBoxLayout>
 #include <QRadioButton>
 #include <QPushButton>
+#include "Network/httpdownload.h"
 
 FileManagerDialog::FileManagerDialog(QWidget *parent) :
     QDialog(parent),
@@ -73,10 +74,12 @@ void FileManagerDialog::handlerReceiveData(int type, QByteArray data)
 void FileManagerDialog::handlerDownload()
 {
     QList<FileModel::FileInfo> list = fileView->dataSource();
+    QStringList files;
     foreach (FileModel::FileInfo info, list) {
         if(info.CheckState) {
-            qDebug() << info.fileName;
-//            QMetaObject::invokeMethod(VidiconProtocol::getInstance(), "downloadFile", Q_ARG(QString, info.fileName));
+            files.append(info.fileName);
         }
     }
+    QMetaObject::invokeMethod(HttpDownload::getInstance(), "downloadFiles", Q_ARG(QStringList, files));
+
 }

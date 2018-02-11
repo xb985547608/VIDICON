@@ -1,5 +1,5 @@
 #include "loginwidget.h"
-#include "ui_loginform.h"
+#include "ui/ui_loginform.h"
 #include <QMouseEvent>
 #include <QDebug>
 #include "settings.h"

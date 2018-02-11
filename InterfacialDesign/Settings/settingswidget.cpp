@@ -1,5 +1,5 @@
 #include "settingswidget.h"
-#include "ui_settingsform.h"
+#include "ui/ui_settingsform.h"
 #include <QDebug>
 #include <QVBoxLayout>
 

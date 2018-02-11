@@ -25,7 +25,7 @@ signals:
 public slots:
     void handlerFullScreen();
     void handlerCleanScreen();
-    void handlerReceiveImage(QPixmap pixmap);
+    void handlerReceiveImage(QPixmap *pixmap);
     void handlerTimeout();
 
 private:

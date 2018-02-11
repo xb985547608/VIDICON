@@ -1,5 +1,5 @@
 #include "playbackwidget.h"
-#include "ui_playbackform.h"
+#include "ui/ui_playbackform.h"
 #include "Protocol/vidiconprotocol.h"
 #include "control/vlccontrol.h"
 #include <QVBoxLayout>
@@ -13,6 +13,7 @@ PlaybackWidget::PlaybackWidget(QWidget *parent) :
     qsrand(QTime::currentTime().msec());
     htmlid = qrand();
     ui->setupUi(this);
+    ui->playBtn->setProperty("State", "pause");
     connect(this, &PlaybackWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
     connect(this, &PlaybackWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
     connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &PlaybackWidget::handlerReceiveData);

@@ -3,6 +3,7 @@
 #include <QMouseEvent>
 #include <QApplication>
 #include "Network/httpdownload.h"
+#include <QMetaObject>
 
 MotionWidget::MotionWidget(QWidget *parent) : QWidget(parent)
 {
@@ -35,11 +36,12 @@ void MotionWidget::handlerCleanScreen()
     }
 }
 
-void MotionWidget::handlerReceiveImage(QPixmap pixmap)
+void MotionWidget::handlerReceiveImage(QPixmap *pixmap)
 {
-    if(!pixmap.isNull()){
-        backgroundPixmap = pixmap;
+    if(isVisible() && !pixmap->isNull()){
+        backgroundPixmap = *pixmap;
         update();
+        delete pixmap;
     }
 }
 
@@ -47,7 +49,7 @@ void MotionWidget::handlerTimeout()
 {
     if(isVisible()){
         if(HttpDownload::getInstance()->isLeisure()){
-            HttpDownload::getInstance()->getImage();
+            QMetaObject::invokeMethod(HttpDownload::getInstance(), "getImage", Qt::QueuedConnection);
         }
     }
 }

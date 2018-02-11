@@ -1,5 +1,5 @@
 #include "previewwidget.h"
-#include "ui_previewform.h"
+#include "ui/ui_previewform.h"
 #include "Control/vlccontrol.h"
 #include <QTimer>
 #include "parsexml.h"

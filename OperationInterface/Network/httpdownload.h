@@ -11,6 +11,8 @@
 #define CMD_GETIMAGE  1024
 #define CMD_DOWNLOAD  1025
 
+#define DOWNLOADDIR   "download"
+
 class OPERATIONINTERFACESHARED_EXPORT HttpDownload : public QObject
 {
     Q_OBJECT
@@ -24,22 +26,23 @@ public:
         bool    isComplete;     //是否下载完整
         bool    isError;        //是否有错误
     }FileStatus;
-    static HttpDownload *getInstance() {
+    static HttpDownload *getInstance(QString host = "", int port = -1) {
         if(_instance == NULL){
-            _instance = new HttpDownload;
+            _instance = new HttpDownload(host, QString::number(port));
         }
         return _instance;
     }
 
     void init();
 
-    void getImage(QUrl url = QUrl("http://192.168.0.66/ISAPI/Snap/GetImg0.1"));
-    void downloadFiles(QStringList list);
+    Q_INVOKABLE void getImage(QString path = "/ISAPI/Snap/GetImg0.1");
+    Q_INVOKABLE void downloadFiles(QStringList list);
 
-    inline bool isLeisure();
+    inline bool isLeisure() { return (currentCmd == -1); }
 signals:
-    void signalImage(QPixmap pixmap);
-    void signalDownloadProgress();
+    void signalImage(QPixmap *pixmap);
+    void signalDownloadProgress(const FileStatus &fileStatus);
+    void signalFileStatusList(const QList<FileStatus> &fileStatusList);
 
 public slots:
     void finished(QNetworkReply *reply);
@@ -48,15 +51,17 @@ public slots:
 
 private:
     static HttpDownload *_instance;
-    explicit HttpDownload(QObject *parent = nullptr);
+    explicit HttpDownload(QString host, QString port, QObject *parent = nullptr);
 
     QString host;
     QString port;
     QNetworkAccessManager *manager;
     QNetworkReply *reply;
 
-    QStringList fileList;
+    QList<FileStatus> fileStatusList;
     int currentCmd;
+    QString tempFileName;
+    QString downloadDir;
 };
 
 #endif // HTTP_H

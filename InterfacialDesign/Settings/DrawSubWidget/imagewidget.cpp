@@ -5,6 +5,7 @@
 #include <QFont>
 #include <QMouseEvent>
 #include <QDebug>
+#include <QMetaObject>
 
 ImageWidget::ImageWidget(QWidget *parent) : QWidget(parent)
 {    
@@ -23,11 +24,12 @@ void ImageWidget::paintEvent(QPaintEvent *event)
     p.drawPixmap(rect(), backgroundPixmap);
 }
 
-void ImageWidget::handlerReceiveImage(QPixmap pixmap)
+void ImageWidget::handlerReceiveImage(QPixmap *pixmap)
 {
-    if(!pixmap.isNull()){
-        backgroundPixmap = pixmap;
+    if(isVisible() && !pixmap->isNull()){
+        backgroundPixmap = *pixmap;
         update();
+        delete pixmap;
     }
 }
 
@@ -35,7 +37,7 @@ void ImageWidget::handlerTimeout()
 {
     if(isVisible()) {
         if(HttpDownload::getInstance()->isLeisure()){
-            HttpDownload::getInstance()->getImage();
+            QMetaObject::invokeMethod(HttpDownload::getInstance(), "getImage", Qt::QueuedConnection);
         }
     }
 }

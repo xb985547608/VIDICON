@@ -80,8 +80,6 @@ void TimerShaft::drawHighlight(QPainter &p)
     p.save();
     p.setPen(Qt::NoPen);
     p.setBrush(QBrush(Qt::green));
-    qDebug("321");
-    qDebug() << TimeParamMap.count();
 
     for(int i=0; i<TimeParamMap.count(); i++) {
         int leftSec = qAbs(TimeParamMap[i].StarTime.secsTo(QTime(0, 0, 0)));
@@ -95,7 +93,6 @@ void TimerShaft::drawHighlight(QPainter &p)
         left -= qAbs(leftPos);
         right -= qAbs(leftPos);
 
-        qDebug() << left << right;
         left = qMax(left, margin);
         right = qMin(right, width + margin);
 
@@ -104,7 +101,6 @@ void TimerShaft::drawHighlight(QPainter &p)
 
         QRectF rect(left, (height - GROOVEHEIGHT) / 2, right - left, GROOVEHEIGHT);
         p.drawRect(rect);
-        qDebug() << rect << stretchScale;
     }
 
     p.restore();
@@ -245,9 +241,6 @@ void TimerShaft::handlerReceiveData(int type, QByteArray data)
         param.Type = 0;
         if(ParseXML::getInstance()->parseBackUpQueryParameter(&param, data)) {
             TimeParamMap = param.TimeParamMap;
-            for(int i=0;i< TimeParamMap.count(); i++) {
-                qDebug() << TimeParamMap[i].StarTime;
-            }
             update();
             qDebug() << "#TimerShaft# handlerReceiveData, ParameterType:" << type << "parse data success...";
         }else {
@@ -323,8 +316,10 @@ void TimerShaft::mouseMoveEvent(QMouseEvent *event)
         QRect rect1(margin, (height - GROOVEHEIGHT) / 2, width, GROOVEHEIGHT);
         if(rect1.contains(event->pos())) {
             isMoving = true;
+            setCursor(Qt::BlankCursor);
         }else {
             isMoving = false;
+            setCursor(Qt::ArrowCursor);
         }
         //判断鼠标所在位置决定鼠标样式
         QRect rect2(currentPlayPos * width + margin - TRIANGLEWIDTH / 2,
@@ -332,8 +327,6 @@ void TimerShaft::mouseMoveEvent(QMouseEvent *event)
                    TRIANGLEWIDTH, TRIANGLEHEIGHT);
         if(rect2.contains(event->pos())) {
             setCursor(Qt::PointingHandCursor);
-        }else {
-            setCursor(Qt::ArrowCursor);
         }
     }
 
@@ -346,7 +339,6 @@ void TimerShaft::mouseReleaseEvent(QMouseEvent *event)
     Q_UNUSED(event);
     isDragPlayPos = false;
     isMoving = false;
-    setCursor(Qt::ArrowCursor);
     update();
 }
 

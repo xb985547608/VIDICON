@@ -107,11 +107,12 @@ void OSDWidget::mouseReleaseEvent(QMouseEvent *event)
     validPress = false;
 }
 
-void OSDWidget::handlerReceiveImage(QPixmap pixmap)
+void OSDWidget::handlerReceiveImage(QPixmap *pixmap)
 {
-    if(!pixmap.isNull()){
-        backgroundPixmap = pixmap;
+    if(isVisible() && !pixmap->isNull()){
+        backgroundPixmap = *pixmap;
         update();
+        delete pixmap;
     }
 }
 
@@ -119,7 +120,7 @@ void OSDWidget::handlerTimeout()
 {
     if(isVisible()) {
         if(HttpDownload::getInstance()->isLeisure()){
-            HttpDownload::getInstance()->getImage();
+            QMetaObject::invokeMethod(HttpDownload::getInstance(), "getImage", Qt::QueuedConnection);
         }
     }
 }

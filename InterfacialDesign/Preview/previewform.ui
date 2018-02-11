@@ -197,13 +197,13 @@ QPushButton[State=&quot;flicker&quot;]{
         </property>
         <property name="styleSheet">
          <string notr="true">QPushButton[State=&quot;enable&quot;]{
-	border-image:url(:images/blind.png) 0 40 0 40 
+	border-image:url(:/images/blind.png) 0 40 0 40 
 }
 QPushButton[State=&quot;disable&quot;]{
-	border-image:url(:images/blind.png) 0 80 0 0
+	border-image:url(:/images/blind.png) 0 80 0 0
 }
 QPushButton[State=&quot;flicker&quot;]{
-	border-image:url(:images/blind.png) 0 0 0 80
+	border-image:url(:/images/blind.png) 0 0 0 80
 }</string>
         </property>
         <property name="text">

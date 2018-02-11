@@ -3,15 +3,15 @@
 #include <QThread>
 
 VlcControl *VlcControl::_instance = NULL;
-VlcControl::VlcControl(QObject *parent) : QObject(parent),
+VlcControl::VlcControl(QString host, QString port, QObject *parent) : QObject(parent),
     vlcInstance(NULL),
     vlcMedia(NULL),
     vlcMediaPlayer(NULL),
     vlcCache(300),
     vlcState(VLCSTOP),
     vlcVolume(50),
-    dstIPAddr("192.168.0.66"),
-    dstPort("554"),
+    dstIPAddr(host),
+    dstPort(port),
     user("admin"),
     passwd("admin")
 {

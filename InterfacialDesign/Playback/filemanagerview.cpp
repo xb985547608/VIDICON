@@ -13,6 +13,7 @@
 #include <QMessageBox>
 #include <QCheckBox>
 #include <QSortFilterProxyModel>
+#include "Network/httpdownload.h"
 
 FileView::FileView(QWidget *parent) : QTableView(parent)
 {
@@ -54,6 +55,7 @@ FileView::FileView(QWidget *parent) : QTableView(parent)
 
     connect(header, &FileViewHeaderView::signalStateChange, model, &FileModel::handlerStateChange);
     connect(model, &FileModel::signalStateChange, header, &FileViewHeaderView::handlerStateChange);
+    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &FileView::handlerReceiveImage);
 }
 
 FileView::~FileView()
@@ -74,7 +76,10 @@ void FileView::setDataSource(const QStringList &list)
         btn->setObjectName(QString::number(i));
         connect(btn, &QPushButton::clicked, this, [btn, this](){
             int row = btn->objectName().toInt();
-            qDebug() << dataSource().at(row).fileName;
+            QString path = QString("/record/%1").arg(dataSource().at(row).fileName);
+            qDebug() << "#FileView# view remote photo --> " << path;
+            if(path.right(3).compare("jpg") == 0)
+                QMetaObject::invokeMethod(HttpDownload::getInstance(), "getImage", Q_ARG(QString, path));
         });
         setIndexWidget(model()->index(i, OPERATIONCOLUMN), btn);
         btnList.append(btn);
@@ -104,6 +109,23 @@ void FileView::mouseReleaseEvent(QMouseEvent *event)
         model()->setData(index, false, PRESSEDROLE);
     }
     QTableView::mouseReleaseEvent(event);
+}
+
+void FileView::handlerReceiveImage(QPixmap *pixmap)
+{
+    if(isVisible() && !pixmap->isNull()){
+        QDialog *d = new QDialog;
+        QLabel *lbl = new QLabel(d);
+        lbl->setPixmap(*pixmap);
+        lbl->setScaledContents(true);
+        d->setMinimumSize(400, 300);
+        d->resize(400, 300);
+        QVBoxLayout *layout = new QVBoxLayout(d);
+        layout->addWidget(lbl);
+        d->exec();
+        d->deleteLater();
+        delete pixmap;
+    }
 }
 
 FileModel::FileModel(QObject *parent) : QAbstractTableModel(parent),
