@@ -28,7 +28,10 @@ void VlcControl::handlerVlcControl(int type, int subtype, WId id)
                 .arg(subtype)
                 .arg(user)
                 .arg(passwd);
+        stop();
         init(url, id);
+        play();
+        qDebug() << "#VlcControl# init vlc,start play";
         break;
     }
     case VLCCONTROLPLAY: {

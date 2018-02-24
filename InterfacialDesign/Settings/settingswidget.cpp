@@ -16,11 +16,12 @@ SettinsWidget::SettinsWidget(QWidget *parent) :
                                background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\
                                                            stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,\
                                                            stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);\
-                               border-radius: 5px;\
+                                border-top-left-radius: 7px;\
+                                border-top-right-radius: 7px;\
                                color: darkgray;\
                            }\
                            QToolBox::tab:selected { /* italicize selected tabs */\
-                               font: italic bold ;\
+                               font:bold ;\
                                border-bottom:2px solid #ffa02f;\
                                color: black;\
                            }");

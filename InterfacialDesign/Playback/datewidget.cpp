@@ -37,6 +37,7 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
         param2->Type = 0;
         param2->Date = date;
         emit signalSetParameter(BACKQUERY, param2);
+        emit signalDateChange(date);
     });
     layout1->addWidget(dateEdit, 1, 0, 1, 7, Qt::AlignCenter);
     QStringList list;
@@ -60,6 +61,7 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
         }
     }
 
+    //提示信息
     QLabel *lbl1 = new QLabel(this);
     lbl1->setStyleSheet("background-color:#7BA8A7");
     lbl1->setFixedSize(15, 15);
@@ -75,11 +77,12 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
     layout1->setSpacing(2);
     layout1->setSizeConstraint(QLayout::SetFixedSize);
 
+    //查询当前日期的图片和视频文件
     QPushButton *btn = new QPushButton(this);
     btn->setFixedSize(80, 25);
     btn->setStyleSheet("QPushButton{border-image:url(:images/query.png)0 80 0 0}"
                        "QPushButton:pressed{border-image:url(:images/query.png)0 0 0 80}");
-    connect(btn, &QPushButton::clicked, this, [this](){
+    connect(btn, &QPushButton::clicked, this, [this]() {
         VidiconProtocol::BackUpQueryParameter *param1 = new VidiconProtocol::BackUpQueryParameter;
         param1->Date = dateEdit->date();
         param1->Type = 1;
@@ -121,6 +124,8 @@ void DateWidget::mouseMoveEvent(QMouseEvent *event)
 void DateWidget::mousePressEvent(QMouseEvent *event)
 {
     QWidget::mousePressEvent(event);
+
+    //获取鼠标点击所在的控件对象
     QWidget *w = qApp->widgetAt(QCursor::pos());
     if(w->objectName().left(3) == "lbl") {
         QLabel *lbl = static_cast<QLabel *>(w);
@@ -158,19 +163,25 @@ void DateWidget::handlerDateChangle(const QDate &date)
     if(startIndex == 7) {
         startIndex = 0;
     }
+    //不在日期排列中的lbl隐藏掉
     for(int i=0; i<startIndex; i++) {
         lblDateMap[i]->setText("");
         lblDateMap[i]->setStyleSheet("background-color:transparent; color: transparent");
     }
+    //将lbl按顺序填写日期
     for(int i=0; i<date.daysInMonth(); i++) {
         lblDateMap[startIndex + i]->setText(QString::number(i + 1));
         lblDateMap[startIndex + i]->setStyleSheet("QLabel{background-color:#0B282A; color: white} QLabel:hover{background-color:blue}");
     }
+    //不在日期排列中的lbl隐藏掉
     for(int i=startIndex + date.daysInMonth(); i<42; i++) {
         lblDateMap[i]->setText("");
         lblDateMap[i]->setStyleSheet("background-color:transparent; color: transparent");
     }
+
     int currentDay = dateEdit->date().day() - 1;
+    lblDateMap[currentDay + startIndex]->setStyleSheet("QLabel{background-color:#7BA8A7; color: white;} QLabel:hover{background-color:blue}");
+
     for(int i=0; i<MonthMap.size(); i++) {
         if(MonthMap[i] == 1) {
             if(currentDay == i) {
@@ -178,10 +189,7 @@ void DateWidget::handlerDateChangle(const QDate &date)
             }else {
                 lblDateMap[i + startIndex]->setStyleSheet("QLabel{background-color:green; color: white;} QLabel:hover{background-color:blue}");
             }
-        }else {
-            if(currentDay == i) {
-                lblDateMap[i + startIndex]->setStyleSheet("QLabel{background-color:#7BA8A7; color: white;} QLabel:hover{background-color:blue}");
-            }
         }
     }
+    update();
 }

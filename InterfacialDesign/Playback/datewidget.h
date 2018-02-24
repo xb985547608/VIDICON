@@ -22,6 +22,7 @@ protected:
 signals:
     void signalSetParameter(int type, void *param, QString SessionID = "R00001");
     void signalGetParameter(int type, int StreamType = 0, int Channel = 0, QString SessionID = "R00001");
+    void signalDateChange(QDate date);
 
 public slots:
     void handlerReceiveData(int type, QByteArray data);

@@ -57,26 +57,32 @@ void TabNetwork::initTCPIPWidget()
 
     QLabel *lbl3 = new QLabel("IPv4地址：", tcpIpWidget);
     QLineEdit *lineEdit2 = new QLineEdit(tcpIpWidget);
+    lineEdit2->setInputMask("000.000.000.000;");
     tcpIpMap.insert("IPv4 Address", lineEdit2);
 
     QLabel *lbl4 = new QLabel("IPv4掩码地址：", tcpIpWidget);
     QLineEdit *lineEdit3 = new QLineEdit(tcpIpWidget);
+    lineEdit3->setInputMask("000.000.000.000;");
     tcpIpMap.insert("IPv4 Subnet", lineEdit3);
 
     QLabel *lbl5 = new QLabel("IPv4网关地址：", tcpIpWidget);
     QLineEdit *lineEdit4 = new QLineEdit(tcpIpWidget);
+    lineEdit4->setInputMask("000.000.000.000;");
     tcpIpMap.insert("IPv4 Gateway", lineEdit4);
 
     QLabel *lbl6 = new QLabel("IPv4主DNS：", tcpIpWidget);
     QLineEdit *lineEdit5 = new QLineEdit(tcpIpWidget);
+    lineEdit5->setInputMask("000.000.000.000;");
     tcpIpMap.insert("IPv4 DNS 1", lineEdit5);
 
     QLabel *lbl7 = new QLabel("IPv4备用DNS：", tcpIpWidget);
     QLineEdit *lineEdit6 = new QLineEdit(tcpIpWidget);
+    lineEdit6->setInputMask("000.000.000.000;");
     tcpIpMap.insert("IPv4 DNS 2", lineEdit6);
 
     QLabel *lbl8 = new QLabel("MAC地址：", tcpIpWidget);
     QLineEdit *lineEdit7 = new QLineEdit(tcpIpWidget);
+    lineEdit7->setInputMask("HH:HH:HH:HH:HH:HH;");
     tcpIpMap.insert("IPv4 MacAddr", lineEdit7);
 
     QLabel *lbl9 = new QLabel("IPv6地址：", tcpIpWidget);
@@ -95,16 +101,25 @@ void TabNetwork::initTCPIPWidget()
     QLineEdit *lineEdit11 = new QLineEdit(tcpIpWidget);
     tcpIpMap.insert("IPv6 DNS 2", lineEdit11);
 
+    //目前ipv6还未完全推广，暂不使用
+    lineEdit8->setVisible(false);
+    lineEdit9->setVisible(false);
+    lineEdit10->setVisible(false);
+    lineEdit11->setVisible(false);
+
     QLabel *lbl13 = new QLabel("HTTP端口(1-65535)：", tcpIpWidget);
     QLineEdit *lineEdit12 = new QLineEdit(tcpIpWidget);
+    lineEdit12->setValidator(new QIntValidator(1, 65535, tcpIpWidget));
     tcpIpMap.insert("HTTP Port", lineEdit12);
 
     QLabel *lbl14 = new QLabel("Onvif端口(1-65535)：", tcpIpWidget);
     QLineEdit *lineEdit13 = new QLineEdit(tcpIpWidget);
+    lineEdit13->setValidator(new QIntValidator(1, 65535, tcpIpWidget));
     tcpIpMap.insert("Onvif Port", lineEdit13);
 
     QLabel *lbl15 = new QLabel("RTSP端口(1-65535)：", tcpIpWidget);
     QLineEdit *lineEdit14 = new QLineEdit(tcpIpWidget);
+    lineEdit14->setValidator(new QIntValidator(1, 65535, tcpIpWidget));
     tcpIpMap.insert("RTSP Port", lineEdit14);
 
     QPushButton *btn = new QPushButton("保存", tcpIpWidget);
@@ -468,7 +483,7 @@ void TabNetwork::initBonjourWidget()
     BonjourMap.insert("Bonjour", lineEdit1);
 
     QPushButton *btn1 = new QPushButton("恢复默认值", EmailWidget);
-    btn1->setFixedWidth(50);
+    btn1->setFixedWidth(100);
 
     QPushButton *btn2 = new QPushButton("更新", EmailWidget);
     btn2->setFixedWidth(50);

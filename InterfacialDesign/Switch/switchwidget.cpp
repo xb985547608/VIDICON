@@ -8,12 +8,12 @@ SwitchWidget::SwitchWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->btnWelcome,          SIGNAL(clicked()), this, SLOT(onWelcomeBtn()));
-    connect(ui->btnPreview,          SIGNAL(clicked()), this, SLOT(onPreviewBtn()));
-    connect(ui->btnPlayback,         SIGNAL(clicked()), this, SLOT(onPlaybackBtn()));
-    connect(ui->btnPhoto,            SIGNAL(clicked()), this, SLOT(onPhotoBtn()));
-    connect(ui->btnSettings,         SIGNAL(clicked()), this, SLOT(onSettingsBtn()));
-    connect(ui->btnLogout,           SIGNAL(clicked()), this, SLOT(onLogoutBtn()));
+    connect(ui->btnWelcome, SIGNAL(clicked()), this, SLOT(onWelcomeBtn()));
+    connect(ui->btnPreview, SIGNAL(clicked()), this, SLOT(onPreviewBtn()));
+    connect(ui->btnPlayback,SIGNAL(clicked()), this, SLOT(onPlaybackBtn()));
+    connect(ui->btnPhoto,   SIGNAL(clicked()), this, SLOT(onPhotoBtn()));
+    connect(ui->btnSettings,SIGNAL(clicked()), this, SLOT(onSettingsBtn()));
+    connect(ui->btnLogout,  SIGNAL(clicked()), this, SLOT(onLogoutBtn()));
 
     ui->btnWelcome->setVisible(false);
     ui->btnPhoto->setVisible(false);
@@ -33,11 +33,11 @@ void SwitchWidget::refreshProperty(QWidget *widget, const char *name, const QVar
 
 void SwitchWidget::resetMenuProperty()
 {
-    refreshProperty(ui->btnWelcome,     "choice", "false");
-    refreshProperty(ui->btnPreview,     "choice", "false");
-    refreshProperty(ui->btnPlayback,    "choice", "false");
-    refreshProperty(ui->btnPhoto,       "choice", "false");
-    refreshProperty(ui->btnSettings,    "choice", "false");
+    refreshProperty(ui->btnWelcome, "choice", "false");
+    refreshProperty(ui->btnPreview, "choice", "false");
+    refreshProperty(ui->btnPlayback,"choice", "false");
+    refreshProperty(ui->btnPhoto,   "choice", "false");
+    refreshProperty(ui->btnSettings,"choice", "false");
 }
 
 void SwitchWidget::setSettingsBtnVisible(bool visible)

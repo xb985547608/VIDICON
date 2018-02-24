@@ -20,7 +20,7 @@ extern "C"{
 
 #define MAINSTREAMTYPE    0
 #define SUBSTREAMTYPE     1
-#define BACKUPSTREAMTYPE  2
+#define BACKUPSTREAMTYPE  3
 
 class OPERATIONINTERFACESHARED_EXPORT VlcControl : public QObject
 {

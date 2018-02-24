@@ -10,15 +10,16 @@
 #define TICKMAXWIDTH    1
 #define TRIANGLEWIDTH  10
 #define TRIANGLEHEIGHT  8
-#define ZOOMDELTA      0.3
+#define ZOOMDELTA      0.5
 #define HALFHOURSEC    1800
 #define ONEDAYSEC    86399
+#define DIFFVALUE      5
 
 class TimerShaft : public QWidget
 {
     Q_OBJECT
 public:
-    explicit TimerShaft(QWidget *parent = nullptr);
+    explicit TimerShaft(int htmlid, QWidget *parent = nullptr);
 
 signals:
     void signalSetParameter(int type, void *param, QString SessionID = "R00001");
@@ -33,6 +34,7 @@ public slots:
     void drawInfo(QPainter &p);
     void drawFloatingFrame(QPainter &p);
     void handlerReceiveData(int type, QByteArray data);
+    void hanlderDateChange(QDate date);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -41,6 +43,9 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
     bool event(QEvent *event) override;
+
+private:
+    void checkStartPlayTime(QPoint pos);
 
 private:
     qreal  stretchScale;    //缩放比例
@@ -56,6 +61,8 @@ private:
     qreal halfHourTickInterval;     //时间轴中30min所占宽度
 
     QMap<int, VidiconProtocol::TimeParameter> TimeParamMap;
+    QDate date;
+    int htmlid;
 };
 
 #endif // TIMERSHAFT_H

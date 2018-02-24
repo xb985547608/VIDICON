@@ -620,6 +620,7 @@ void TabMedia::initOSDWidget()
     QCheckBox *cb3 = new QCheckBox("显示通道名称", osdWidget);
     OSDMap.insert("Show Channel Name", cb3);
     QLineEdit *lineEdit1 = new QLineEdit("cam00", osdWidget);
+    //禁止调用输入法
     lineEdit1->setAttribute(Qt::WA_InputMethodEnabled, false);
     OSDMap.insert("Channel Name", lineEdit1);
 

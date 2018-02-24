@@ -12,27 +12,42 @@ PlaybackWidget::PlaybackWidget(QWidget *parent) :
 {
     qsrand(QTime::currentTime().msec());
     htmlid = qrand();
+
     ui->setupUi(this);
     ui->playBtn->setProperty("State", "pause");
+
     connect(this, &PlaybackWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
     connect(this, &PlaybackWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
     connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &PlaybackWidget::handlerReceiveData);
     connect(this, &PlaybackWidget::signalVlcControl, VlcControl::getInstance(), &VlcControl::handlerVlcControl);
 
     fileDialog = new FileManagerDialog(this);
+    connect(fileDialog, &FileManagerDialog::signalAddDownloadTask, this, [this](QStringList files){
+        emit signalAddDownloadTask(files);
+    });
 
     ui->rightBar->setStyleSheet("QWidget#rightBar{background-color:darkgray}");
     dateWidget = new DateWidget(ui->rightBar);
 
-    TimerShaft *view = new TimerShaft(ui->timeslider);
+    TimerShaft *view = new TimerShaft(htmlid, ui->timeslider);
+    connect(dateWidget, &DateWidget::signalDateChange, view, &TimerShaft::hanlderDateChange);
     QVBoxLayout *layout2 = new QVBoxLayout(ui->timeslider);
     layout2->addWidget(view);
     layout2->setContentsMargins(0, 0, 0, 0);
+
+    connect(ui->playBtn, &QPushButton::clicked, this, &PlaybackWidget::onPlayBtnClicked);
 }
 
 PlaybackWidget::~PlaybackWidget()
 {
 
+}
+
+void PlaybackWidget::refreshPolish(QWidget *w)
+{
+    w->style()->unpolish(w);
+    w->style()->polish(w);
+    update();
 }
 
 void PlaybackWidget::resizeEvent(QResizeEvent *event)
@@ -43,12 +58,9 @@ void PlaybackWidget::resizeEvent(QResizeEvent *event)
 
 void PlaybackWidget::handlerWidgetSwitch()
 {
-//    VlcControl::getInstance()->init("rtsp://admin:admin@192.168.0.66/H264?channel=0&subtype=3&unicast=true&proto=Onvif", this->winId());
-//    if(isVisible()){
-//        VlcControl::getInstance()->play();
-//    }else{
-//        VlcControl::getInstance()->stop();
-    //    }
+    if(!isVisible()) {
+        emit signalVlcControl(VLCCONTROLSTOP);
+    }
 }
 
 void PlaybackWidget::handlerReceiveData(int type, QByteArray data)
@@ -56,14 +68,19 @@ void PlaybackWidget::handlerReceiveData(int type, QByteArray data)
     switch(type) {
     case PLAYSTATE: {
         qDebug() << data;
-//        emit signalVlcControl(VLCCONTROLINIT, "rtsp://admin:admin@192.168.0.66/H264?channel=0&subtype=3&unicast=true&proto=Onvif", ui->displayArea->winId());
-//        emit signalVlcControl(VLCCONTROLPLAY);
 
         break;
     }
     case STARTPLAYING: {
-        qDebug() << data;
+        emit signalVlcControl(VLCCONTROLINIT, BACKUPSTREAMTYPE, ui->displayArea->winId());
         break;
     }
     }
+}
+
+void PlaybackWidget::onPlayBtnClicked()
+{
+    QString value = ui->playBtn->property("State").toString();
+    ui->playBtn->setProperty("State", value.compare("pause") ? "pause" : "play");
+    refreshPolish(ui->playBtn);
 }

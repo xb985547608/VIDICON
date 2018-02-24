@@ -32,9 +32,9 @@ TabAlarm::TabAlarm(QWidget *parent) : QTabWidget(parent)
         handlerSwitchTab(QModelIndex());
     });
 
-    emit signalGetParameter(MOTIONALARAPARAMETER);
-    emit signalGetParameter(BLINDALARMPARAMETER);
-    emit signalGetParameter(SENSORALARMPARAMETER);
+//    emit signalGetParameter(MOTIONALARAPARAMETER);
+//    emit signalGetParameter(BLINDALARMPARAMETER);
+//    emit signalGetParameter(SENSORALARMPARAMETER);
 }
 
 TabAlarm::~TabAlarm()
@@ -60,10 +60,12 @@ void TabAlarm::initMotionDetectionWidget()
     motionDetectionMap.insert("Record Video", cb3);
     QLabel *lbl1 = new QLabel("报警持续时间(Sec)(5-300):", motionDetectionWidget);
     QLineEdit *lineEdit1 = new QLineEdit(motionDetectionWidget);
+    lineEdit1->setValidator(new QIntValidator(5, 300, motionDetectionWidget));
     motionDetectionMap.insert("Alarm Duration", lineEdit1);
 
     QLabel *lbl2 = new QLabel("预录时间(Sec)(1-10):");
     QLineEdit *lineEdit2 = new QLineEdit(motionDetectionWidget);
+    lineEdit2->setValidator(new QIntValidator(1, 10, motionDetectionWidget));
     motionDetectionMap.insert("Pre-record time", lineEdit2);
 
     QLabel *lbl3 = new QLabel("录像持续时间:");
@@ -270,6 +272,7 @@ void TabAlarm::initVideoBlindWidget()
 
     QLabel *lbl1 = new QLabel("录像持续时间(Sec)(5-300):");
     QLineEdit *lineEdit1 = new QLineEdit(videoBlindWidget);
+    lineEdit1->setValidator(new QIntValidator(5, 300, videoBlindWidget));
     videoBlindMap.insert("Alarm time", lineEdit1);
     QLabel *lbl2 = new QLabel("侦测灵敏度：");
     QComboBox *comboBox1 = new QComboBox(videoBlindWidget);
@@ -471,6 +474,7 @@ void TabAlarm::initAlarmWidget()
 
     QLabel *lbl1 = new QLabel("报警持续时间(Sec)(5-300):");
     QLineEdit *lineEdit1 = new QLineEdit(alarmWidget);
+    lineEdit1->setValidator(new QIntValidator(5, 300, alarmWidget));
     alarmMap.insert("Alarm time", lineEdit1);
     QLabel *lbl2 = new QLabel("探头类型：");
     QComboBox *comboBox1 = new QComboBox(alarmWidget);

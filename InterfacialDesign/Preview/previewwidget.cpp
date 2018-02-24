@@ -27,6 +27,7 @@ PreviewWidget::PreviewWidget(QWidget *parent) :
     ui->subStream->setToolTip("子码流");
 
     connect(ui->mainStream, &QRadioButton::toggled, this, &PreviewWidget::handlerWidgetSwitch);
+    connect(ui->refresh, &QPushButton::clicked, this, &PreviewWidget::handlerWidgetSwitch);
     connect(this, &PreviewWidget::signalVlcControl, VlcControl::getInstance(), &VlcControl::handlerVlcControl);
     connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &PreviewWidget::handlerReceiveData);
     connect(this, &PreviewWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
@@ -52,17 +53,15 @@ void PreviewWidget::updateDynamicProperty(QWidget *w)
 
 void PreviewWidget::handlerWidgetSwitch()
 {
-    handlerStreamSwitch(ui->mainStream->isChecked());
     if(isVisible()){
-        emit signalVlcControl(VLCCONTROLPLAY);
+        handlerStreamSwitch(ui->mainStream->isChecked());
     }else{
         emit signalVlcControl(VLCCONTROLSTOP);
     }
 }
 
 void PreviewWidget::handlerStreamSwitch(bool checked)
-{    
-    VlcControl::getInstance()->stop();
+{
     if(checked){
         emit signalVlcControl(VLCCONTROLINIT, MAINSTREAMTYPE, ui->displayArea->winId());
     }else{

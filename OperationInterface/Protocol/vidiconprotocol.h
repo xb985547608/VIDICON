@@ -540,7 +540,7 @@ private slots:
     void onTimeout() {  // 处理超时
         QNetworkReply *reply = static_cast<QNetworkReply*>(parent());
         if (reply->isRunning()) {
-            qDebug() << "Network connect timeout...";
+            qDebug() << "#ReplyTimeout# Network connect timeout...";
             reply->abort();
             reply->deleteLater();
             emit timeout();

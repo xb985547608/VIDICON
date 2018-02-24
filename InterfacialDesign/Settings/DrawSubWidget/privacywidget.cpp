@@ -40,7 +40,6 @@ void PrivacyWidget::paintEvent(QPaintEvent *event)
     p.setPen(pen);
 
     p.fillRect(rect(), Qt::black);
-    qDebug("paint start");
 
     p.drawPixmap(rect(), backgroundPixmap);
 
@@ -48,7 +47,6 @@ void PrivacyWidget::paintEvent(QPaintEvent *event)
         p.fillRect(rects[i], Qt::black);
         p.drawRect(rects[i]);
     }
-    qDebug("paint");
 }
 
 void PrivacyWidget::mousePressEvent(QMouseEvent *event)

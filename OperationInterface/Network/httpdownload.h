@@ -13,18 +13,25 @@
 
 #define DOWNLOADDIR   "download"
 
+enum DownloadState {
+    Downloading,
+    Waiting,
+    Pause,
+    Error,
+    Finished,
+};
+
 class OPERATIONINTERFACESHARED_EXPORT HttpDownload : public QObject
 {
     Q_OBJECT
 public:
-    typedef struct FileStatus{
-        QString bytesReceived;  //已下载大小
-        QString bytesTotal;     //总大小
+    typedef struct FileStatus {
+        qint64  bytesReceived;  //已下载大小
+        qint64  bytesTotal;     //总大小
         QString fileName;       //文件名
-        QString speed;          //下载速度
-        bool    isWaiting;      //文件状态  等待下载or正在下载
-        bool    isComplete;     //是否下载完整
-        bool    isError;        //是否有错误
+        int     speed;          //下载速度
+        int     percent;        //下载百分比
+        int     state;          //文件状态
     }FileStatus;
     static HttpDownload *getInstance(QString host = "", int port = -1) {
         if(_instance == NULL){
@@ -36,13 +43,12 @@ public:
     void init();
 
     Q_INVOKABLE void getImage(QString path = "/ISAPI/Snap/GetImg0.1");
-    Q_INVOKABLE void downloadFiles(QStringList list);
+    Q_INVOKABLE void downloadFile(QString fileName);
 
     inline bool isLeisure() { return (currentCmd == -1); }
 signals:
     void signalImage(QPixmap *pixmap);
-    void signalDownloadProgress(const FileStatus &fileStatus);
-    void signalFileStatusList(const QList<FileStatus> &fileStatusList);
+    void signalFileStatus(const FileStatus *fileStatus);
 
 public slots:
     void finished(QNetworkReply *reply);
@@ -58,10 +64,11 @@ private:
     QNetworkAccessManager *manager;
     QNetworkReply *reply;
 
-    QList<FileStatus> fileStatusList;
     int currentCmd;
     QString tempFileName;
     QString downloadDir;
+
+    FileStatus fileStatus;
 };
 
 #endif // HTTP_H

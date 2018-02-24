@@ -32,8 +32,8 @@ TabRecord::TabRecord(QWidget *parent) : QTabWidget(parent)
         handlerSwitchTab(QModelIndex());
     });
 
-    emit signalGetParameter(SCHEDULEPARAMETER);
-    emit signalGetParameter(SNAPSHOTPARAMETER);
+//    emit signalGetParameter(SCHEDULEPARAMETER);
+//    emit signalGetParameter(SNAPSHOTPARAMETER);
 }
 
 TabRecord::~TabRecord()
@@ -231,21 +231,27 @@ void TabRecord::initSDStorageWidget()
     QRadioButton *rBtn2 = new QRadioButton("自动续传", SDStorageWidget);
     SDStorageMap.insert("Auto Upload", rBtn2);
 
+    rBtn1->setVisible(false);
+    rBtn2->setVisible(false);
+
     QLabel *lbl1 = new QLabel("SD总大小：", SDStorageWidget);
     QLineEdit *lineEdit1 = new QLineEdit(SDStorageWidget);
+    lineEdit1->setReadOnly(true);
     SDStorageMap.insert("Total Space", lineEdit1);
 
     QLabel *lbl2 = new QLabel("SD已使用大小：", SDStorageWidget);
     QLineEdit *lineEdit2 = new QLineEdit(SDStorageWidget);
+    lineEdit2->setReadOnly(true);
     SDStorageMap.insert("Used Space", lineEdit2);
 
     QLabel *lbl3 = new QLabel("SD未使用大小：", SDStorageWidget);
     QLineEdit *lineEdit3 = new QLineEdit(SDStorageWidget);
+    lineEdit3->setReadOnly(true);
     SDStorageMap.insert("Available Space", lineEdit3);
 
-    QPushButton *btn1 = new QPushButton("Refresh", SDStorageWidget);
+    QPushButton *btn1 = new QPushButton("刷新", SDStorageWidget);
     connect(btn1, &QPushButton::clicked, this, [this](){ emit signalGetParameter(SDCARDPARAMETER); });
-    QPushButton *btn2 = new QPushButton("Format", SDStorageWidget);
+    QPushButton *btn2 = new QPushButton("格式化", SDStorageWidget);
     connect(btn2, &QPushButton::clicked, this, [this](){
         if(QMessageBox::question(this, "警告", "是否格式化SD卡") == QMessageBox::Yes) {
             emit signalSetParameter(FORMATSDCARD, NULL);
@@ -273,8 +279,9 @@ void TabRecord::initSDStorageWidget()
     list.clear();
     SDStorageMap.insert("Record Type", comboBox1);
 
-    QLabel *lbl7 = new QLabel("报警持续录像时间：", SDStorageWidget);
+    QLabel *lbl7 = new QLabel("录像时间(100-600秒)：", SDStorageWidget);
     QLineEdit *lineEdit4 = new QLineEdit(SDStorageWidget);
+    lineEdit4->setValidator(new QIntValidator(100, 600, SDStorageWidget));
     SDStorageMap.insert("Record Time", lineEdit4);
 
     QPushButton *btn3 = new QPushButton("保存", SDStorageWidget);
@@ -331,6 +338,7 @@ void TabRecord::initSnapshotWidget()
 
     QLabel *lbl1 = new QLabel("抓拍时间间隔(秒)(1-600):", snapshotWidget);
     QLineEdit *lineEdit1 = new QLineEdit(snapshotWidget);
+    lineEdit1->setValidator(new QIntValidator(1, 600, snapshotWidget));
     snapshotMap.insert("Interval", lineEdit1);
 
     TimeRegionWidget *region = new TimeRegionWidget(snapshotWidget);

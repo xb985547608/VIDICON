@@ -3,12 +3,13 @@
 
 #include <QMainWindow>
 #include "Login/loginwidget.h"
-#include "Switch/switchwidget.h"
 #include "Home/homewidget.h"
 #include "Preview/previewwidget.h"
 #include "Playback/playbackwidget.h"
 #include "Photo/photowidget.h"
 #include "Settings/settingswidget.h"
+#include "Navigation/navigationwidget.h"
+#include "Download/downloadwidget.h"
 
 namespace Ui {
 class MainWindow;
@@ -25,24 +26,16 @@ public:
 public slots:
     void loginHandler(LoginWidget::LoginState state);
     void logoutHandler();
-    void switchStateHandler(SwitchWidget::SwitchState form);
     void handlerReceiveData(int type, QByteArray data);
 
-protected:
-    virtual void resizeEvent(QResizeEvent *event);
-
 private:
-    void resetWidgetState();
-
-    Ui::MainWindow *ui;
-
-    LoginWidget *loginWidget;
-    SwitchWidget *switchWidget;
     HomeWidget *homeWidget;
     PreviewWidget *previewWidget;
     PlaybackWidget *playbackWidget;
     PhotoWidget *photoWidget;
     SettinsWidget *settinsWidget;
+    NavigationWidget *navigationWidget;
+    DownloadWidget *downloadWidget;
 };
 
 #endif // MAINWINDOW_H

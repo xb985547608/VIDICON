@@ -80,6 +80,6 @@ void FileManagerDialog::handlerDownload()
             files.append(info.fileName);
         }
     }
-    QMetaObject::invokeMethod(HttpDownload::getInstance(), "downloadFiles", Q_ARG(QStringList, files));
-
+//    QMetaObject::invokeMethod(HttpDownload::getInstance(), "downloadFiles", Q_ARG(QStringList, files));
+    emit signalAddDownloadTask(files);
 }

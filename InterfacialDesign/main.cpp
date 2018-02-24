@@ -41,7 +41,9 @@ int main(int argc, char *argv[])
     lbl->setFixedSize(200, 100);
     lbl->show();
 
+    //等待成功寻找到设备
     QObject::connect(s, &SearchDeviceThread::signalDeviceInfo, lbl, [lbl](SearchDeviceThread::DeviceInfo *info){
+        //将一些较为耗时的类放入次线程中运行
         QThread *t1 = new QThread;
         VidiconProtocol *vp = VidiconProtocol::getInstance(info->IPAddr, info->HTTPPort);
         vp->moveToThread(t1);

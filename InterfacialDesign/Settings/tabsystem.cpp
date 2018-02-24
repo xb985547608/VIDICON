@@ -169,6 +169,13 @@ void TabSystem::initSetTimeWidget()
     time->setDisplayFormat("hh:mm:ss");
     time->setCalendarPopup(true);
     setTimeMap.insert("time", time);
+    QPushButton *btn1 = new QPushButton(setTimeWidget);
+    btn1->setIcon(QIcon(":/images/refresh.png"));
+    btn1->setFixedSize(25, 25);
+    connect(btn1, &QPushButton::clicked, this, [date, time](){
+        date->setDate(QDate::currentDate());
+        time->setTime(QTime::currentTime());
+    });
 
     QLabel *lbl3 = new QLabel("同步电脑时间：", setTimeWidget);
     QComboBox *comboBox2 = new QComboBox(setTimeWidget);
@@ -188,9 +195,9 @@ void TabSystem::initSetTimeWidget()
     QLineEdit *lineEdit1 = new QLineEdit(setTimeWidget);
     setTimeMap.insert("NTP Server", lineEdit1);
 
-    QPushButton *btn = new QPushButton("保存", setTimeWidget);
-    btn->setFixedWidth(50);
-    connect(btn, &QPushButton::clicked, this, &TabSystem::handlerPrepareData);
+    QPushButton *btn2 = new QPushButton("保存", setTimeWidget);
+    btn2->setFixedWidth(50);
+    connect(btn2, &QPushButton::clicked, this, &TabSystem::handlerPrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(lbl1,      0, 0, 1, 1);
@@ -199,6 +206,7 @@ void TabSystem::initSetTimeWidget()
     layout1->addWidget(lbl2,      1, 0, 1, 1);
     layout1->addWidget(date,      1, 1, 1, 2);
     layout1->addWidget(time,      1, 3, 1, 2);
+    layout1->addWidget(btn1,      1, 5, 1, 1);
 
     layout1->addWidget(lbl3,      2, 0, 1, 1);
     layout1->addWidget(comboBox2, 2, 1, 1, 4);
@@ -209,7 +217,7 @@ void TabSystem::initSetTimeWidget()
     layout1->addWidget(lbl5,      4, 0, 1, 1);
     layout1->addWidget(lineEdit1, 4, 1, 1, 4);
 
-    layout1->addWidget(btn, 5, 0, 1, 5, Qt::AlignCenter);
+    layout1->addWidget(btn2, 5, 0, 1, 5, Qt::AlignCenter);
 
     QVBoxLayout *layout2 = new QVBoxLayout;
     layout2->addLayout(layout1);

@@ -35,7 +35,7 @@ private:
     bool sensorAlarmFlicker;
     bool motionAlarmFlicker;
     bool blindAlarmFlicker;
-    bool replySuccess;
+    bool replySuccess;   //用来同步的拉取警报
     int timeoutSec;
 };
 

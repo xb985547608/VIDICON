@@ -53,8 +53,6 @@ void LoginWidget::clear()
 
 void LoginWidget::mousePressEvent(QMouseEvent *event)
 {
-//    if(ui->btnLogin->rect().contains(event->pos()))
-//        return QWidget::mousePressEvent(event);
     windowMove = true;
     moveStartPos = event->globalPos() - pos();
     QWidget::mousePressEvent(event);

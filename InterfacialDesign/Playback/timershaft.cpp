@@ -7,12 +7,14 @@
 #include <QPolygon>
 #include "parsexml.h"
 
-TimerShaft::TimerShaft(QWidget *parent) : QWidget(parent),
+TimerShaft::TimerShaft(int htmlid, QWidget *parent) : QWidget(parent),
     stretchScale(1.0),
     isMoving(false),    
     currentPlayPos(0.1),
     isDragPlayPos(false),
-    leftPos(0.0)
+    leftPos(0.0),
+    date(QDate::currentDate()),
+    htmlid(htmlid)
 {
     setMouseTracking(true);
     connect(this, &TimerShaft::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
@@ -209,7 +211,6 @@ void TimerShaft::drawFloatingFrame(QPainter &p)
         font.setPixelSize(16);
         font.setBold(true);
         p.setFont(font);
-        p.setPen(QPen(QBrush(Qt::blue), 2));
 
         //第一次矫正保证时间百分比在可视范围内
         if(movePos.x() < margin) {
@@ -217,9 +218,13 @@ void TimerShaft::drawFloatingFrame(QPainter &p)
         }else if(movePos.x() > (width + margin)) {
             movePos.setX(width + margin);
         }
+        //绘制指示线
+        p.setPen(QPen(Qt::black, 1, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin));
+        p.drawLine(QPoint(movePos.x(), (height + GROOVEHEIGHT) / 2), QPoint(movePos.x(), 0));
         //确定显示的字符串
-        qreal percent = (qreal)(movePos.x() - margin + qAbs(leftPos)) / (width * stretchScale);
-        QString timeStr = QTime(0, 0, 0).addSecs(ONEDAYSEC * percent).toString("HH:mm:ss");
+        p.setPen(QPen(QBrush(Qt::blue), 2));
+        int secs = (movePos.x() - margin + qAbs(leftPos)) * ONEDAYSEC / (width * stretchScale);
+        QString timeStr = QTime(0, 0, 0).addSecs(secs).toString("HH:mm:ss");
         int strWidth = p.fontMetrics().width(timeStr);
         //第二次矫正保证浮动框在有效范围内显示
         if(movePos.x() > (size().width() - strWidth - margin)) {
@@ -253,6 +258,12 @@ void TimerShaft::handlerReceiveData(int type, QByteArray data)
     }
 }
 
+void TimerShaft::hanlderDateChange(QDate date)
+{
+    this->date = date;
+    qDebug() << "#TimerShaft# hanlderDateChange," << this->date;
+}
+
 void TimerShaft::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event);
@@ -262,7 +273,7 @@ void TimerShaft::paintEvent(QPaintEvent *event)
     margin = fontMetrics().width("00:00") / 2;
     width = size().width() - margin * 2;
     height = size().height();
-    halfHourTickInterval = (float)width / 48 * stretchScale;
+    halfHourTickInterval = (qreal)width / 48 * stretchScale;
 
     drawTick(p);
     drawGroove(p);
@@ -275,16 +286,23 @@ void TimerShaft::paintEvent(QPaintEvent *event)
 
 void TimerShaft::mousePressEvent(QMouseEvent *event)
 {
+    Q_UNUSED(event);
+#if 0
     QRect rect(currentPlayPos * width + margin - TRIANGLEWIDTH / 2,
                (height + GROOVEHEIGHT) / 2,
                TRIANGLEWIDTH, TRIANGLEHEIGHT);
 
-    //判断鼠标点击的地方是否符合拖拽行为
+    判断鼠标点击的地方是否符合拖拽行为
     if(rect.contains(event->pos())) {
         isDragPlayPos = true;
         currentPlayPos = (qreal)(event->pos().x() - margin) / width;
         setCursor(Qt::PointingHandCursor);
         update();
+    }
+#endif
+    QRect rect(margin, 0, width, (height + GROOVEHEIGHT) / 2);
+    if(event->buttons() & Qt::LeftButton && rect.contains(event->pos())) {
+        checkStartPlayTime(event->pos());
     }
 }
 
@@ -293,7 +311,7 @@ void TimerShaft::mouseMoveEvent(QMouseEvent *event)
     if(event->buttons() & Qt::LeftButton) {
         //处理当前时间点拖拽
         if(isDragPlayPos) {
-            currentPlayPos = (float)(event->pos().x() - margin) / width;
+            currentPlayPos = (qreal)(event->pos().x() - margin) / width;
             //矫正当前时间点的位置
             if(currentPlayPos < 0.0) {
                 currentPlayPos = 0.0;
@@ -313,7 +331,7 @@ void TimerShaft::mouseMoveEvent(QMouseEvent *event)
         isMoving = false;
     }else {
         //判断当前鼠标位置决定是否需要显示鼠标所指时间点
-        QRect rect1(margin, (height - GROOVEHEIGHT) / 2, width, GROOVEHEIGHT);
+        QRect rect1(margin, 0, width, (height + GROOVEHEIGHT) / 2);
         if(rect1.contains(event->pos())) {
             isMoving = true;
             setCursor(Qt::BlankCursor);
@@ -322,12 +340,12 @@ void TimerShaft::mouseMoveEvent(QMouseEvent *event)
             setCursor(Qt::ArrowCursor);
         }
         //判断鼠标所在位置决定鼠标样式
-        QRect rect2(currentPlayPos * width + margin - TRIANGLEWIDTH / 2,
-                   (height + GROOVEHEIGHT) / 2,
-                   TRIANGLEWIDTH, TRIANGLEHEIGHT);
-        if(rect2.contains(event->pos())) {
-            setCursor(Qt::PointingHandCursor);
-        }
+//        QRect rect2(currentPlayPos * width + margin - TRIANGLEWIDTH / 2,
+//                   (height + GROOVEHEIGHT) / 2,
+//                   TRIANGLEWIDTH, TRIANGLEHEIGHT);
+//        if(rect2.contains(event->pos())) {
+//            setCursor(Qt::PointingHandCursor);
+//        }
     }
 
     movePos = event->pos();
@@ -382,4 +400,45 @@ bool TimerShaft::event(QEvent *event)
         update();
     }
     return QWidget::event(event);
+}
+
+void TimerShaft::checkStartPlayTime(QPoint pos)
+{
+    int diffSecs = DIFFVALUE * ONEDAYSEC / stretchScale / width;
+    int secs = (pos.x() - margin + qAbs(leftPos)) * ONEDAYSEC / (width * stretchScale);
+    QTime posTime = QTime(0, 0, 0).addSecs(secs);
+    QTime leftTime = QTime(0, 0, 0).addSecs(secs - diffSecs);
+    QTime rightTime = QTime(0, 0, 0).addSecs(secs + diffSecs);
+
+    VidiconProtocol::TimeParameter temp;
+    bool isOK = false;
+    QTime playTime;
+    for(int i=0; i<TimeParamMap.count(); i++) {
+        temp = TimeParamMap.value(i);
+        if(rightTime < temp.StarTime || leftTime > temp.EndTime) {
+            continue;
+        }else if(temp.StarTime > leftTime && temp.StarTime < rightTime) {
+            playTime = temp.StarTime;
+            isOK = true;
+        }else if(temp.EndTime > leftTime && temp.EndTime < rightTime) {
+            playTime = temp.EndTime;
+            isOK = true;
+        }else if(temp.EndTime > posTime && temp.StarTime < posTime) {
+            playTime = posTime;
+            isOK = true;
+        }
+
+        if(isOK) {
+            qDebug() << "#checkStartPlayTime# play time" << playTime;
+            currentPlayPos = (qreal)(pos.x() - margin) / width;
+            VidiconProtocol::StartPlayingParameter *param = new VidiconProtocol::StartPlayingParameter;
+            param->htmlid = htmlid;
+            param->playing = 1;
+            param->Time = QDateTime(date, playTime);
+            emit signalSetParameter(STARTPLAYING, param);
+            break;
+        }
+        qDebug() << temp.StarTime << temp.EndTime;
+    }
+
 }

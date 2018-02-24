@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
+QT       += core gui network sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -58,6 +58,7 @@ include($$PWD/Settings/Settings.pri)
 include($$PWD/Home/Home.pri)
 include($$PWD/Playback/Playback.pri)
 include($$PWD/Photo/Photo.pri)
-include($$PWD/Switch/Switch.pri)
+include($$PWD/Download/Download.pri)
+include($$PWD/Navigation/Navigation.pri)
 
 

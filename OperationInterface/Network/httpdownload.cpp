@@ -35,36 +35,28 @@ void HttpDownload::getImage(QString path)
     currentCmd = CMD_GETIMAGE;
 }
 
-void HttpDownload::downloadFiles(QStringList list)
+void HttpDownload::downloadFile(QString fileName)
 {
-    if(!list.length())
+    if(fileName.isNull())
         return;
 
-    foreach (QString file, list) {
-        FileStatus status;
-        status.fileName = file;
-        status.isWaiting = true;
-        status.isComplete = false;
-        status.isError = false;
-        fileStatusList.append(status);
+    while(!isLeisure()) {
+        qApp->processEvents();
     }
-    emit signalFileStatusList(fileStatusList);
+//    memset(&fileStatus, 0, sizeof(struct HttpDownload::FileStatus));
+    fileStatus.fileName = fileName;
+    fileStatus.state = Downloading;
+    QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss-zzz");
+    tempFileName = QString("%1/%2.tmp").arg(downloadDir).arg(date);
+    currentCmd = CMD_DOWNLOAD;
 
-    do {
-        while(!isLeisure()) {
-            qApp->processEvents();
-        }
-        QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss-zzz");
-        tempFileName = QString("%1/%2.tmp").arg(downloadDir).arg(date);
-        fileStatusList[0].isWaiting = false;
-        currentCmd = CMD_DOWNLOAD;
-        reply = manager->get(QNetworkRequest(QUrl(QString("http://%1:%2/record/%3")
-                                                  .arg(host)
-                                                  .arg(port)
-                                                  .arg(fileStatusList[0].fileName))));
-        connect(reply, &QNetworkReply::readyRead, this, &HttpDownload::readyRead);
-        connect(reply, &QNetworkReply::downloadProgress, this, &HttpDownload::downloadProgress);
-    }while(fileStatusList.length() != 1);
+    reply = manager->get(QNetworkRequest(QUrl(QString("http://%1:%2/record/%3")
+                                              .arg(host)
+                                              .arg(port)
+                                              .arg(fileStatus.fileName))));
+    connect(reply, &QNetworkReply::readyRead, this, &HttpDownload::readyRead);
+    connect(reply, &QNetworkReply::downloadProgress, this, &HttpDownload::downloadProgress);
+
 }
 
 void HttpDownload::finished(QNetworkReply */*reply*/)
@@ -73,6 +65,10 @@ void HttpDownload::finished(QNetworkReply */*reply*/)
         qDebug() << "#HttpDownload# finished,"
                  << "StatusCode:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
                  << "ErrorType:" << reply->error();
+        if(currentCmd == CMD_DOWNLOAD) {
+            fileStatus.state = Error;
+            emit signalFileStatus(&fileStatus);
+        }
     }else {
         switch (currentCmd) {
         case CMD_GETIMAGE: {
@@ -84,7 +80,7 @@ void HttpDownload::finished(QNetworkReply */*reply*/)
         }
         case CMD_DOWNLOAD: {
             QFileInfo fileInfo(tempFileName);
-            QFileInfo newFileInfo = fileInfo.absolutePath() + "/" + fileStatusList[0].fileName;
+            QFileInfo newFileInfo = fileInfo.absolutePath() + "/" + fileStatus.fileName;
             QDir dir;
             if(dir.exists(fileInfo.absolutePath())) {
                 if(newFileInfo.exists()) {
@@ -92,6 +88,8 @@ void HttpDownload::finished(QNetworkReply */*reply*/)
                 }
                 QFile::rename(tempFileName, newFileInfo.absoluteFilePath());
                 qDebug() << "#HttpDownload# finished(), Download file" << newFileInfo.fileName() << "Success !!";
+                fileStatus.state = Finished;
+                emit signalFileStatus(&fileStatus);
             }
             break;
         }
@@ -99,8 +97,6 @@ void HttpDownload::finished(QNetworkReply */*reply*/)
             break;
         }
     }
-    if(currentCmd == CMD_DOWNLOAD)
-        fileStatusList.removeAt(0);
     currentCmd = -1;
     reply = NULL;
 }
@@ -121,6 +117,9 @@ void HttpDownload::readyRead()
 void HttpDownload::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
     if(currentCmd == CMD_DOWNLOAD) {
-        qDebug() << bytesReceived << bytesTotal;
+        fileStatus.bytesReceived = bytesReceived;
+        fileStatus.bytesTotal = bytesTotal;
+        fileStatus.percent = bytesReceived * 100 / bytesTotal;
+        emit signalFileStatus(&fileStatus);
     }
 }
