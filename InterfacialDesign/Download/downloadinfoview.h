@@ -2,12 +2,10 @@
 #define DOWNLOADINFOVIEW_H
 
 #include <QTableView>
-#include <QtSql/QSqlDatabase>
-#include <QtSql/QSqlQuery>
-#include <QtSql/QSqlTableModel>
-#include <QSqlRecord>
 #include <QStyledItemDelegate>
 #include <QSortFilterProxyModel>
+#include <QMenu>
+#include <QAction>
 #include "Network/httpdownload.h"
 
 class DownloadInfoView : public QTableView
@@ -16,11 +14,24 @@ class DownloadInfoView : public QTableView
 public:
     explicit DownloadInfoView(QWidget *parent = nullptr);
     void addData(QString fileName, int state = Waiting, int progress = 0);
+
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole);
+    QVariant data(int row, int column, int role = Qt::DisplayRole);
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::DisplayRole);
     void setData(QString fileName, int state, int progress = 0);
 
+    void createActions();
 signals:
-
+    void signalCancelDownload(QString file);
 public slots:
+    void contextMenuEvent(QContextMenuEvent *event) override;
+private:
+    QMenu *popMenu;
+    QAction *cancelDownloadAction;
+    QAction *redownloadAction;
+    QAction *deleteAction;
+    QAction *pauseAction;
+    int pointToRow;//弹出菜单所在的行
 };
 
 class DownloadInfoModel : public QAbstractTableModel
@@ -47,6 +58,7 @@ protected:
     virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::DisplayRole);
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     virtual Qt::ItemFlags flags(const QModelIndex &index) const;
+    virtual bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
 
 private:
     int column;

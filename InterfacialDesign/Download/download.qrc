@@ -7,5 +7,8 @@
         <file>images/error.png</file>
         <file>images/waiting.png</file>
         <file>images/downloading.png</file>
+        <file>errorHint.wav</file>
+        <file>successhint.wav</file>
+        <file>images/cancel.png</file>
     </qresource>
 </RCC>

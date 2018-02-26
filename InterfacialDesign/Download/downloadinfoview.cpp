@@ -4,6 +4,8 @@
 #include <QPainter>
 #include <QProgressBar>
 #include <QApplication>
+#include <QContextMenuEvent>
+#include <QMessageBox>
 
 DownloadInfoView::DownloadInfoView(QWidget *parent) :
     QTableView(parent)
@@ -55,6 +57,8 @@ DownloadInfoView::DownloadInfoView(QWidget *parent) :
                       border-radius:5px;\
                       background: rgb(0, 160, 230);\
                   }");
+
+    createActions();
 }
 
 void DownloadInfoView::addData(QString fileName, int state, int progress)
@@ -62,6 +66,21 @@ void DownloadInfoView::addData(QString fileName, int state, int progress)
     QSortFilterProxyModel *proxy = static_cast<QSortFilterProxyModel *>(this->model());
     DownloadInfoModel *model = static_cast<DownloadInfoModel *>(proxy->sourceModel());
     model->addData(fileName, state, progress);
+}
+
+QVariant DownloadInfoView::data(const QModelIndex &index, int role)
+{
+    return model()->data(index, role);
+}
+
+QVariant DownloadInfoView::data(int row, int column, int role)
+{
+    return model()->data(model()->index(row, column), role);
+}
+
+bool DownloadInfoView::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    return model()->setData(index, value, role);
 }
 
 void DownloadInfoView::setData(QString fileName, int state, int progress)
@@ -73,6 +92,80 @@ void DownloadInfoView::setData(QString fileName, int state, int progress)
             model()->setData(model()->index(i, 1), state);
             model()->setData(model()->index(i, 2), progress);
         }
+    }
+}
+
+//创建菜单和菜单项
+void DownloadInfoView::createActions()
+{
+    popMenu = new QMenu(this);
+
+    pauseAction = new QAction(popMenu);
+    pauseAction->setText("暂停下载");
+    pauseAction->setIcon(QIcon(":/images/pause.png"));
+    connect(pauseAction, &QAction::triggered, this, [this](){
+        QModelIndex index = model()->index(pointToRow, 1);
+        if(data(index).toInt() == Downloading || data(index).toInt() == Waiting) {
+            emit signalCancelDownload(data(model()->index(pointToRow, 3)).toString());
+            setData(model()->index(pointToRow, 1), Pause);
+        }
+    });
+
+    cancelDownloadAction = new QAction(popMenu);
+    cancelDownloadAction->setText("取消下载");
+    cancelDownloadAction->setIcon(QIcon(":/images/cancel.png"));
+    connect(cancelDownloadAction, &QAction::triggered, this, [this](){
+        QModelIndex index = model()->index(pointToRow, 1);
+        if(data(index).toInt() == Downloading) {
+            emit signalCancelDownload(data(model()->index(pointToRow, 3)).toString());
+        }
+    });
+
+    redownloadAction = new QAction(popMenu);
+    redownloadAction->setText("重新下载");
+    redownloadAction->setIcon(QIcon(":/images/download.png"));
+    connect(redownloadAction, &QAction::triggered, this, [this](){
+        QModelIndex index = model()->index(pointToRow, 1);
+        if(data(index).toInt() != Downloading) {
+            setData(index, Waiting);
+        }
+    });
+
+    deleteAction = new QAction(popMenu);
+    deleteAction->setText("删除");
+    deleteAction->setIcon(QIcon(":/images/delete.png"));
+    connect(deleteAction, &QAction::triggered, this, [this](){
+        QModelIndex index = model()->index(pointToRow, 1);
+        if(QMessageBox::warning(this, "警告", "是否删除该下载任务", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
+            model()->removeRow(index.row());
+        }
+    });
+
+    popMenu->addAction(pauseAction);
+    popMenu->addAction(cancelDownloadAction);
+    popMenu->addAction(redownloadAction);
+    popMenu->addAction(deleteAction);
+}
+
+void DownloadInfoView::contextMenuEvent(QContextMenuEvent *event)
+{
+    QPoint pos = mapFromGlobal(QCursor::pos());
+    pos.setY(pos.y() - horizontalHeader()->height());
+
+    QModelIndex index = indexAt(pos);
+    if(index.isValid()) {
+        pointToRow = index.row();
+        index = model()->index(pointToRow, 1);
+        if(data(index).toInt() == Downloading || data(index).toInt() == Waiting) {
+            pauseAction->setEnabled(true);
+            cancelDownloadAction->setEnabled(true);
+            pauseAction->setEnabled(pointToRow != 0);
+        }else {
+            pauseAction->setEnabled(false);
+            cancelDownloadAction->setEnabled(false);
+        }
+        popMenu->exec(QCursor::pos());
+        event->accept();
     }
 }
 
@@ -332,4 +425,14 @@ Qt::ItemFlags DownloadInfoModel::flags(const QModelIndex &index) const
 //    Qt::ItemFlags flags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
 
     return QAbstractTableModel::flags(index);
+}
+
+bool DownloadInfoModel::removeRows(int row, int count, const QModelIndex &parent)
+{
+    for(int i=row; i<row+count; i++) {
+        infoList.removeAt(row);
+    }
+    beginRemoveRows(parent, row, row+count-1);
+    endRemoveRows();
+    return true;
 }

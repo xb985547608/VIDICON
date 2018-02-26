@@ -3,6 +3,7 @@
 #include <QTimer>
 #include <QMetaObject>
 #include <QDebug>
+#include <QMessageBox>
 
 DownloadWidget::DownloadWidget(QWidget *parent) :
     QWidget(parent),
@@ -20,6 +21,39 @@ DownloadWidget::DownloadWidget(QWidget *parent) :
     timer->start(500);
 
     connect(HttpDownload::getInstance(), &HttpDownload::signalFileStatus, this, &DownloadWidget::handleReceiveFileStatus);
+    connect(listView, &DownloadInfoView::signalCancelDownload, HttpDownload::getInstance(), &HttpDownload::handleCancelDownload);
+
+    connect(ui->allDeleteBtn, &QPushButton::clicked, this, [this](){
+        QMetaObject::invokeMethod(HttpDownload::getInstance(), "handleCancelDownload", Q_ARG(QString, listView->data(0, 3).toString()));
+        if(QMessageBox::warning(this, "警告", "是否删除所有下载任务", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
+            listView->model()->removeRows(0, listView->model()->rowCount());
+        }
+    });
+    connect(ui->allPauseBtn, &QPushButton::clicked, this, [this](){
+        int rowCount = listView->model()->rowCount();
+        for(int i=1; i< rowCount; i++) {
+            if(listView->data(1, 1) == Pause)
+                break;
+            listView->setData(listView->model()->index(1, 1), Pause);
+        }
+    });
+    connect(ui->allStartBtn, &QPushButton::clicked, this, [this](){
+        int rowCount = listView->model()->rowCount();
+        if(listView->data(0, 1) != Downloading) {
+            listView->setData(listView->model()->index(0, 1), Waiting);
+        }
+        for(int i=1; i< rowCount; i++) {
+            if(listView->data(i, 1) == Error)
+                break;
+            listView->setData(listView->model()->index(i, 1), Waiting);
+        }
+    });
+
+    //下载成功和失败的提示音
+    successHintVoice = new QSound(":/successhint.wav");
+    successHintVoice->setLoops(1);
+    errorHintVoice = new QSound(":/errorHint.wav");
+    errorHintVoice->setLoops(1);
 }
 
 void DownloadWidget::handleTimeout()
@@ -27,9 +61,9 @@ void DownloadWidget::handleTimeout()
     HttpDownload *h = HttpDownload::getInstance();
     if(h->isLeisure()) {
         QAbstractItemModel *model = listView->model();
-        if(model->data(model->index(0, 1)).toInt() == Waiting) {
-            QString file = model->data(model->index(0, 3)).toString();
-            model->setData(model->index(0, 1), Downloading);
+        if(listView->data(model->index(0, 1)).toInt() == Waiting) {
+            QString file = listView->data(model->index(0, 3)).toString();
+            listView->setData(model->index(0, 1), Downloading);
             QMetaObject::invokeMethod(h, "downloadFile", Q_ARG(QString, file));
             qDebug() << "#DownloadWidget# handleTimeout(), Start Download file --> " << file;
         }
@@ -40,13 +74,18 @@ void DownloadWidget::handleTimeout()
 void DownloadWidget::handleReceiveFileStatus(const HttpDownload::FileStatus *fileStatus)
 {
     QAbstractItemModel *model = listView->model();
-
+    ui->lblSpeed->setText(fileStatus->speed);
     if(fileStatus->state == Downloading) {
-        model->setData(model->index(0, 2), fileStatus->percent);
+        listView->setData(model->index(0, 2), fileStatus->percent);
     }else if(fileStatus->state == Finished) {
-        model->setData(model->index(0, 2), 100);
+        listView->setData(model->index(0, 2), 100);
+        successHintVoice->play();
+        ui->lblSpeed->setText("");
+    }else if(fileStatus->state == Error) {
+        errorHintVoice->play();
+        ui->lblSpeed->setText("");
     }
-    model->setData(model->index(0, 1), fileStatus->state);
+    listView->setData(model->index(0, 1), fileStatus->state);
 }
 
 void DownloadWidget::enqueue(QStringList files)

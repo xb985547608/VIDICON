@@ -6,6 +6,8 @@
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
 #include <QPixmap>
+#include <QTime>
+#include <QTimer>
 #include "operationinterface_global.h"
 
 #define CMD_GETIMAGE  1024
@@ -29,7 +31,7 @@ public:
         qint64  bytesReceived;  //已下载大小
         qint64  bytesTotal;     //总大小
         QString fileName;       //文件名
-        int     speed;          //下载速度
+        QString speed;          //下载速度
         int     percent;        //下载百分比
         int     state;          //文件状态
     }FileStatus;
@@ -54,6 +56,8 @@ public slots:
     void finished(QNetworkReply *reply);
     void readyRead();
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void handleTimeout();
+    Q_INVOKABLE void handleCancelDownload(QString file);
 
 private:
     static HttpDownload *_instance;
@@ -69,6 +73,10 @@ private:
     QString downloadDir;
 
     FileStatus fileStatus;
+
+    QTime downloadTime;
+    QTimer *timer;
+    qint64 lastReceiveBytes;
 };
 
 #endif // HTTP_H
