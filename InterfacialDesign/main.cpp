@@ -14,6 +14,9 @@
 #include <QLabel>
 #include <QPropertyAnimation>
 #include "Network/httpdownload.h"
+#include "logger.h"
+
+void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 
 int main(int argc, char *argv[])
 {
@@ -21,7 +24,12 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     a.setStyle(new CustomStyle);
 
+    //永久性配置信息管理
     SettingsObject::getInstance();
+    //启动日志记录器
+    Logger::getInstance()->start();
+
+//    qInstallMessageHandler(&customMessageHandler);
 
     SearchDeviceThread *s = new SearchDeviceThread;
     {
@@ -83,4 +91,9 @@ int main(int argc, char *argv[])
     qDebug() << "------------------start------------------";
 
     return a.exec();
+}
+
+void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    Logger::getInstance()->log(type, context, msg);
 }

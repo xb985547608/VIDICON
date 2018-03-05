@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/mw_download.png</file>
+        <file>images/mw_home.png</file>
+        <file>images/mw_photo.png</file>
+        <file>images/mw_playback.png</file>
+        <file>images/mw_preview.png</file>
+        <file>images/mw_settings.png</file>
+    </qresource>
+</RCC>

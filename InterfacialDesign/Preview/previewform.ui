@@ -85,7 +85,7 @@
          </size>
         </property>
         <property name="text">
-         <string>Main Stream</string>
+         <string>主码流</string>
         </property>
        </widget>
       </item>
@@ -104,7 +104,7 @@
          </size>
         </property>
         <property name="text">
-         <string>Sub Stream</string>
+         <string>子码流</string>
         </property>
        </widget>
       </item>

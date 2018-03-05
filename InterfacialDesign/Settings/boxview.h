@@ -9,7 +9,7 @@ class BoxView : public QTableView
 {
     Q_OBJECT
 public:
-    BoxView(QWidget *parent = Q_NULLPTR);
+    explicit BoxView(QWidget *parent = Q_NULLPTR);
     ~BoxView();
 
     void setData(const QStringList &list);

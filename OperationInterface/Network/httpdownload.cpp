@@ -79,10 +79,19 @@ void HttpDownload::init()
     manager = new QNetworkAccessManager(this);
     connect(manager, &QNetworkAccessManager::finished, this, &HttpDownload::finished);
     downloadDir = QString("%1/%2").arg(qApp->applicationDirPath()).arg(DOWNLOADDIR);
+    //确保download目录的存在
     QDir dir(downloadDir);
     if(!dir.exists()) {
         dir.cdUp();
         dir.mkdir(DOWNLOADDIR);
+    }
+    //清除临时文件
+    dir.cd(DOWNLOADDIR);
+    QStringList filter;
+    filter << "*.tmp";
+    QFileInfoList list = dir.entryInfoList(filter, QDir::Files | QDir::NoDotAndDotDot);
+    foreach (QFileInfo info, list) {
+        QFile::remove(info.absoluteFilePath());
     }
 
     timer = new QTimer(this);
@@ -109,7 +118,8 @@ void HttpDownload::downloadFile(QString fileName)
     while(!isLeisure()) {
         qApp->processEvents();
     }
-    fileStatus.fileName = fileName;
+    QStringList list = fileName.split('/');
+    fileStatus.fileName = list.at(list.length() - 1);
     fileStatus.state = Downloading;
 
     QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss-zzz");
@@ -119,7 +129,7 @@ void HttpDownload::downloadFile(QString fileName)
     reply = manager->get(QNetworkRequest(QUrl(QString("http://%1:%2/record/%3")
                                               .arg(host)
                                               .arg(port)
-                                              .arg(fileStatus.fileName))));
+                                              .arg(fileName))));
     //测试链接
 //    reply = manager->get(QNetworkRequest(QUrl("http://sw.bos.baidu.com/sw-search-sp/software/06da2b30f1c74/BaiduNetdisk_5.7.3.1.exe")));
     connect(reply, &QNetworkReply::readyRead, this, &HttpDownload::readyRead);
@@ -209,15 +219,15 @@ void HttpDownload::handleTimeout()
     //将速度转为字符串
     fileStatus.speed = speed(s);
     emit signalFileStatus(&fileStatus);
-
-    qDebug() << "speed:" << fileStatus.speed;
 }
 
 void HttpDownload::handleCancelDownload(QString file)
 {
     if(file.isNull())
         return;
-    if(fileStatus.fileName == file) {
+
+    QStringList list = file.split('/');
+    if(fileStatus.fileName == list.at(list.length() - 1)) {
         reply->abort();
     }
 }

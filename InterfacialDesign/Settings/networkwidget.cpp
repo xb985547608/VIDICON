@@ -1,4 +1,4 @@
-#include "tabnetwork.h"
+#include "networkwidget.h"
 #include <QGridLayout>
 #include <QComboBox>
 #include <QLabel>
@@ -12,7 +12,7 @@
 #include "parsexml.h"
 #include <QCheckBox>
 
-TabNetwork::TabNetwork(QWidget *parent) : QTabWidget(parent)
+NetworkWidget::NetworkWidget(QWidget *parent) : QStackedWidget(parent)
 {
     initTCPIPWidget();
     initPPPOEWidget();
@@ -26,20 +26,20 @@ TabNetwork::TabNetwork(QWidget *parent) : QTabWidget(parent)
     initP2PWidget();
     initRTSPWidget();
 
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &TabNetwork::handlerReceiveData);
-    connect(this, &TabNetwork::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
-    connect(this, &TabNetwork::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
-    connect(this, &TabNetwork::currentChanged, this, [this](){
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &NetworkWidget::handlerReceiveData);
+    connect(this, &NetworkWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
+    connect(this, &NetworkWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
+    connect(this, &NetworkWidget::currentChanged, this, [this](){
         handlerSwitchTab(QModelIndex());
     });
 }
 
-TabNetwork::~TabNetwork()
+NetworkWidget::~NetworkWidget()
 {
     qDebug("delete TabNetwork");
 }
 
-void TabNetwork::initTCPIPWidget()
+void NetworkWidget::initTCPIPWidget()
 {
     QStringList list;
     tcpIpWidget = new QWidget(this);
@@ -102,6 +102,11 @@ void TabNetwork::initTCPIPWidget()
     tcpIpMap.insert("IPv6 DNS 2", lineEdit11);
 
     //目前ipv6还未完全推广，暂不使用
+    lbl9->setVisible(false);
+    lbl10->setVisible(false);
+    lbl11->setVisible(false);
+    lbl12->setVisible(false);
+
     lineEdit8->setVisible(false);
     lineEdit9->setVisible(false);
     lineEdit10->setVisible(false);
@@ -123,7 +128,7 @@ void TabNetwork::initTCPIPWidget()
     tcpIpMap.insert("RTSP Port", lineEdit14);
 
     QPushButton *btn = new QPushButton("保存", tcpIpWidget);
-    connect(btn, &QPushButton::clicked, this, &TabNetwork::handlerPrepareData);
+    connect(btn, &QPushButton::clicked, this, &NetworkWidget::handlerPrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
 
@@ -183,10 +188,10 @@ void TabNetwork::initTCPIPWidget()
     layout3->addLayout(layout2, 10);
     layout3->addStretch(1);
 
-    addTab(tcpIpWidget, "TCP/IP");
+    addWidget(tcpIpWidget);
 }
 
-void TabNetwork::initPPPOEWidget()
+void NetworkWidget::initPPPOEWidget()
 {
     PPPOEWidget = new QWidget(this);
 
@@ -224,10 +229,10 @@ void TabNetwork::initPPPOEWidget()
     layout3->addLayout(layout2, 10);
     layout3->addStretch(1);
 
-    addTab(PPPOEWidget, "PPPOE");
+    addWidget(PPPOEWidget);
 }
 
-void TabNetwork::initDDNSClientWidget()
+void NetworkWidget::initDDNSClientWidget()
 {
     QStringList list;
     DDNSClientWidget = new QWidget(this);
@@ -290,10 +295,10 @@ void TabNetwork::initDDNSClientWidget()
     layout3->addLayout(layout2, 10);
     layout3->addStretch(1);
 
-    addTab(DDNSClientWidget, "DDNS Client");
+    addWidget(DDNSClientWidget);
 }
 
-void TabNetwork::initEmailWidget()
+void NetworkWidget::initEmailWidget()
 {
     EmailWidget = new QWidget(this);
 
@@ -391,10 +396,10 @@ void TabNetwork::initEmailWidget()
     layout3->addLayout(layout2, 10);
     layout3->addStretch(1);
 
-    addTab(EmailWidget, "Email");
+    addWidget(EmailWidget);
 }
 
-void TabNetwork::initFTPWidget()
+void NetworkWidget::initFTPWidget()
 {
     QStringList list;
     FTPWidget = new QWidget(this);
@@ -468,10 +473,10 @@ void TabNetwork::initFTPWidget()
     layout3->addLayout(layout2, 10);
     layout3->addStretch(1);
 
-    addTab(FTPWidget, "FTP");
+    addWidget(FTPWidget);
 }
 
-void TabNetwork::initBonjourWidget()
+void NetworkWidget::initBonjourWidget()
 {
     BonjourWidget = new QWidget(this);
 
@@ -511,10 +516,10 @@ void TabNetwork::initBonjourWidget()
     layout3->addLayout(layout2, 10);
     layout3->addStretch(1);
 
-    addTab(BonjourWidget, "Bonjour");
+    addWidget(BonjourWidget);
 }
 
-void TabNetwork::initSNMPWidget()
+void NetworkWidget::initSNMPWidget()
 {
     SNMPWidget = new QWidget(this);
 
@@ -577,10 +582,10 @@ void TabNetwork::initSNMPWidget()
     layout3->addLayout(layout2, 10);
     layout3->addStretch(1);
 
-    addTab(SNMPWidget, "SNMP");
+    addWidget(SNMPWidget);
 }
 
-void TabNetwork::initUPNPWidget()
+void NetworkWidget::initUPNPWidget()
 {
     QStringList list;
     UPNPWidget = new QWidget(this);
@@ -610,10 +615,10 @@ void TabNetwork::initUPNPWidget()
     layout3->addLayout(layout2, 10);
     layout3->addStretch(1);
 
-    addTab(UPNPWidget, "UPNP");
+    addWidget(UPNPWidget);
 }
 
-void TabNetwork::initHTTPsWidget()
+void NetworkWidget::initHTTPsWidget()
 {
     HTTPsWidget = new QWidget(this);
 
@@ -643,10 +648,10 @@ void TabNetwork::initHTTPsWidget()
     layout3->addLayout(layout2, 10);
     layout3->addStretch(1);
 
-    addTab(HTTPsWidget, "HTTPs");
+    addWidget(HTTPsWidget);
 }
 
-void TabNetwork::initP2PWidget()
+void NetworkWidget::initP2PWidget()
 {
     P2PWidget = new QWidget(this);
 
@@ -690,10 +695,10 @@ void TabNetwork::initP2PWidget()
     layout3->addLayout(layout2, 10);
     layout3->addStretch(1);
 
-    addTab(P2PWidget, "P2P");
+    addWidget(P2PWidget);
 }
 
-void TabNetwork::initRTSPWidget()
+void NetworkWidget::initRTSPWidget()
 {
     RTSPWidget = new QWidget(this);
 
@@ -732,10 +737,10 @@ void TabNetwork::initRTSPWidget()
     layout3->addLayout(layout2, 10);
     layout3->addStretch(1);
 
-    addTab(RTSPWidget, "RTSP");
+    addWidget(RTSPWidget);
 }
 
-void TabNetwork::handlerSwitchTab(const QModelIndex &index)
+void NetworkWidget::handlerSwitchTab(const QModelIndex &index)
 {
     int type = index.row();
     if(sender() != this) {
@@ -795,7 +800,7 @@ void TabNetwork::handlerSwitchTab(const QModelIndex &index)
     }
 }
 
-void TabNetwork::handlerPrepareData()
+void NetworkWidget::handlerPrepareData()
 {
     switch(currentIndex()) {
     case 0: {
@@ -834,7 +839,7 @@ void TabNetwork::handlerPrepareData()
     }
 }
 
-void TabNetwork::handlerReceiveData(int type, QByteArray data)
+void NetworkWidget::handlerReceiveData(int type, QByteArray data)
 {
     switch (type) {
     case TCPIPPARAMETER: {

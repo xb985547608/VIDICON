@@ -1,16 +1,16 @@
 #ifndef TABALARM_H
 #define TABALARM_H
 
-#include <QTabWidget>
+#include <QStackedWidget>
 #include <QMap>
 #include <QDialog>
 
-class TabAlarm : public QTabWidget
+class AlarmWidget : public QStackedWidget
 {
     Q_OBJECT
 public:
-    explicit TabAlarm(QWidget *parent = nullptr);
-    ~TabAlarm();
+    explicit AlarmWidget(QWidget *parent = nullptr);
+    ~AlarmWidget();
 
     void initMotionDetectionWidget();
     void initVideoBlindWidget();

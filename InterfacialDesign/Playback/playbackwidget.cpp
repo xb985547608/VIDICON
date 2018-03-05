@@ -65,13 +65,16 @@ void PlaybackWidget::handlerWidgetSwitch()
 
 void PlaybackWidget::handlerReceiveData(int type, QByteArray data)
 {
+    Q_UNUSED(data);
     switch(type) {
-    case PLAYSTATE: {
-        qDebug() << data;
-
+    case STARTPLAYING: {
+        VidiconProtocol::PlayStateParameter *param = new VidiconProtocol::PlayStateParameter;
+        param->htmlid = htmlid;
+        param->StateValue = 0;
+        emit signalSetParameter(PLAYSTATE, param);
         break;
     }
-    case STARTPLAYING: {
+    case PLAYSTATE: {
         emit signalVlcControl(VLCCONTROLINIT, BACKUPSTREAMTYPE, ui->displayArea->winId());
         break;
     }

@@ -13,41 +13,27 @@ SettinsWidget::SettinsWidget(QWidget *parent) :
     vLayout->setContentsMargins(0, 0, 0, 0);
     toolbox = new QToolBox(this);
     toolbox->setStyleSheet("QToolBox::tab {\
-                               background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\
-                                                           stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,\
-                                                           stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);\
-                                border-top-left-radius: 7px;\
-                                border-top-right-radius: 7px;\
-                               color: darkgray;\
+                               border-image:url(:/images/bgNormal.png);\
+                               color: white;font-size:14px;\
                            }\
                            QToolBox::tab:selected { /* italicize selected tabs */\
-                               font:bold ;\
-                               border-bottom:2px solid #ffa02f;\
-                               color: black;\
-                           }");
+                               border-image:url(:/images/bgActive.png);font-weight:bold;\
+                           }\
+                           QToolBoxButton{min-height:30px;margin:1px}");
+    toolbox->layout()->setSpacing(0);
     vLayout->addWidget(toolbox);
-
-
+    ui->displayArea->setStyleSheet("background-color:white");
 
     initSideBar();
     initDisplayArea();
 
-    connect(toolbox, &QToolBox::currentChanged, this, &SettinsWidget::handlerToolBoxClicked);
+    connect(toolbox,    &QToolBox::currentChanged, this, &SettinsWidget::handlerToolBoxClicked);
 
-    connect(boxMedia, &BoxView::clicked, tabMedia, &TabMedia::handlerSwitchTab);
-    connect(tabMedia, &TabMedia::currentChanged, boxMedia, &BoxView::hanlderSwitchRow);
-
-    connect(boxNetwork, &BoxView::clicked, tabNetwork, &TabNetwork::handlerSwitchTab);
-    connect(tabNetwork, &TabNetwork::currentChanged, boxNetwork, &BoxView::hanlderSwitchRow);
-
-    connect(boxAlarm, &BoxView::clicked, tabAlarm, &TabAlarm::handlerSwitchTab);
-    connect(tabAlarm, &TabAlarm::currentChanged, boxAlarm, &BoxView::hanlderSwitchRow);
-
-    connect(boxRecord, &BoxView::clicked, tabRecord, &TabRecord::handlerSwitchTab);
-    connect(tabRecord, &TabRecord::currentChanged, boxRecord, &BoxView::hanlderSwitchRow);
-
-    connect(boxSystem, &BoxView::clicked, tabSystem, &TabSystem::handlerSwitchTab);
-    connect(tabSystem, &TabSystem::currentChanged, boxSystem, &BoxView::hanlderSwitchRow);
+    connect(boxMedia,   &BoxView::clicked, tabMedia,    &MediaWidget::handlerSwitchTab);
+    connect(boxNetwork, &BoxView::clicked, tabNetwork,  &NetworkWidget::handlerSwitchTab);
+    connect(boxAlarm,   &BoxView::clicked, tabAlarm,    &AlarmWidget::handlerSwitchTab);
+    connect(boxRecord,  &BoxView::clicked, tabRecord,   &RecordWidget::handlerSwitchTab);
+    connect(boxSystem,  &BoxView::clicked, tabSystem,   &SystemWidget::handlerSwitchTab);
 }
 
 SettinsWidget::~SettinsWidget()
@@ -96,23 +82,23 @@ void SettinsWidget::initDisplayArea()
     QVBoxLayout *layout = new QVBoxLayout(ui->displayArea);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    tabMedia = new TabMedia(ui->displayArea);
+    tabMedia = new MediaWidget(ui->displayArea);
     tabMedia->setVisible(true);
     layout->addWidget(tabMedia);
 
-    tabNetwork = new TabNetwork(ui->displayArea);
+    tabNetwork = new NetworkWidget(ui->displayArea);
     tabNetwork->setVisible(false);
     layout->addWidget(tabNetwork);
 
-    tabAlarm = new TabAlarm(ui->displayArea);
+    tabAlarm = new AlarmWidget(ui->displayArea);
     tabAlarm->setVisible(false);
     layout->addWidget(tabAlarm);
 
-    tabRecord = new TabRecord(ui->displayArea);
+    tabRecord = new RecordWidget(ui->displayArea);
     tabRecord->setVisible(false);
     layout->addWidget(tabRecord);
 
-    tabSystem = new TabSystem(ui->displayArea);
+    tabSystem = new SystemWidget(ui->displayArea);
     tabSystem->setVisible(false);
     layout->addWidget(tabSystem);
 }

@@ -4,7 +4,8 @@
 #include <QMessageBox>
 #include "Protocol/vidiconprotocol.h"
 #include "parsexml.h"
-#include "Settings/waitingshade.h"
+#include "waitingshade.h"
+#include "statustip.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
@@ -19,12 +20,13 @@ MainWindow::MainWindow(QWidget *parent) :
     settinsWidget   = new SettinsWidget(navigationWidget);
     downloadWidget  = new DownloadWidget(navigationWidget);
 
-    navigationWidget->addTab(previewWidget,  tr("预览"));
-    navigationWidget->addTab(playbackWidget, tr("回放"));
-    navigationWidget->addTab(settinsWidget,  tr("设置"));
-    navigationWidget->addTab(downloadWidget, tr("下载"));
+    navigationWidget->addTab(previewWidget,  QIcon(":/images/mw_preview.png"),  tr("预览"));
+    navigationWidget->addTab(playbackWidget, QIcon(":/images/mw_playback.png"), tr("回放"));
+    navigationWidget->addTab(settinsWidget,  QIcon(":/images/mw_settings.png"), tr("设置"));
+    navigationWidget->addTab(downloadWidget, QIcon(":/images/mw_download.png"), tr("下载"));
 
     WaitingShade::getInstance(this);
+    StatusTip::getInstance(this);
 
     connect(playbackWidget, &PlaybackWidget::signalAddDownloadTask, downloadWidget, &DownloadWidget::enqueue);
     connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &MainWindow::handlerReceiveData);
@@ -61,6 +63,7 @@ void MainWindow::logoutHandler()
 void MainWindow::handlerReceiveData(int type, QByteArray data)
 {
     WaitingShade *w = WaitingShade::getInstance();
+    StatusTip *s = StatusTip::getInstance();
     if(!isVisible()) {
         return;
     }
@@ -69,11 +72,13 @@ void MainWindow::handlerReceiveData(int type, QByteArray data)
     case RESPONSESTATUS: {
         VidiconProtocol::ResponseStatus reply;
         if(ParseXML::getInstance()->parseResponseStatus(&reply, data)) {
-            if(reply.StatusCode != 1) {
-                QMessageBox::information(this, "参数设置", QString("%1 错误").arg(reply.StatusCode));
+            QString info;
+            if(reply.StatusCode == 1) {
+                info = "参数设置成功";
             }else {
-                QMessageBox::information(this, "参数设置", QString("参数设置成功"));
+                info = "参数设置失败";
             }
+            s->showStatusTip(info);
         }
         if(w->isVisible()) {
             w->hide();
@@ -81,7 +86,7 @@ void MainWindow::handlerReceiveData(int type, QByteArray data)
         break;
     }
     case NETWORKERROR: {
-        QMessageBox::information(this, "参数设置", QString("网络错误，请稍后重试"));
+        s->showStatusTip("夭寿啦~~网络出状况了");
         if(w->isVisible()) {
             w->hide();
         }
@@ -90,6 +95,7 @@ void MainWindow::handlerReceiveData(int type, QByteArray data)
     default:
         break;
     }
+    this->raise();
 }
 
 

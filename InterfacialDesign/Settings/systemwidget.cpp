@@ -1,4 +1,4 @@
-#include "tabsystem.h"
+#include "systemwidget.h"
 #include <QGridLayout>
 #include <QComboBox>
 #include <QLabel>
@@ -11,33 +11,33 @@
 #include <QSpinBox>
 #include <QDateEdit>
 #include <QTimeEdit>
-#include "tableview.h"
+#include "userinfoview.h"
 #include <QTimer>
 #include "Protocol/vidiconprotocol.h"
 #include "parsexml.h"
 #include <QMessageBox>
 
-TabSystem::TabSystem(QWidget *parent) : QTabWidget(parent)
+SystemWidget::SystemWidget(QWidget *parent) : QStackedWidget(parent)
 {
     initMaintenanceWidget();
     initDeviceInfoWidget();
     initSetTimeWidget();
 //    initUserAdminWidget();
 
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &TabSystem::handlerReceiveData);
-    connect(this, &TabSystem::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
-    connect(this, &TabSystem::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
-    connect(this, &TabSystem::currentChanged, this, [this](){
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &SystemWidget::handlerReceiveData);
+    connect(this, &SystemWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
+    connect(this, &SystemWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
+    connect(this, &SystemWidget::currentChanged, this, [this](){
         handlerSwitchTab(QModelIndex());
     });
 }
 
-TabSystem::~TabSystem()
+SystemWidget::~SystemWidget()
 {
     qDebug("delete TabSystem");
 }
 
-void TabSystem::initMaintenanceWidget()
+void SystemWidget::initMaintenanceWidget()
 {
     QStringList list;
     maintenanceWidget = new QWidget(this);
@@ -91,10 +91,10 @@ void TabSystem::initMaintenanceWidget()
     layout3->addLayout(layout2);
     layout3->addStretch();
 
-    addTab(maintenanceWidget, "维护");
+    addWidget(maintenanceWidget);
 }
 
-void TabSystem::initDeviceInfoWidget()
+void SystemWidget::initDeviceInfoWidget()
 {
     deviceInfoWidget = new QWidget(this);
 
@@ -140,10 +140,10 @@ void TabSystem::initDeviceInfoWidget()
     layout3->addLayout(layout2);
     layout3->addStretch();
 
-    addTab(deviceInfoWidget, "设备信息");
+    addWidget(deviceInfoWidget);
 }
 
-void TabSystem::initSetTimeWidget()
+void SystemWidget::initSetTimeWidget()
 {
     QStringList list;
     setTimeWidget = new QWidget(this);
@@ -197,7 +197,7 @@ void TabSystem::initSetTimeWidget()
 
     QPushButton *btn2 = new QPushButton("保存", setTimeWidget);
     btn2->setFixedWidth(50);
-    connect(btn2, &QPushButton::clicked, this, &TabSystem::handlerPrepareData);
+    connect(btn2, &QPushButton::clicked, this, &SystemWidget::handlerPrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(lbl1,      0, 0, 1, 1);
@@ -228,14 +228,14 @@ void TabSystem::initSetTimeWidget()
     layout3->addLayout(layout2);
     layout3->addStretch();
 
-    addTab(setTimeWidget, "时间设置");
+    addWidget(setTimeWidget);
 }
 
-void TabSystem::initUserAdminWidget()
+void SystemWidget::initUserAdminWidget()
 {
     userAdminWidget = new QWidget(this);
 
-    TableView *view = new TableView(userAdminWidget);
+    UserInfoView *view = new UserInfoView(userAdminWidget);
     QStringList list;
     for(int i=0; i<10; i++){
         list << QString::number(i) << "admin" << "Manager";
@@ -260,10 +260,10 @@ void TabSystem::initUserAdminWidget()
     layout3->addLayout(layout2, 8);
     layout3->addStretch(1);
 
-    addTab(userAdminWidget, "User Admin");
+    addWidget(userAdminWidget);
 }
 
-void TabSystem::handlerSwitchTab(const QModelIndex &index)
+void SystemWidget::handlerSwitchTab(const QModelIndex &index)
 {
     int type = index.row();
     if(sender() != this) {
@@ -294,7 +294,7 @@ void TabSystem::handlerSwitchTab(const QModelIndex &index)
     }
 }
 
-void TabSystem::handlerPrepareData()
+void SystemWidget::handlerPrepareData()
 {
     switch(currentIndex()) {
     case 2: {
@@ -313,7 +313,7 @@ void TabSystem::handlerPrepareData()
     }
 }
 
-void TabSystem::handlerReceiveData(int type, QByteArray data)
+void SystemWidget::handlerReceiveData(int type, QByteArray data)
 {
     switch (type) {
     case NTPPARAMETER: {

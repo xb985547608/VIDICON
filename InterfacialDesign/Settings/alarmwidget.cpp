@@ -1,4 +1,4 @@
-#include "tabalarm.h"
+#include "alarmwidget.h"
 #include <QGridLayout>
 #include <QComboBox>
 #include <QLabel>
@@ -18,17 +18,17 @@
 #include "parsexml.h"
 #include <QMessageBox>
 
-TabAlarm::TabAlarm(QWidget *parent) : QTabWidget(parent)
+AlarmWidget::AlarmWidget(QWidget *parent) : QStackedWidget(parent)
 {
     initRegionEditDialog();
     initMotionDetectionWidget();    
     initVideoBlindWidget();
     initAlarmWidget();
 
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &TabAlarm::handlerReceiveData);
-    connect(this, &TabAlarm::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
-    connect(this, &TabAlarm::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
-    connect(this, &TabAlarm::currentChanged, this, [this](){
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &AlarmWidget::handlerReceiveData);
+    connect(this, &AlarmWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
+    connect(this, &AlarmWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
+    connect(this, &AlarmWidget::currentChanged, this, [this](){
         handlerSwitchTab(QModelIndex());
     });
 
@@ -37,12 +37,12 @@ TabAlarm::TabAlarm(QWidget *parent) : QTabWidget(parent)
 //    emit signalGetParameter(SENSORALARMPARAMETER);
 }
 
-TabAlarm::~TabAlarm()
+AlarmWidget::~AlarmWidget()
 {
     qDebug("delete TabAlarm");
 }
 
-void TabAlarm::initMotionDetectionWidget()
+void AlarmWidget::initMotionDetectionWidget()
 {
     QStringList list;
     motionDetectionWidget = new QWidget(this);
@@ -81,7 +81,7 @@ void TabAlarm::initMotionDetectionWidget()
     QCheckBox *cb4 = new QCheckBox("时间段1", motionDetectionWidget);
     cb4->setObjectName("Time Period 0");
     connect(cb4, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb4, &QCheckBox::stateChanged, this, &TabAlarm::handlerTimeSelect);
+    connect(cb4, &QCheckBox::stateChanged, this, &AlarmWidget::handlerTimeSelect);
     motionDetectionMap.insert("Time Period 0", cb4);
     QTimeEdit *time1 = new QTimeEdit(motionDetectionWidget);
     time1->setEnabled(false);
@@ -99,7 +99,7 @@ void TabAlarm::initMotionDetectionWidget()
     QCheckBox *cb5 = new QCheckBox("时间段2", motionDetectionWidget);
     cb5->setObjectName("Time Period 1");
     connect(cb5, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb5, &QCheckBox::stateChanged, this, &TabAlarm::handlerTimeSelect);
+    connect(cb5, &QCheckBox::stateChanged, this, &AlarmWidget::handlerTimeSelect);
     motionDetectionMap.insert("Time Period 1", cb5);
     QTimeEdit *time3 = new QTimeEdit(motionDetectionWidget);
     time3->setEnabled(false);
@@ -117,7 +117,7 @@ void TabAlarm::initMotionDetectionWidget()
     QCheckBox *cb6 = new QCheckBox("时间段3", motionDetectionWidget);
     cb6->setObjectName("Time Period 2");
     connect(cb6, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb6, &QCheckBox::stateChanged, this, &TabAlarm::handlerTimeSelect);
+    connect(cb6, &QCheckBox::stateChanged, this, &AlarmWidget::handlerTimeSelect);
     motionDetectionMap.insert("Time Period 2", cb6);
     QTimeEdit *time5 = new QTimeEdit(motionDetectionWidget);
     time5->setEnabled(false);
@@ -135,7 +135,7 @@ void TabAlarm::initMotionDetectionWidget()
     QCheckBox *cb7 = new QCheckBox("时间段4", motionDetectionWidget);
     cb7->setObjectName("Time Period 3");
     connect(cb7, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb7, &QCheckBox::stateChanged, this, &TabAlarm::handlerTimeSelect);
+    connect(cb7, &QCheckBox::stateChanged, this, &AlarmWidget::handlerTimeSelect);
     motionDetectionMap.insert("Time Period 3", cb7);
     QTimeEdit *time7 = new QTimeEdit(motionDetectionWidget);
     time7->setEnabled(false);
@@ -151,7 +151,7 @@ void TabAlarm::initMotionDetectionWidget()
     motionDetectionMap.insert("Time Period 3 end", time8);
 
     QPushButton *btn2 = new QPushButton("全选", motionDetectionWidget);
-    connect(btn2, &QPushButton::clicked, this, &TabAlarm::handlerSelectAllWeek);
+    connect(btn2, &QPushButton::clicked, this, &AlarmWidget::handlerSelectAllWeek);
 
     QCheckBox *cb8 = new QCheckBox("周天", motionDetectionWidget);
     cb8->setObjectName("week 0");
@@ -189,7 +189,7 @@ void TabAlarm::initMotionDetectionWidget()
     motionDetectionMap.insert("week 6", cb14);
 
     QPushButton *btn3 = new QPushButton("保存", motionDetectionWidget);
-    connect(btn3, &QPushButton::clicked, this, &TabAlarm::handlerPrepareData);
+    connect(btn3, &QPushButton::clicked, this, &AlarmWidget::handlerPrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(cb1,      0, 0, 1, 2);
@@ -255,10 +255,10 @@ void TabAlarm::initMotionDetectionWidget()
     layout3->addLayout(layout2, 4);
     layout3->addStretch(1);
 
-    addTab(motionDetectionWidget, "移动侦测");
+    addWidget(motionDetectionWidget);
 }
 
-void TabAlarm::initVideoBlindWidget()
+void AlarmWidget::initVideoBlindWidget()
 {
     QStringList list;
     videoBlindWidget = new QWidget(this);
@@ -287,7 +287,7 @@ void TabAlarm::initVideoBlindWidget()
     QCheckBox *cb4 = new QCheckBox("时间段1", videoBlindWidget);
     cb4->setObjectName("Time Period 0");
     connect(cb4, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb4, &QCheckBox::stateChanged, this, &TabAlarm::handlerTimeSelect);
+    connect(cb4, &QCheckBox::stateChanged, this, &AlarmWidget::handlerTimeSelect);
     videoBlindMap.insert("Time Period 0", cb4);
     QTimeEdit *time1 = new QTimeEdit(videoBlindWidget);
     time1->setEnabled(false);
@@ -305,7 +305,7 @@ void TabAlarm::initVideoBlindWidget()
     QCheckBox *cb5 = new QCheckBox("时间段2", videoBlindWidget);
     cb5->setObjectName("Time Period 1");
     connect(cb5, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb5, &QCheckBox::stateChanged, this, &TabAlarm::handlerTimeSelect);
+    connect(cb5, &QCheckBox::stateChanged, this, &AlarmWidget::handlerTimeSelect);
     videoBlindMap.insert("Time Period 1", cb5);
     QTimeEdit *time3 = new QTimeEdit(videoBlindWidget);
     time3->setEnabled(false);
@@ -323,7 +323,7 @@ void TabAlarm::initVideoBlindWidget()
     QCheckBox *cb6 = new QCheckBox("时间段3", videoBlindWidget);
     cb6->setObjectName("Time Period 2");
     connect(cb6, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb6, &QCheckBox::stateChanged, this, &TabAlarm::handlerTimeSelect);
+    connect(cb6, &QCheckBox::stateChanged, this, &AlarmWidget::handlerTimeSelect);
     videoBlindMap.insert("Time Period 2", cb6);
     QTimeEdit *time5 = new QTimeEdit(videoBlindWidget);
     time5->setEnabled(false);
@@ -341,7 +341,7 @@ void TabAlarm::initVideoBlindWidget()
     QCheckBox *cb7 = new QCheckBox("时间段4", videoBlindWidget);
     cb7->setObjectName("Time Period 3");
     connect(cb7, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb7, &QCheckBox::stateChanged, this, &TabAlarm::handlerTimeSelect);
+    connect(cb7, &QCheckBox::stateChanged, this, &AlarmWidget::handlerTimeSelect);
     videoBlindMap.insert("Time Period 3", cb7);
     QTimeEdit *time7 = new QTimeEdit(videoBlindWidget);
     time7->setEnabled(false);
@@ -357,7 +357,7 @@ void TabAlarm::initVideoBlindWidget()
     videoBlindMap.insert("Time Period 3 end", time8);
 
     QPushButton *btn2 = new QPushButton("全选", videoBlindWidget);
-    connect(btn2, &QPushButton::clicked, this, &TabAlarm::handlerSelectAllWeek);
+    connect(btn2, &QPushButton::clicked, this, &AlarmWidget::handlerSelectAllWeek);
 
     QCheckBox *cb8 = new QCheckBox("周天", videoBlindWidget);
     cb8->setObjectName("week 0");
@@ -395,7 +395,7 @@ void TabAlarm::initVideoBlindWidget()
     videoBlindMap.insert("week 6", cb14);
 
     QPushButton *btn3 = new QPushButton("保存", videoBlindWidget);
-    connect(btn3, &QPushButton::clicked, this, &TabAlarm::handlerPrepareData);
+    connect(btn3, &QPushButton::clicked, this, &AlarmWidget::handlerPrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(cb1,       0, 0, 1, 2);
@@ -457,10 +457,10 @@ void TabAlarm::initVideoBlindWidget()
     layout3->addLayout(layout2, 4);
     layout3->addStretch(1);
 
-    addTab(videoBlindWidget, "遮挡报警");
+    addWidget(videoBlindWidget);
 }
 
-void TabAlarm::initAlarmWidget()
+void AlarmWidget::initAlarmWidget()
 {
     QStringList list;
     alarmWidget = new QWidget(this);
@@ -489,7 +489,7 @@ void TabAlarm::initAlarmWidget()
     QCheckBox *cb4 = new QCheckBox("时间段1", alarmWidget);
     cb4->setObjectName("Time Period 0");
     connect(cb4, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb4, &QCheckBox::stateChanged, this, &TabAlarm::handlerTimeSelect);
+    connect(cb4, &QCheckBox::stateChanged, this, &AlarmWidget::handlerTimeSelect);
     alarmMap.insert("Time Period 0", cb4);
     QTimeEdit *time1 = new QTimeEdit(alarmWidget);
     time1->setEnabled(false);
@@ -506,7 +506,7 @@ void TabAlarm::initAlarmWidget()
     QCheckBox *cb5 = new QCheckBox("时间段2", alarmWidget);
     cb5->setObjectName("Time Period 1");
     connect(cb5, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb5, &QCheckBox::stateChanged, this, &TabAlarm::handlerTimeSelect);
+    connect(cb5, &QCheckBox::stateChanged, this, &AlarmWidget::handlerTimeSelect);
     alarmMap.insert("Time Period 1", cb5);
     QTimeEdit *time3 = new QTimeEdit(alarmWidget);
     time3->setEnabled(false);
@@ -523,7 +523,7 @@ void TabAlarm::initAlarmWidget()
     QCheckBox *cb6 = new QCheckBox("时间段3", alarmWidget);
     cb6->setObjectName("Time Period 2");
     connect(cb6, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb6, &QCheckBox::stateChanged, this, &TabAlarm::handlerTimeSelect);
+    connect(cb6, &QCheckBox::stateChanged, this, &AlarmWidget::handlerTimeSelect);
     alarmMap.insert("Time Period 2", cb6);
     QTimeEdit *time5 = new QTimeEdit(alarmWidget);
     time5->setEnabled(false);
@@ -540,7 +540,7 @@ void TabAlarm::initAlarmWidget()
     QCheckBox *cb7 = new QCheckBox("时间段4", alarmWidget);
     cb7->setObjectName("Time Period 3");
     connect(cb7, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb7, &QCheckBox::stateChanged, this, &TabAlarm::handlerTimeSelect);
+    connect(cb7, &QCheckBox::stateChanged, this, &AlarmWidget::handlerTimeSelect);
     alarmMap.insert("Time Period 3", cb7);
     QTimeEdit *time7 = new QTimeEdit(alarmWidget);
     time7->setEnabled(false);
@@ -555,7 +555,7 @@ void TabAlarm::initAlarmWidget()
     alarmMap.insert("Time Period 3 end", time8);
 
     QPushButton *btn2 = new QPushButton("全选", alarmWidget);
-    connect(btn2, &QPushButton::clicked, this, &TabAlarm::handlerSelectAllWeek);
+    connect(btn2, &QPushButton::clicked, this, &AlarmWidget::handlerSelectAllWeek);
 
     QCheckBox *cb8 = new QCheckBox("周天", alarmWidget);
     cb8->setObjectName("week 0");
@@ -593,7 +593,7 @@ void TabAlarm::initAlarmWidget()
     alarmMap.insert("week 6", cb14);
 
     QPushButton *btn3 = new QPushButton("保存", alarmWidget);
-    connect(btn3, &QPushButton::clicked, this, &TabAlarm::handlerPrepareData);
+    connect(btn3, &QPushButton::clicked, this, &AlarmWidget::handlerPrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(cb1,       0, 0, 1, 2);
@@ -655,10 +655,10 @@ void TabAlarm::initAlarmWidget()
     layout3->addLayout(layout2, 4);
     layout3->addStretch(1);
 
-    addTab(alarmWidget, "探头报警");
+    addWidget(alarmWidget);
 }
 
-void TabAlarm::initRegionEditDialog()
+void AlarmWidget::initRegionEditDialog()
 {
     QStringList list;
     regionEditDialog = new QDialog(this);
@@ -690,7 +690,7 @@ void TabAlarm::initRegionEditDialog()
     connect(btn2, &QPushButton::clicked, region, &MotionWidget::handlerCleanScreen);
     QPushButton *btn3 = new QPushButton("保存", regionEditDialog);
     btn3->setObjectName("MotionRegion");
-    connect(btn3, &QPushButton::clicked, this, &TabAlarm::handlerPrepareData);
+    connect(btn3, &QPushButton::clicked, this, &AlarmWidget::handlerPrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(region,      0, 0, 8, 10);
@@ -718,7 +718,7 @@ void TabAlarm::initRegionEditDialog()
 
 }
 
-void TabAlarm::handlerSwitchTab(const QModelIndex &index)
+void AlarmWidget::handlerSwitchTab(const QModelIndex &index)
 {
     int type = index.row();
     if(sender() != this) {
@@ -745,7 +745,7 @@ void TabAlarm::handlerSwitchTab(const QModelIndex &index)
     }
 }
 
-void TabAlarm::handlerTimeSelect(int state)
+void AlarmWidget::handlerTimeSelect(int state)
 {
     TimeRegionWidget *region = NULL;
     QMap<QString, QWidget *> map;
@@ -778,7 +778,7 @@ void TabAlarm::handlerTimeSelect(int state)
     }
 }
 
-void TabAlarm::handlerSelectAllWeek()
+void AlarmWidget::handlerSelectAllWeek()
 {
     QMap<QString, QWidget *> map;
     switch (currentIndex()) {
@@ -801,7 +801,7 @@ void TabAlarm::handlerSelectAllWeek()
     }
 }
 
-void TabAlarm::handlerPrepareData()
+void AlarmWidget::handlerPrepareData()
 {
     switch(currentIndex()) {
     case 0: {
@@ -859,7 +859,7 @@ void TabAlarm::handlerPrepareData()
     }
 }
 
-void TabAlarm::handlerReceiveData(int type, QByteArray data)
+void AlarmWidget::handlerReceiveData(int type, QByteArray data)
 {    
     switch(type) {
     case MOTIONALARAPARAMETER: {

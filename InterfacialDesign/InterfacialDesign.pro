@@ -41,12 +41,16 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     customstyle.cpp \
-    selectcurrentipdialog.cpp
+    selectcurrentipdialog.cpp \
+    statustip.cpp \
+    waitingshade.cpp
 
 HEADERS += \
         mainwindow.h \
     customstyle.h \
-    selectcurrentipdialog.h
+    selectcurrentipdialog.h \
+    statustip.h \
+    waitingshade.h
 
 FORMS += \
         mainwindow.ui \
@@ -60,5 +64,8 @@ include($$PWD/Playback/Playback.pri)
 include($$PWD/Photo/Photo.pri)
 include($$PWD/Download/Download.pri)
 include($$PWD/Navigation/Navigation.pri)
+
+RESOURCES += \
+    mainwindow.qrc
 
 

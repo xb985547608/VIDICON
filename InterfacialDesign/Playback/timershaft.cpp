@@ -292,7 +292,7 @@ void TimerShaft::mousePressEvent(QMouseEvent *event)
                (height + GROOVEHEIGHT) / 2,
                TRIANGLEWIDTH, TRIANGLEHEIGHT);
 
-    判断鼠标点击的地方是否符合拖拽行为
+    //判断鼠标点击的地方是否符合拖拽行为
     if(rect.contains(event->pos())) {
         isDragPlayPos = true;
         currentPlayPos = (qreal)(event->pos().x() - margin) / width;
@@ -334,7 +334,7 @@ void TimerShaft::mouseMoveEvent(QMouseEvent *event)
         QRect rect1(margin, 0, width, (height + GROOVEHEIGHT) / 2);
         if(rect1.contains(event->pos())) {
             isMoving = true;
-            setCursor(Qt::BlankCursor);
+//            setCursor(Qt::BlankCursor);
         }else {
             isMoving = false;
             setCursor(Qt::ArrowCursor);
@@ -402,6 +402,7 @@ bool TimerShaft::event(QEvent *event)
     return QWidget::event(event);
 }
 
+//类似模糊匹配的功能，在边界点的边缘处自动对齐边界点
 void TimerShaft::checkStartPlayTime(QPoint pos)
 {
     int diffSecs = DIFFVALUE * ONEDAYSEC / stretchScale / width;

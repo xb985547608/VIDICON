@@ -1,4 +1,4 @@
-#include "tabmedia.h"
+#include "mediawidget.h"
 #include <QGridLayout>
 #include <QComboBox>
 #include <QLabel>
@@ -15,8 +15,9 @@
 #include <QTimeEdit>
 #include "DrawSubWidget/privacywidget.h"
 #include "DrawSubWidget/imagewidget.h"
+#include "waitingshade.h"
 
-TabMedia::TabMedia(QWidget *parent) : QTabWidget(parent)
+MediaWidget::MediaWidget(QWidget *parent) : QStackedWidget(parent)
 {
     initAudioVideoWidget();
     initPrivacyWidget();
@@ -24,20 +25,20 @@ TabMedia::TabMedia(QWidget *parent) : QTabWidget(parent)
     initROIWidget();
     initOSDWidget();
 
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &TabMedia::handlerReceiveData);
-    connect(this, &TabMedia::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
-    connect(this, &TabMedia::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
-    connect(this, &TabMedia::currentChanged, this, [this](){
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &MediaWidget::handlerReceiveData);
+    connect(this, &MediaWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
+    connect(this, &MediaWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
+    connect(this, &MediaWidget::currentChanged, this, [this](){
         handlerSwitchTab(QModelIndex());
     });
 }
 
-TabMedia::~TabMedia()
+MediaWidget::~MediaWidget()
 {
     qDebug("delete TabMedia");
 }
 
-void TabMedia::initAudioVideoWidget()
+void MediaWidget::initAudioVideoWidget()
 {
     QStringList list;
     audioVideoWidget = new QWidget(this);
@@ -242,10 +243,11 @@ void TabMedia::initAudioVideoWidget()
     vLayout->addLayout(layout);
     vLayout->addStretch();
 
-    addTab(audioVideoWidget, "音视频");
+    addWidget(audioVideoWidget);
+
 }
 
-void TabMedia::initPrivacyWidget()
+void MediaWidget::initPrivacyWidget()
 {
     privacyWidget = new QWidget(this);
 
@@ -265,7 +267,7 @@ void TabMedia::initPrivacyWidget()
 
     QPushButton *btn3 = new QPushButton("保存", privacyWidget);
     privacyMap.insert("Save", btn3);
-    connect(btn3, &QPushButton::clicked, this, &TabMedia::handlerPrepareData);
+    connect(btn3, &QPushButton::clicked, this, &MediaWidget::handlerPrepareData);
 
     QHBoxLayout *layout1 = new QHBoxLayout;
     layout1->addStretch();
@@ -292,10 +294,10 @@ void TabMedia::initPrivacyWidget()
     layout5->addLayout(layout4);
     layout5->addStretch();
 
-    addTab(privacyWidget, "隐私遮蔽");
+    addWidget(privacyWidget);
 }
 
-void TabMedia::initImageWidget()
+void MediaWidget::initImageWidget()
 {
     QStringList list;
     imageWidget = new QWidget(this);
@@ -460,7 +462,7 @@ void TabMedia::initImageWidget()
     imageMap.insert("time2", time2);
 
     QPushButton *btn = new QPushButton("保存", imageWidget);
-    connect(btn, &QPushButton::clicked, this, &TabMedia::handlerPrepareData);
+    connect(btn, &QPushButton::clicked, this, &MediaWidget::handlerPrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(displayArea, 0, 0, 8, 2, Qt::AlignRight);
@@ -533,10 +535,10 @@ void TabMedia::initImageWidget()
     layout3->addLayout(layout2, 10);
     layout3->addStretch(1);
 
-    addTab(imageWidget, "图像参数");
+    addWidget(imageWidget);
 }
 
-void TabMedia::initROIWidget()
+void MediaWidget::initROIWidget()
 {
     QStringList list;
     roiWidget = new QWidget(this);
@@ -599,10 +601,10 @@ void TabMedia::initROIWidget()
     layout5->addLayout(layout4);
     layout5->addStretch();
 
-    addTab(roiWidget, "ROI");
+    addWidget(roiWidget);
 }
 
-void TabMedia::initOSDWidget()
+void MediaWidget::initOSDWidget()
 {
     osdWidget = new QWidget(this);
 
@@ -632,7 +634,7 @@ void TabMedia::initOSDWidget()
 
     QPushButton *btn = new QPushButton("保存", osdWidget);
     btn->setFixedWidth(50);
-    connect(btn, &QPushButton::clicked, this, &TabMedia::handlerPrepareData);
+    connect(btn, &QPushButton::clicked, this, &MediaWidget::handlerPrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(displayArea, 0, 0, 8, 2);
@@ -658,10 +660,10 @@ void TabMedia::initOSDWidget()
     layout3->addLayout(layout2);
     layout3->addStretch();
 
-    addTab(osdWidget, "OSD");
+    addWidget(osdWidget);
 }
 
-void TabMedia::refreshParameter()
+void MediaWidget::refreshParameter()
 {
     switch(currentIndex()){
     case 0:
@@ -671,7 +673,7 @@ void TabMedia::refreshParameter()
     }
 }
 
-void TabMedia::handlerSwitchTab(const QModelIndex &index)
+void MediaWidget::handlerSwitchTab(const QModelIndex &index)
 {
     int type = index.row();
     if(sender() != this) {
@@ -698,7 +700,7 @@ void TabMedia::handlerSwitchTab(const QModelIndex &index)
     }
 }
 
-void TabMedia::handlerPrepareData()
+void MediaWidget::handlerPrepareData()
 {
     switch (currentIndex()) {
     case 0: {
@@ -818,7 +820,7 @@ void TabMedia::handlerPrepareData()
     WaitingShade::getInstance()->show();
 }
 
-void TabMedia::handlerReceiveData(int type, QByteArray data)
+void MediaWidget::handlerReceiveData(int type, QByteArray data)
 {
     switch(type){
     case VIDEOENCODINGPARAM:{

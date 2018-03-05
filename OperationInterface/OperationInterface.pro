@@ -35,13 +35,15 @@ OBJECTS_DIR = $$PWD/obj
 SOURCES += \
     settings.cpp \
     parsexml.cpp \
-    searchdevicethread.cpp
+    searchdevicethread.cpp \
+    logger.cpp
 
 HEADERS += \
     settings.h \
     operationinterface_global.h \
     parsexml.h \
-    searchdevicethread.h
+    searchdevicethread.h \
+    logger.h
 
 INCLUDEPATH += $PWD
 

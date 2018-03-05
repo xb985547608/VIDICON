@@ -18,8 +18,8 @@ DownloadInfoView::DownloadInfoView(QWidget *parent) :
 
     //设置自定义委托
     setItemDelegate(new DownloadInfoDelegate(this));
-    //水平头最后一列自动充满
-    horizontalHeader()->setStretchLastSection(true);
+    //列宽自适应缩放填充
+    horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     //单行选中
     setSelectionBehavior(QAbstractItemView::SelectRows);
     //选择模式-->无法选择
@@ -39,12 +39,13 @@ DownloadInfoView::DownloadInfoView(QWidget *parent) :
 
 //    setSortingEnabled(true);
 
-    setColumnWidth(0, 40);
-    setColumnWidth(1, 40);
-    setColumnWidth(2, 200);
     horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
     horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
     horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
+    setColumnWidth(0, 40);
+    setColumnWidth(1, 40);
+    setColumnWidth(2, 200);
+
 
     setStyleSheet("QProgressBar{\
                       border: 1px solid rgb(210, 225, 240);\
@@ -247,8 +248,7 @@ void DownloadInfoDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 void DownloadInfoDelegate::drawBackground(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     if (option.showDecorationSelected && (option.state & QStyle::State_Selected)) {
-        QPalette::ColorGroup cg = option.state & QStyle::State_Enabled
-                                  ? QPalette::Normal : QPalette::Disabled;
+        QPalette::ColorGroup cg = (option.state & QStyle::State_Enabled) ? QPalette::Normal : QPalette::Disabled;
         if (cg == QPalette::Normal && !(option.state & QStyle::State_Active))
             cg = QPalette::Inactive;
 
@@ -349,7 +349,6 @@ QVariant DownloadInfoModel::data(const QModelIndex &index, int role) const
         QFont font;
         font.setPixelSize(12);
         return font;
-        break;
     }
     //文本对齐方式
     case Qt::TextAlignmentRole:

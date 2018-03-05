@@ -1,15 +1,15 @@
 #ifndef TABRECORD_H
 #define TABRECORD_H
 
-#include <QTabWidget>
+#include <QStackedWidget>
 #include <QMap>
 
-class TabRecord : public QTabWidget
+class RecordWidget : public QStackedWidget
 {
     Q_OBJECT
 public:
-    explicit TabRecord(QWidget *parent = nullptr);
-    ~TabRecord();
+    explicit RecordWidget(QWidget *parent = nullptr);
+    ~RecordWidget();
 
     void initScheduleWidget();
     void initSDStorageWidget();

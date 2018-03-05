@@ -1,15 +1,15 @@
 #ifndef TABNETWORK_H
 #define TABNETWORK_H
 
-#include <QTabWidget>
+#include <QStackedWidget>
 #include <QMap>
 
-class TabNetwork : public QTabWidget
+class NetworkWidget : public QStackedWidget
 {
     Q_OBJECT
 public:
-    explicit TabNetwork(QWidget *parent = nullptr);
-    ~TabNetwork();
+    explicit NetworkWidget(QWidget *parent = nullptr);
+    ~NetworkWidget();
 
     void initTCPIPWidget();
     void initPPPOEWidget();

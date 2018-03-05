@@ -4,6 +4,7 @@
 
 SearchDeviceThread::SearchDeviceThread(QObject *parent) :
     QThread(parent),
+    udpSocket(NULL),
     isRun(true)
 {
     specifiedIP.setAddress(QHostAddress::AnyIPv4);

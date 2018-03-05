@@ -4,6 +4,8 @@
 #include <QMetaObject>
 #include <QDebug>
 #include <QMessageBox>
+#include <QDir>
+#include <QDesktopServices>
 
 DownloadWidget::DownloadWidget(QWidget *parent) :
     QWidget(parent),
@@ -32,7 +34,7 @@ DownloadWidget::DownloadWidget(QWidget *parent) :
     connect(ui->allPauseBtn, &QPushButton::clicked, this, [this](){
         int rowCount = listView->model()->rowCount();
         for(int i=1; i< rowCount; i++) {
-            if(listView->data(1, 1) == Pause)
+            if(listView->data(1, 1) > Waiting)
                 break;
             listView->setData(listView->model()->index(1, 1), Pause);
         }
@@ -43,11 +45,15 @@ DownloadWidget::DownloadWidget(QWidget *parent) :
             listView->setData(listView->model()->index(0, 1), Waiting);
         }
         for(int i=1; i< rowCount; i++) {
-            if(listView->data(i, 1) == Error)
+            if(listView->data(i, 1) > Pause)
                 break;
             listView->setData(listView->model()->index(i, 1), Waiting);
         }
     });
+    connect(ui->openFolderBtn, &QPushButton::clicked, this, [this](){
+        QDesktopServices::openUrl(QUrl(HttpDownload::getInstance()->getDownloadDir()));
+    });
+
 
     //下载成功和失败的提示音
     successHintVoice = new QSound(":/successhint.wav");

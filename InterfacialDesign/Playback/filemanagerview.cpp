@@ -23,8 +23,8 @@ FileView::FileView(QWidget *parent) : QTableView(parent)
     setHorizontalHeader(header);
     //设置自定义委托
     setItemDelegate(new FileViewDelegate(this));
-    //水平头最后一列自动充满
-    horizontalHeader()->setStretchLastSection(true);
+    //列宽自适应缩放填充
+    horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     //单行选中
     setSelectionBehavior(QAbstractItemView::SelectRows);
     //选择模式-->单选
@@ -38,9 +38,11 @@ FileView::FileView(QWidget *parent) : QTableView(parent)
     //外框风格-->无边框
     setFrameShape(QFrame::NoFrame);
     //预设每列宽度
+    horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+    horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
     setColumnWidth(0, 40);
-    setColumnWidth(1, 250);
     setColumnWidth(2, 60);
+
 
     setStyleSheet("QTableView{selection-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #37ecba, stop: 1 #72afd3);}\
                    QCheckBox::indicator:unchecked { border-image: url(:/images/unchecked.png)0 0 0 28;}\
@@ -173,7 +175,6 @@ QVariant FileModel::data(const QModelIndex &index, int role) const
         QFont font;
         font.setPixelSize(12);
         return font;
-        break;
     }
     //文本对齐方式
     case Qt::TextAlignmentRole:

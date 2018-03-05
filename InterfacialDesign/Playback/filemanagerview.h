@@ -59,7 +59,7 @@ class FileView : public QTableView
 {
     Q_OBJECT
 public:
-    FileView(QWidget *parent = Q_NULLPTR);
+    explicit FileView(QWidget *parent = Q_NULLPTR);
     ~FileView();
 
     void setDataSource(const QStringList &list);
@@ -80,7 +80,7 @@ class FileViewDelegate : public QItemDelegate
 {
     Q_OBJECT
 public:
-    FileViewDelegate(QObject *parent = 0);
+    explicit FileViewDelegate(QObject *parent = 0);
 
 protected:
     // painting

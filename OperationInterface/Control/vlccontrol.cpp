@@ -28,6 +28,7 @@ void VlcControl::handlerVlcControl(int type, int subtype, WId id)
                 .arg(subtype)
                 .arg(user)
                 .arg(passwd);
+        qDebug() << url;
         stop();
         init(url, id);
         play();

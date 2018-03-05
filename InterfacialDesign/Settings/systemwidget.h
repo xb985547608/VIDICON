@@ -1,15 +1,15 @@
 #ifndef TABSYATEM_H
 #define TABSYATEM_H
 
-#include <QTabWidget>
+#include <QStackedWidget>
 #include <QMap>
 
-class TabSystem : public QTabWidget
+class SystemWidget : public QStackedWidget
 {
     Q_OBJECT
 public:
-    explicit TabSystem(QWidget *parent = nullptr);
-    ~TabSystem();
+    explicit SystemWidget(QWidget *parent = nullptr);
+    ~SystemWidget();
 
     void initMaintenanceWidget();
     void initDeviceInfoWidget();

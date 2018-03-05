@@ -3,17 +3,16 @@
 
 #include <QWidget>
 #include <QMap>
-#include <QTabWidget>
-#include "waitingshade.h"
+#include <QStackedWidget>
 
 #define TABMEDIANUM 5
 
-class TabMedia : public QTabWidget
+class MediaWidget : public QStackedWidget
 {
     Q_OBJECT
 public:
-    explicit TabMedia(QWidget *parent = nullptr);
-    ~TabMedia();
+    explicit MediaWidget(QWidget *parent = nullptr);
+    ~MediaWidget();
 
     void initAudioVideoWidget();
     void initPrivacyWidget();

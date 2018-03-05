@@ -1,4 +1,4 @@
-#include "tableview.h"
+#include "userinfoview.h"
 #include <QHeaderView>
 #include <QMouseEvent>
 #include <QDebug>
@@ -12,7 +12,7 @@
 #include <QGridLayout>
 #include <QMessageBox>
 
-TableView::TableView(QWidget *parent) : QTableView(parent)
+UserInfoView::UserInfoView(QWidget *parent) : QTableView(parent)
 {
     setModel(new TableModel(this));
 //    setItemDelegate(new TableViewDelegate(this));
@@ -39,32 +39,32 @@ TableView::TableView(QWidget *parent) : QTableView(parent)
     setSpan(0, 3, 1, 2);
 }
 
-TableView::~TableView()
+UserInfoView::~UserInfoView()
 {
     qDebug("delete Tableview");
 }
 
-void TableView::setDataSource(const QList<QStringList> &l)
+void UserInfoView::setDataSource(const QList<QStringList> &l)
 {
     static_cast<TableModel *>(model())->setDataSource(l);
 }
 
-void TableView::addData(const QStringList &data)
+void UserInfoView::addData(const QStringList &data)
 {
     static_cast<TableModel *>(model())->addData(data);
 
     const QList<QStringList> list = static_cast<TableModel *>(model())->getDataSource();
     QPushButton *btn1 = new QPushButton("Modify", this);
     btn1->setObjectName(data.at(0));
-    connect(btn1, &QPushButton::clicked, this, &TableView::handlerModifyInfo);
+    connect(btn1, &QPushButton::clicked, this, &UserInfoView::handlerModifyInfo);
     setIndexWidget(model()->index(list.length(), 3), btn1);
     QPushButton *btn2 = new QPushButton("DelUser", this);
     btn2->setObjectName(data.at(0));
-    connect(btn2, &QPushButton::clicked, this, &TableView::handlerDelUserInfo);
+    connect(btn2, &QPushButton::clicked, this, &UserInfoView::handlerDelUserInfo);
     setIndexWidget(model()->index(list.length(), 4), btn2);
 }
 
-void TableView::popupModifyInfoWidget()
+void UserInfoView::popupModifyInfoWidget()
 {
     bool isOK = false;
     int index = sender()->objectName().toInt(&isOK);
@@ -130,7 +130,7 @@ void TableView::popupModifyInfoWidget()
     delete modifyInfoWidget;
 }
 
-void TableView::mousePressEvent(QMouseEvent *event)
+void UserInfoView::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton){
         QModelIndex index = indexAt(event->pos());
@@ -140,13 +140,13 @@ void TableView::mousePressEvent(QMouseEvent *event)
     }
 }
 
-void TableView::handlerModifyInfo()
+void UserInfoView::handlerModifyInfo()
 {
     qDebug() << "Modify" << sender()->objectName();
     popupModifyInfoWidget();
 }
 
-void TableView::handlerDelUserInfo()
+void UserInfoView::handlerDelUserInfo()
 {
     qDebug() << "DelUser" << sender()->objectName();
     qDebug() << QMessageBox::question(this, "警告", QString("是否删除用户%1").arg(static_cast<TableModel *>(model())->getDataSource().at(sender()->objectName().toInt()).at(1)));
@@ -295,7 +295,7 @@ void TableViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opt
         if(btnOption){
             painter->save();
             btnOption->rect = option.rect.adjusted(4, 2, -4, -2);
-            TableView *view = static_cast<TableView *>(const_cast<QWidget *>(option.widget));
+            UserInfoView *view = static_cast<UserInfoView *>(const_cast<QWidget *>(option.widget));
             view->style()->drawControl(QStyle::CE_PushButton, btnOption, painter);
             painter->restore();
             return;

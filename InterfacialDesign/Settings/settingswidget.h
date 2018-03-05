@@ -3,13 +3,13 @@
 
 #include <QWidget>
 #include <QToolBox>
-#include "boxwidget.h"
+#include "boxview.h"
 #include <QTabWidget>
-#include "tabmedia.h"
-#include "tabnetwork.h"
-#include "tabalarm.h"
-#include "tabrecord.h"
-#include "tabsystem.h"
+#include "mediawidget.h"
+#include "networkwidget.h"
+#include "alarmwidget.h"
+#include "recordwidget.h"
+#include "systemwidget.h"
 
 namespace Ui{
 class SettingsForm;
@@ -41,11 +41,11 @@ private:
     BoxView    *boxRecord;
     BoxView    *boxSystem;
 
-    TabMedia   *tabMedia;
-    TabNetwork *tabNetwork;
-    TabAlarm   *tabAlarm;
-    TabRecord  *tabRecord;
-    TabSystem  *tabSystem;
+    MediaWidget   *tabMedia;
+    NetworkWidget *tabNetwork;
+    AlarmWidget   *tabAlarm;
+    RecordWidget  *tabRecord;
+    SystemWidget  *tabSystem;
 };
 
 #endif // SETUPWIDGET_H

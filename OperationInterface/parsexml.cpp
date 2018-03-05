@@ -404,8 +404,6 @@ bool ParseXML::parseImageParameter(VidiconProtocol::ImageParameter *param, QByte
             while(!child2.isNull()) {
                 if(child2.tagName().compare("AGain", Qt::CaseInsensitive) == 0) {
 //                    param->BrightnessLevel = child2.text().toInt();
-                }else if(child2.tagName().compare("AGain", Qt::CaseInsensitive) == 0) {
-//                    param->ContrastLevel = child2.text().toInt();
                 }else if(child2.tagName().compare("ISPDGain", Qt::CaseInsensitive) == 0) {
 //                    param->SaturationLevel = child2.text().toInt();
                 }else if(child2.tagName().compare("SysGain", Qt::CaseInsensitive) == 0) {
@@ -1481,7 +1479,14 @@ bool ParseXML::parseBackUpQueryParameter(VidiconProtocol::BackUpQueryParameter *
     case 1: {
         while(!child.isNull()) {
             if(child.tagName().left(8).compare("FilePara", Qt::CaseInsensitive) == 0) {
-                param->fileList.append(child.firstChildElement().text());
+                QStringList list = child.firstChildElement().text().split('/');
+                if (list.length() != 1) {
+                    param->fileList.append(QString("%1/%2")
+                                           .arg(list.at(list.length() - 2))
+                                           .arg(list.at(list.length() - 1)));
+                } else {
+                    param->fileList.append(list.at(0));
+                }
             }
             child = child.nextSiblingElement();
         }

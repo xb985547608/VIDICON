@@ -8,12 +8,12 @@
 
 class TableModel;
 
-class TableView : public QTableView
+class UserInfoView : public QTableView
 {
     Q_OBJECT
 public:
-    TableView(QWidget *parent = Q_NULLPTR);
-    ~TableView();
+    explicit UserInfoView(QWidget *parent = Q_NULLPTR);
+    ~UserInfoView();
 
     void setDataSource(const QList<QStringList> &l);
     void addData(const QStringList &data);
@@ -62,7 +62,7 @@ class TableViewDelegate : public QItemDelegate
 {
     Q_OBJECT
 public:
-    TableViewDelegate(QObject *parent = 0);
+    explicit TableViewDelegate(QObject *parent = 0);
 
     // painting
     void paint(QPainter *painter,

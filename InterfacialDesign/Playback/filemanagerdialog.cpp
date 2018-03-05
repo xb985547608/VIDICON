@@ -35,7 +35,7 @@ FileManagerDialog::FileManagerDialog(QWidget *parent) :
     layout->addLayout(layout1);
     layout->addWidget(fileView);
     layout->addWidget(btn, 0, Qt::AlignCenter);
-    setFixedWidth(400);
+    resize(400, 600);
 
 }
 

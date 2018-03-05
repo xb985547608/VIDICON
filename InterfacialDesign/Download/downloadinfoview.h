@@ -71,7 +71,7 @@ class DownloadInfoDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    DownloadInfoDelegate(QObject *parent = 0);
+    explicit DownloadInfoDelegate(QObject *parent = 0);
 
 protected:
     // painting
