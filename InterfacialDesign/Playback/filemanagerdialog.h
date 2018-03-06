@@ -11,14 +11,18 @@ class FileManagerDialog : public QDialog
 public:
     explicit FileManagerDialog(QWidget *parent = nullptr);
 
+
+protected:
+    void keyPressEvent(QKeyEvent *event) override;
+
 signals:
     void signalSetParameter(int type, void *param, QString SessionID = "R00001");
     void signalGetParameter(int type, int StreamType = 0, int Channel = 0, QString SessionID = "R00001");
     void signalAddDownloadTask(QStringList files);
 
 public slots:
-    void handlerReceiveData(int type, QByteArray data);
-    void handlerDownload();
+    void handleReceiveData(int type, QByteArray data);
+    void handleDownload();
 
 private:
     QStringList fileList;

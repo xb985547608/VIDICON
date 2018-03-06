@@ -22,8 +22,8 @@ protected:
 signals:
 
 public slots:
-    void handlerReceiveImage(QPixmap *pixmap);
-    void handlerTimeout();
+    void handleReceiveImage(QPixmap *pixmap);
+    void handleTimeout();
 
 private:
     QPixmap backgroundPixmap;

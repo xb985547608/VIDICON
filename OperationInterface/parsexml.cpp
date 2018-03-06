@@ -1470,7 +1470,7 @@ bool ParseXML::parseBackUpQueryParameter(VidiconProtocol::BackUpQueryParameter *
                     child2 = child2.nextSiblingElement();
                 }
 
-                param->TimeParamMap.insert(child.tagName().right(1).toInt(), timeParam);
+                param->TimeParamMap.insert(child.tagName().mid(8).toInt(), timeParam);
             }
             child = child.nextSiblingElement();
         }
@@ -1510,6 +1510,45 @@ bool ParseXML::parseBackUpQueryParameter(VidiconProtocol::BackUpQueryParameter *
     return true;
 }
 
+bool ParseXML::parsePlayingTimeParameter(VidiconProtocol::PlayingTimeParameter *param, QByteArray data)
+{
+    QDomDocument *doc = new QDomDocument();
+    QString errorMsg;
+    int errorLine, errorColumn;
+
+    if(!doc->setContent(data, &errorMsg, &errorLine, &errorColumn)) {
+        qDebug() << "#ParseXML# parsePlayingTimeParameter Error occurred: "
+                 << "errorMsg" << errorMsg
+                 << "errorLine" << errorLine
+                 << "errorColumn" << errorColumn;
+        delete doc;
+        return false;
+    }
+
+    QDomElement root = doc->documentElement();
+    if(root.isNull()) {
+        delete doc;
+        return false;
+    }
+
+    if (root.tagName().compare("GetPosTime", Qt::CaseInsensitive) != 0) {
+        qDebug("#ParseXML# parsePlayingTimeParameter XML data unmatched");
+        delete doc;
+        return false;
+    }
+    QDomElement child = root.firstChildElement();
+    while(!child.isNull()) {
+        if(child.tagName().compare("playend", Qt::CaseInsensitive) == 0) {
+            param->Playend = child.text().toInt();
+        }else if(child.tagName().compare("htmlid", Qt::CaseInsensitive) == 0) {
+            param->htmlid = child.text().toInt();
+        }
+        child = child.nextSiblingElement();
+    }
+    delete doc;
+    return true;
+}
+
 bool ParseXML::parsePullMsg(VidiconProtocol::PullMessage *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
@@ -1517,7 +1556,7 @@ bool ParseXML::parsePullMsg(VidiconProtocol::PullMessage *param, QByteArray data
     int errorLine, errorColumn;
 
     if(!doc->setContent(data, &errorMsg, &errorLine, &errorColumn)) {
-        qDebug() << "#ParseXML# parseAudioEncodingParameter Error occurred: "
+        qDebug() << "#ParseXML# parsePullMsg Error occurred: "
                  << "errorMsg" << errorMsg
                  << "errorLine" << errorLine
                  << "errorColumn" << errorColumn;

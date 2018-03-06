@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include <QDir>
 #include <QDesktopServices>
+#include "soundeffect.h"
 
 DownloadWidget::DownloadWidget(QWidget *parent) :
     QWidget(parent),
@@ -53,13 +54,6 @@ DownloadWidget::DownloadWidget(QWidget *parent) :
     connect(ui->openFolderBtn, &QPushButton::clicked, this, [this](){
         QDesktopServices::openUrl(QUrl(HttpDownload::getInstance()->getDownloadDir()));
     });
-
-
-    //下载成功和失败的提示音
-    successHintVoice = new QSound(":/successhint.wav");
-    successHintVoice->setLoops(1);
-    errorHintVoice = new QSound(":/errorHint.wav");
-    errorHintVoice->setLoops(1);
 }
 
 void DownloadWidget::handleTimeout()
@@ -85,10 +79,10 @@ void DownloadWidget::handleReceiveFileStatus(const HttpDownload::FileStatus *fil
         listView->setData(model->index(0, 2), fileStatus->percent);
     }else if(fileStatus->state == Finished) {
         listView->setData(model->index(0, 2), 100);
-        successHintVoice->play();
+        SoundEffect::getInstance()->triggerSoundEffect(SoundEffect::Success);
         ui->lblSpeed->setText("");
     }else if(fileStatus->state == Error) {
-        errorHintVoice->play();
+        SoundEffect::getInstance()->triggerSoundEffect(SoundEffect::Error);
         ui->lblSpeed->setText("");
     }
     listView->setData(model->index(0, 1), fileStatus->state);

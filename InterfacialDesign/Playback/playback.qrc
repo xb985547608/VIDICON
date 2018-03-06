@@ -5,7 +5,11 @@
         <file>images/checked.png</file>
         <file>images/unchecked.png</file>
         <file>images/tristate.png</file>
-        <file>images/pause.png</file>
-        <file>images/play.png</file>
+        <file>images/pb_fastPlay.png</file>
+        <file>images/pb_pause.png</file>
+        <file>images/pb_play.png</file>
+        <file>images/pb_slowForward.png</file>
+        <file>images/pb_snapshot.png</file>
+        <file>images/pb_volume.png</file>
     </qresource>
 </RCC>

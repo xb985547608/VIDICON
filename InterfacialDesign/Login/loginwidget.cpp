@@ -34,7 +34,7 @@ LoginWidget::LoginWidget(QWidget *parent) :
     connect(ui->btnLogin, SIGNAL(clicked()), this, SLOT(onLoginBtn()));
     connect(ui->btnClose, SIGNAL(clicked()), this, SLOT(onCloseBtn()));
     connect(ui->btnMinimize, SIGNAL(clicked()), this, SLOT(onMinimizeBtn()));
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &LoginWidget::handlerReceiveData);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &LoginWidget::handleReceiveData);
 
     show();
 }
@@ -97,7 +97,7 @@ void LoginWidget::onMinimizeBtn()
     showMinimized();
 }
 
-void LoginWidget::handlerReceiveData(int type, QByteArray data)
+void LoginWidget::handleReceiveData(int type, QByteArray data)
 {
     switch(type) {
     case LOGIN: {

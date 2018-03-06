@@ -30,7 +30,7 @@ private:
 signals:
 
 public slots:
-    void handlerToolBoxClicked(int index);
+    void handleToolBoxClicked(int index);
 
 private:
     Ui::SettingsForm *ui;

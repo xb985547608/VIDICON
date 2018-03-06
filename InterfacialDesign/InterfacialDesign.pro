@@ -43,14 +43,16 @@ SOURCES += \
     customstyle.cpp \
     selectcurrentipdialog.cpp \
     statustip.cpp \
-    waitingshade.cpp
+    waitingshade.cpp \
+    soundeffect.cpp
 
 HEADERS += \
         mainwindow.h \
     customstyle.h \
     selectcurrentipdialog.h \
     statustip.h \
-    waitingshade.h
+    waitingshade.h \
+    soundeffect.h
 
 FORMS += \
         mainwindow.ui \

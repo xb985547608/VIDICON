@@ -33,7 +33,7 @@ public slots:
     void drawCurTimeTag(QPainter &p);
     void drawInfo(QPainter &p);
     void drawFloatingFrame(QPainter &p);
-    void handlerReceiveData(int type, QByteArray data);
+    void handleReceiveData(int type, QByteArray data);
     void hanlderDateChange(QDate date);
 
 protected:
@@ -50,6 +50,7 @@ private:
 private:
     qreal  stretchScale;    //缩放比例
     QPoint movePos;         //鼠标移动的位置
+    bool   isPress;
     bool   isMoving;        //鼠标移动的标志
     qreal  currentPlayPos;  //播放位置的百分比
     bool   isDragPlayPos;   //拖拽时间点标志
@@ -63,6 +64,7 @@ private:
     QMap<int, VidiconProtocol::TimeParameter> TimeParamMap;
     QDate date;
     int htmlid;
+    bool isPlaying;
 };
 
 #endif // TIMERSHAFT_H

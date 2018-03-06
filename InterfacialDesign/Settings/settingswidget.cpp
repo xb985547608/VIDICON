@@ -27,13 +27,13 @@ SettinsWidget::SettinsWidget(QWidget *parent) :
     initSideBar();
     initDisplayArea();
 
-    connect(toolbox,    &QToolBox::currentChanged, this, &SettinsWidget::handlerToolBoxClicked);
+    connect(toolbox,    &QToolBox::currentChanged, this, &SettinsWidget::handleToolBoxClicked);
 
-    connect(boxMedia,   &BoxView::clicked, tabMedia,    &MediaWidget::handlerSwitchTab);
-    connect(boxNetwork, &BoxView::clicked, tabNetwork,  &NetworkWidget::handlerSwitchTab);
-    connect(boxAlarm,   &BoxView::clicked, tabAlarm,    &AlarmWidget::handlerSwitchTab);
-    connect(boxRecord,  &BoxView::clicked, tabRecord,   &RecordWidget::handlerSwitchTab);
-    connect(boxSystem,  &BoxView::clicked, tabSystem,   &SystemWidget::handlerSwitchTab);
+    connect(boxMedia,   &BoxView::clicked, tabMedia,    &MediaWidget::handleSwitchTab);
+    connect(boxNetwork, &BoxView::clicked, tabNetwork,  &NetworkWidget::handleSwitchTab);
+    connect(boxAlarm,   &BoxView::clicked, tabAlarm,    &AlarmWidget::handleSwitchTab);
+    connect(boxRecord,  &BoxView::clicked, tabRecord,   &RecordWidget::handleSwitchTab);
+    connect(boxSystem,  &BoxView::clicked, tabSystem,   &SystemWidget::handleSwitchTab);
 }
 
 SettinsWidget::~SettinsWidget()
@@ -103,7 +103,7 @@ void SettinsWidget::initDisplayArea()
     layout->addWidget(tabSystem);
 }
 
-void SettinsWidget::handlerToolBoxClicked(int index)
+void SettinsWidget::handleToolBoxClicked(int index)
 {
     tabMedia->setVisible(false);
     tabNetwork->setVisible(false);
@@ -117,35 +117,35 @@ void SettinsWidget::handlerToolBoxClicked(int index)
             tabMedia->setVisible(true);
             boxMedia->setCurrentIndex(boxMedia->getModel()->index(tabMedia->currentIndex(), 0));
             //触发数据更新
-            tabMedia->handlerSwitchTab(boxMedia->getModel()->index(tabMedia->currentIndex(), 0));
+            tabMedia->handleSwitchTab(boxMedia->getModel()->index(tabMedia->currentIndex(), 0));
             break;
         }
         case 1:
         {
             tabNetwork->setVisible(true);
             boxNetwork->setCurrentIndex(boxNetwork->getModel()->index(tabNetwork->currentIndex(), 0));
-            tabNetwork->handlerSwitchTab(boxNetwork->getModel()->index(tabNetwork->currentIndex(), 0));
+            tabNetwork->handleSwitchTab(boxNetwork->getModel()->index(tabNetwork->currentIndex(), 0));
             break;
         }
         case 2:
         {
             tabAlarm->setVisible(true);
             boxAlarm->setCurrentIndex(boxAlarm->getModel()->index(tabAlarm->currentIndex(), 0));
-            tabAlarm->handlerSwitchTab(boxAlarm->getModel()->index(tabAlarm->currentIndex(), 0));
+            tabAlarm->handleSwitchTab(boxAlarm->getModel()->index(tabAlarm->currentIndex(), 0));
             break;
         }
         case 3:
         {
             tabRecord->setVisible(true);
             boxRecord->setCurrentIndex(boxRecord->getModel()->index(tabRecord->currentIndex(), 0));
-            tabRecord->handlerSwitchTab(boxRecord->getModel()->index(tabRecord->currentIndex(), 0));
+            tabRecord->handleSwitchTab(boxRecord->getModel()->index(tabRecord->currentIndex(), 0));
             break;
         }
         case 4:
         {
             tabSystem->setVisible(true);
             boxSystem->setCurrentIndex(boxSystem->getModel()->index(tabSystem->currentIndex(), 0));
-            tabSystem->handlerSwitchTab(boxSystem->getModel()->index(tabSystem->currentIndex(), 0));
+            tabSystem->handleSwitchTab(boxSystem->getModel()->index(tabSystem->currentIndex(), 0));
             break;
         }
         default:

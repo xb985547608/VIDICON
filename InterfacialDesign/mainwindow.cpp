@@ -29,13 +29,13 @@ MainWindow::MainWindow(QWidget *parent) :
     StatusTip::getInstance(this);
 
     connect(playbackWidget, &PlaybackWidget::signalAddDownloadTask, downloadWidget, &DownloadWidget::enqueue);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &MainWindow::handlerReceiveData);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &MainWindow::handleReceiveData);
     connect(LoginWidget::getInstance(), SIGNAL(signalLoginState(LoginWidget::LoginState)), this, SLOT(loginHandler(LoginWidget::LoginState)));
     connect(navigationWidget, &NavigationWidget::currentChanged, this, [this](int index) {
-        previewWidget->handlerWidgetSwitch();
-        playbackWidget->handlerWidgetSwitch();
+        previewWidget->handleWidgetSwitch();
+        playbackWidget->handleWidgetSwitch();
         if(index == 2) {
-            settinsWidget->handlerToolBoxClicked(0);
+            settinsWidget->handleToolBoxClicked(0);
         }
     });
 
@@ -60,7 +60,7 @@ void MainWindow::logoutHandler()
     setVisible(false);
 }
 
-void MainWindow::handlerReceiveData(int type, QByteArray data)
+void MainWindow::handleReceiveData(int type, QByteArray data)
 {
     WaitingShade *w = WaitingShade::getInstance();
     StatusTip *s = StatusTip::getInstance();

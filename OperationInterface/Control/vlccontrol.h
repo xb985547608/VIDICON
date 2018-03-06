@@ -70,7 +70,7 @@ private:
     VlcControl(QString host, QString port, QObject *parent = Q_NULLPTR);
 
 public slots:
-    void handlerVlcControl(int type, int subtype, WId id);
+    void handleVlcControl(int type, int subtype, WId id);
 
 private:
     static VlcControl     *_instance;

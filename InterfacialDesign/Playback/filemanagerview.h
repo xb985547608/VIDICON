@@ -46,7 +46,7 @@ protected:
 signals:
     void signalStateChange(int state);
 public slots:
-    void handlerStateChange(int state);
+    void handleStateChange(int state);
 
 private:
     int column;
@@ -70,7 +70,7 @@ protected:
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
 
 public slots:
-    void handlerReceiveImage(QPixmap *pixmap);
+    void handleReceiveImage(QPixmap *pixmap);
 
 private:
     QList<QPushButton *> btnList;
@@ -108,7 +108,7 @@ protected:
 signals:
     void signalStateChange(int state);
 public slots:
-    void handlerStateChange(int state);
+    void handleStateChange(int state);
 private:
     bool bPressed;
     bool bMoving;

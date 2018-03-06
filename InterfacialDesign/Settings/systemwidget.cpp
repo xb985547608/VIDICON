@@ -24,11 +24,11 @@ SystemWidget::SystemWidget(QWidget *parent) : QStackedWidget(parent)
     initSetTimeWidget();
 //    initUserAdminWidget();
 
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &SystemWidget::handlerReceiveData);
-    connect(this, &SystemWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
-    connect(this, &SystemWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &SystemWidget::handleReceiveData);
+    connect(this, &SystemWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
+    connect(this, &SystemWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
     connect(this, &SystemWidget::currentChanged, this, [this](){
-        handlerSwitchTab(QModelIndex());
+        handleSwitchTab(QModelIndex());
     });
 }
 
@@ -197,7 +197,7 @@ void SystemWidget::initSetTimeWidget()
 
     QPushButton *btn2 = new QPushButton("保存", setTimeWidget);
     btn2->setFixedWidth(50);
-    connect(btn2, &QPushButton::clicked, this, &SystemWidget::handlerPrepareData);
+    connect(btn2, &QPushButton::clicked, this, &SystemWidget::handlePrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(lbl1,      0, 0, 1, 1);
@@ -263,7 +263,7 @@ void SystemWidget::initUserAdminWidget()
     addWidget(userAdminWidget);
 }
 
-void SystemWidget::handlerSwitchTab(const QModelIndex &index)
+void SystemWidget::handleSwitchTab(const QModelIndex &index)
 {
     int type = index.row();
     if(sender() != this) {
@@ -294,7 +294,7 @@ void SystemWidget::handlerSwitchTab(const QModelIndex &index)
     }
 }
 
-void SystemWidget::handlerPrepareData()
+void SystemWidget::handlePrepareData()
 {
     switch(currentIndex()) {
     case 2: {
@@ -313,7 +313,7 @@ void SystemWidget::handlerPrepareData()
     }
 }
 
-void SystemWidget::handlerReceiveData(int type, QByteArray data)
+void SystemWidget::handleReceiveData(int type, QByteArray data)
 {
     switch (type) {
     case NTPPARAMETER: {
@@ -326,9 +326,9 @@ void SystemWidget::handlerReceiveData(int type, QByteArray data)
             static_cast<QComboBox *>(setTimeMap["PC Time Sync"])->setCurrentIndex(param.IsUpdateTime);
             static_cast<QComboBox *>(setTimeMap["NTP"])->setCurrentIndex(param.Enabled);
             static_cast<QLineEdit *>(setTimeMap["NTP Server"])->setText(param.NTPServer);
-            qDebug() << "#TabSystem# handlerReceiveData, ParameterType:" << type << "parse data success...";
+            qDebug() << "#TabSystem# handleReceiveData, ParameterType:" << type << "parse data success...";
         }else{
-            qDebug() << "#TabSystem# handlerReceiveData, ParameterType:" << type << "parse data error...";
+            qDebug() << "#TabSystem# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
@@ -340,9 +340,9 @@ void SystemWidget::handlerReceiveData(int type, QByteArray data)
             static_cast<QLineEdit *>(deviceInfoMap["SoftwareVer"])->setText(param.SoftwareVer);
             static_cast<QLineEdit *>(deviceInfoMap["DeviceID"])->setText(QString::number(param.DeviceID));
 
-            qDebug() << "#TabSystem# handlerReceiveData, ParameterType:" << type << "parse data success...";
+            qDebug() << "#TabSystem# handleReceiveData, ParameterType:" << type << "parse data success...";
         }else{
-            qDebug() << "#TabSystem# handlerReceiveData, ParameterType:" << type << "parse data error...";
+            qDebug() << "#TabSystem# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }

@@ -25,11 +25,11 @@ RecordWidget::RecordWidget(QWidget *parent) : QStackedWidget(parent)
 //    initDestinationWidget();
 //    initNASWidget();
 
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &RecordWidget::handlerReceiveData);
-    connect(this, &RecordWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
-    connect(this, &RecordWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &RecordWidget::handleReceiveData);
+    connect(this, &RecordWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
+    connect(this, &RecordWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
     connect(this, &RecordWidget::currentChanged, this, [this](){
-        handlerSwitchTab(QModelIndex());
+        handleSwitchTab(QModelIndex());
     });
 
 //    emit signalGetParameter(SCHEDULEPARAMETER);
@@ -54,116 +54,116 @@ void RecordWidget::initScheduleWidget()
 
     QCheckBox *cb2 = new QCheckBox("时间段1", scheduleWidget);
     cb2->setObjectName("Time Period 0");
-    connect(cb2, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb2, &QCheckBox::stateChanged, this, &RecordWidget::handlerTimeSelect);
+    connect(cb2, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
+    connect(cb2, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
     scheduleMap.insert("Time Period 0", cb2);
     QTimeEdit *time1 = new QTimeEdit(scheduleWidget);
     time1->setEnabled(false);
     time1->setObjectName("Time Period 0 start");
-    connect(time1, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time1, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     scheduleMap.insert("Time Period 0 start", time1);
     QLabel *lbl1 = new QLabel("-", scheduleWidget);
     QTimeEdit *time2 = new QTimeEdit(scheduleWidget);
     time2->setTime(QTime(23, 59, 59));
     time2->setEnabled(false);
     time2->setObjectName("Time Period 0 end");
-    connect(time2, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time2, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     scheduleMap.insert("Time Period 0 end", time2);
 
     QCheckBox *cb3 = new QCheckBox("时间段2", scheduleWidget);
     cb3->setObjectName("Time Period 1");
-    connect(cb3, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb3, &QCheckBox::stateChanged, this, &RecordWidget::handlerTimeSelect);
+    connect(cb3, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
+    connect(cb3, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
     scheduleMap.insert("Time Period 1", cb3);
     QTimeEdit *time3 = new QTimeEdit(scheduleWidget);
     time3->setEnabled(false);
     time3->setObjectName("Time Period 1 start");
-    connect(time3, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time3, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     scheduleMap.insert("Time Period 1 start", time3);
     QLabel *lbl2 = new QLabel("-", scheduleWidget);
     QTimeEdit *time4 = new QTimeEdit(scheduleWidget);
     time4->setTime(QTime(23, 59, 59));
     time4->setEnabled(false);
     time4->setObjectName("Time Period 1 end");
-    connect(time4, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time4, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     scheduleMap.insert("Time Period 1 end", time4);
 
     QCheckBox *cb4 = new QCheckBox("时间段3", scheduleWidget);
     cb4->setObjectName("Time Period 2");
-    connect(cb4, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb4, &QCheckBox::stateChanged, this, &RecordWidget::handlerTimeSelect);
+    connect(cb4, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
+    connect(cb4, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
     scheduleMap.insert("Time Period 2", cb4);
     QTimeEdit *time5 = new QTimeEdit(scheduleWidget);
     time5->setEnabled(false);
     time5->setObjectName("Time Period 2 start");
-    connect(time5, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time5, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     scheduleMap.insert("Time Period 2 start", time5);
     QLabel *lbl3 = new QLabel("-", scheduleWidget);
     QTimeEdit *time6 = new QTimeEdit(scheduleWidget);
     time6->setTime(QTime(23, 59, 59));
     time6->setEnabled(false);
     time6->setObjectName("Time Period 2 end");
-    connect(time6, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time6, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     scheduleMap.insert("Time Period 2 end", time6);
 
     QCheckBox *cb5 = new QCheckBox("时间段4", scheduleWidget);
     cb5->setObjectName("Time Period 3");
-    connect(cb5, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb5, &QCheckBox::stateChanged, this, &RecordWidget::handlerTimeSelect);
+    connect(cb5, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
+    connect(cb5, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
     scheduleMap.insert("Time Period 3", cb5);
     QTimeEdit *time7 = new QTimeEdit(scheduleWidget);
     time7->setEnabled(false);
     time7->setObjectName("Time Period 3 start");
-    connect(time7, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time7, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     scheduleMap.insert("Time Period 3 start", time7);
     QLabel *lbl4 = new QLabel("-", scheduleWidget);
     QTimeEdit *time8 = new QTimeEdit(scheduleWidget);
     time8->setTime(QTime(23, 59, 59));
     time8->setEnabled(false);
     time8->setObjectName("Time Period 3 end");
-    connect(time8, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time8, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     scheduleMap.insert("Time Period 3 end", time8);
 
     QPushButton *btn1 = new QPushButton("全选", scheduleWidget);
-    connect(btn1, &QPushButton::clicked, this, &RecordWidget::handlerSelectAllWeek);
+    connect(btn1, &QPushButton::clicked, this, &RecordWidget::handleSelectAllWeek);
 
     QCheckBox *cb6 = new QCheckBox("周天", scheduleWidget);
     cb6->setObjectName("week 0");
-    connect(cb6, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
+    connect(cb6, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
     scheduleMap.insert("week 0", cb6);
 
     QCheckBox *cb7 = new QCheckBox("周一", scheduleWidget);
     cb7->setObjectName("week 1");
-    connect(cb7, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
+    connect(cb7, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
     scheduleMap.insert("week 1", cb7);
 
     QCheckBox *cb8 = new QCheckBox("周二", scheduleWidget);
     cb8->setObjectName("week 2");
-    connect(cb8, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
+    connect(cb8, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
     scheduleMap.insert("week 2", cb8);
 
     QCheckBox *cb9 = new QCheckBox("周三", scheduleWidget);
     cb9->setObjectName("week 3");
-    connect(cb9, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
+    connect(cb9, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
     scheduleMap.insert("week 3", cb9);
 
     QCheckBox *cb10 = new QCheckBox("周四", scheduleWidget);
     cb10->setObjectName("week 4");
-    connect(cb10, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
+    connect(cb10, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
     scheduleMap.insert("week 4", cb10);
 
     QCheckBox *cb11 = new QCheckBox("周五", scheduleWidget);
     cb11->setObjectName("week 5");
-    connect(cb11, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
+    connect(cb11, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
     scheduleMap.insert("week 5", cb11);
 
     QCheckBox *cb12 = new QCheckBox("周六", scheduleWidget);
     cb12->setObjectName("week 6");
-    connect(cb12, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
+    connect(cb12, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
     scheduleMap.insert("week 6", cb12);
 
     QPushButton *btn2 = new QPushButton("保存", scheduleWidget);
-    connect(btn2, &QPushButton::clicked, this, &RecordWidget::handlerPrepareData);
+    connect(btn2, &QPushButton::clicked, this, &RecordWidget::handlePrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(cb1,   0, 0, 1, 2);
@@ -285,7 +285,7 @@ void RecordWidget::initSDStorageWidget()
     SDStorageMap.insert("Record Time", lineEdit4);
 
     QPushButton *btn3 = new QPushButton("保存", SDStorageWidget);
-    connect(btn3, &QPushButton::clicked, this, &RecordWidget::handlerPrepareData);
+    connect(btn3, &QPushButton::clicked, this, &RecordWidget::handlePrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(rBtn1,     0, 0, 1, 2);
@@ -346,116 +346,116 @@ void RecordWidget::initSnapshotWidget()
 
     QCheckBox *cb2 = new QCheckBox("时间段1", snapshotWidget);
     cb2->setObjectName("Time Period 0");
-    connect(cb2, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb2, &QCheckBox::stateChanged, this, &RecordWidget::handlerTimeSelect);
+    connect(cb2, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
+    connect(cb2, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
     snapshotMap.insert("Time Period 0", cb2);
     QTimeEdit *time1 = new QTimeEdit(snapshotWidget);
     time1->setEnabled(false);
     time1->setObjectName("Time Period 0 start");
-    connect(time1, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time1, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     snapshotMap.insert("Time Period 0 start", time1);
     QLabel *lbl2 = new QLabel("-", snapshotWidget);
     QTimeEdit *time2 = new QTimeEdit(snapshotWidget);
     time2->setTime(QTime(23, 59, 59));
     time2->setEnabled(false);
     time2->setObjectName("Time Period 0 end");
-    connect(time2, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time2, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     snapshotMap.insert("Time Period 0 end", time2);
 
     QCheckBox *cb3 = new QCheckBox("时间段2", snapshotWidget);
     cb3->setObjectName("Time Period 1");
-    connect(cb3, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb3, &QCheckBox::stateChanged, this, &RecordWidget::handlerTimeSelect);
+    connect(cb3, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
+    connect(cb3, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
     snapshotMap.insert("Time Period 1", cb3);
     QTimeEdit *time3 = new QTimeEdit(snapshotWidget);
     time3->setEnabled(false);
     time3->setObjectName("Time Period 1 start");
-    connect(time3, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time3, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     snapshotMap.insert("Time Period 1 start", time3);
     QLabel *lbl3 = new QLabel("-", snapshotWidget);
     QTimeEdit *time4 = new QTimeEdit(snapshotWidget);
     time4->setTime(QTime(23, 59, 59));
     time4->setEnabled(false);
     time4->setObjectName("Time Period 1 end");
-    connect(time4, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time4, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     snapshotMap.insert("Time Period 1 end", time4);
 
     QCheckBox *cb4 = new QCheckBox("时间段3", snapshotWidget);
     cb4->setObjectName("Time Period 2");
-    connect(cb4, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb4, &QCheckBox::stateChanged, this, &RecordWidget::handlerTimeSelect);
+    connect(cb4, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
+    connect(cb4, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
     snapshotMap.insert("Time Period 2", cb4);
     QTimeEdit *time5 = new QTimeEdit(snapshotWidget);
     time5->setEnabled(false);
     time5->setObjectName("Time Period 2 start");
-    connect(time5, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time5, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     snapshotMap.insert("Time Period 2 start", time5);
     QLabel *lbl4 = new QLabel("-", snapshotWidget);
     QTimeEdit *time6 = new QTimeEdit(snapshotWidget);
     time6->setTime(QTime(23, 59, 59));
     time6->setEnabled(false);
     time6->setObjectName("Time Period 2 end");
-    connect(time6, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time6, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     snapshotMap.insert("Time Period 2 end", time6);
 
     QCheckBox *cb5 = new QCheckBox("时间段4", snapshotWidget);
     cb5->setObjectName("Time Period 3");
-    connect(cb5, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerTimeSelectState);
-    connect(cb5, &QCheckBox::stateChanged, this, &RecordWidget::handlerTimeSelect);
+    connect(cb5, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
+    connect(cb5, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
     snapshotMap.insert("Time Period 3", cb5);
     QTimeEdit *time7 = new QTimeEdit(snapshotWidget);
     time7->setEnabled(false);
     time7->setObjectName("Time Period 3 start");
-    connect(time7, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time7, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     snapshotMap.insert("Time Period 3 start", time7);
     QLabel *lbl5 = new QLabel("-", snapshotWidget);
     QTimeEdit *time8 = new QTimeEdit(snapshotWidget);
     time8->setTime(QTime(23, 59, 59));
     time8->setEnabled(false);
     time8->setObjectName("Time Period 3 end");
-    connect(time8, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handlerTimeChange);
+    connect(time8, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
     snapshotMap.insert("Time Period 3 end", time8);
 
     QPushButton *btn1 = new QPushButton("全选", snapshotWidget);
-    connect(btn1, &QPushButton::clicked, this, &RecordWidget::handlerSelectAllWeek);
+    connect(btn1, &QPushButton::clicked, this, &RecordWidget::handleSelectAllWeek);
 
     QCheckBox *cb6 = new QCheckBox("周天", snapshotWidget);
     cb6->setObjectName("week 0");
-    connect(cb6, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
+    connect(cb6, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
     snapshotMap.insert("week 0", cb6);
 
     QCheckBox *cb7 = new QCheckBox("周一", snapshotWidget);
     cb7->setObjectName("week 1");
-    connect(cb7, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
+    connect(cb7, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
     snapshotMap.insert("week 1", cb7);
 
     QCheckBox *cb8 = new QCheckBox("周二", snapshotWidget);
     cb8->setObjectName("week 2");
-    connect(cb8, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
+    connect(cb8, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
     snapshotMap.insert("week 2", cb8);
 
     QCheckBox *cb9 = new QCheckBox("周三", snapshotWidget);
     cb9->setObjectName("week 3");
-    connect(cb9, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
+    connect(cb9, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
     snapshotMap.insert("week 3", cb9);
 
     QCheckBox *cb10 = new QCheckBox("周四", snapshotWidget);
     cb10->setObjectName("week 4");
-    connect(cb10, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
+    connect(cb10, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
     snapshotMap.insert("week 4", cb10);
 
     QCheckBox *cb11 = new QCheckBox("周五", snapshotWidget);
     cb11->setObjectName("week 5");
-    connect(cb11, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
+    connect(cb11, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
     snapshotMap.insert("week 5", cb11);
 
     QCheckBox *cb12 = new QCheckBox("周六", snapshotWidget);
     cb12->setObjectName("week 6");
-    connect(cb12, &QCheckBox::stateChanged, region, &TimeRegionWidget::handlerWeekSelectState);
+    connect(cb12, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
     snapshotMap.insert("week 6", cb12);
 
     QPushButton *btn2 = new QPushButton("保存", snapshotWidget);
-    connect(btn2, &QPushButton::clicked, this, &RecordWidget::handlerPrepareData);
+    connect(btn2, &QPushButton::clicked, this, &RecordWidget::handlePrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(cb1,       0, 0, 1, 2);
@@ -626,7 +626,7 @@ void RecordWidget::initNASWidget()
     addWidget(NASWidget);
 }
 
-void RecordWidget::handlerSwitchTab(const QModelIndex &index)
+void RecordWidget::handleSwitchTab(const QModelIndex &index)
 {
     int type = index.row();
     if(sender() != this) {
@@ -662,7 +662,7 @@ void RecordWidget::handlerSwitchTab(const QModelIndex &index)
     }
 }
 
-void RecordWidget::handlerTimeSelect(int state)
+void RecordWidget::handleTimeSelect(int state)
 {
     TimeRegionWidget *region = NULL;
     QMap<QString, QWidget *> map;
@@ -691,7 +691,7 @@ void RecordWidget::handlerTimeSelect(int state)
     }
 }
 
-void RecordWidget::handlerSelectAllWeek()
+void RecordWidget::handleSelectAllWeek()
 {
     QMap<QString, QWidget *> map;
     switch (currentIndex()) {
@@ -710,7 +710,7 @@ void RecordWidget::handlerSelectAllWeek()
     }
 }
 
-void RecordWidget::handlerPrepareData()
+void RecordWidget::handlePrepareData()
 {
     switch(currentIndex()) {
     case 0: {
@@ -746,7 +746,7 @@ void RecordWidget::handlerPrepareData()
     }
 }
 
-void RecordWidget::handlerReceiveData(int type, QByteArray data)
+void RecordWidget::handleReceiveData(int type, QByteArray data)
 {
     switch(type) {
     case SCHEDULEPARAMETER: {
@@ -764,9 +764,9 @@ void RecordWidget::handlerReceiveData(int type, QByteArray data)
                 static_cast<QTimeEdit *>(scheduleMap[QString("Time Period %1 start").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
                 static_cast<QTimeEdit *>(scheduleMap[QString("Time Period %1 end").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
             }
-            qDebug() << "#TabRecord# handlerReceiveData, ParameterType:" << type << "parse data success...";
+            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data success...";
         }else{
-            qDebug() << "#TabRecord# handlerReceiveData, ParameterType:" << type << "parse data error...";
+            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
@@ -786,9 +786,9 @@ void RecordWidget::handlerReceiveData(int type, QByteArray data)
                 static_cast<QTimeEdit *>(snapshotMap[QString("Time Period %1 start").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
                 static_cast<QTimeEdit *>(snapshotMap[QString("Time Period %1 end").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
             }
-            qDebug() << "#TabRecord# handlerReceiveData, ParameterType:" << type << "parse data success...";
+            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data success...";
         }else{
-            qDebug() << "#TabRecord# handlerReceiveData, ParameterType:" << type << "parse data error...";
+            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
@@ -798,9 +798,9 @@ void RecordWidget::handlerReceiveData(int type, QByteArray data)
             static_cast<QLineEdit *>(SDStorageMap["Used Space"])->setText(QString::number(param.UsedKByte));
             static_cast<QLineEdit *>(SDStorageMap["Available Space"])->setText(QString::number(param.AvailableKByte));
             static_cast<QLineEdit *>(SDStorageMap["Total Space"])->setText(QString::number(param.TotoalSizeKByte));
-            qDebug() << "#TabRecord# handlerReceiveData, ParameterType:" << type << "parse data success...";
+            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data success...";
         }else{
-            qDebug() << "#TabRecord# handlerReceiveData, ParameterType:" << type << "parse data error...";
+            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
@@ -811,9 +811,9 @@ void RecordWidget::handlerReceiveData(int type, QByteArray data)
             static_cast<QComboBox *>(SDStorageMap["Stream"])->setCurrentIndex(param.RecordSelect);
             static_cast<QComboBox *>(SDStorageMap["Record Type"])->setCurrentIndex(param.RecordSelect);
             static_cast<QLineEdit *>(SDStorageMap["Record Time"])->setText(QString::number(param.RecordTime));
-            qDebug() << "#TabRecord# handlerReceiveData, ParameterType:" << type << "parse data success...";
+            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data success...";
         }else{
-            qDebug() << "#TabRecord# handlerReceiveData, ParameterType:" << type << "parse data error...";
+            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }

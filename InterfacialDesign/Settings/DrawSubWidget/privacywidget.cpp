@@ -12,8 +12,8 @@ PrivacyWidget::PrivacyWidget(QWidget *parent) : QWidget(parent)
 
     QTimer *timer = new QTimer(this);
     timer->start(100);
-    connect(timer, &QTimer::timeout, this, &PrivacyWidget::handlerTimeout);
-    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &PrivacyWidget::handlerReceiveImage);
+    connect(timer, &QTimer::timeout, this, &PrivacyWidget::handleTimeout);
+    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &PrivacyWidget::handleReceiveImage);
 
     reset();
 }
@@ -75,7 +75,7 @@ void PrivacyWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void PrivacyWidget::handlerReceiveImage(QPixmap *pixmap)
+void PrivacyWidget::handleReceiveImage(QPixmap *pixmap)
 {
     if(isVisible() && !pixmap->isNull()){
         backgroundPixmap = *pixmap;
@@ -84,7 +84,7 @@ void PrivacyWidget::handlerReceiveImage(QPixmap *pixmap)
     }
 }
 
-void PrivacyWidget::handlerTimeout()
+void PrivacyWidget::handleTimeout()
 {
     if(isVisible()) {
         if(HttpDownload::getInstance()->isLeisure()){

@@ -22,8 +22,8 @@ public:
 protected:
     virtual void mousePressEvent(QMouseEvent *event);
 public slots:
-    void handlerModifyInfo();
-    void handlerDelUserInfo();
+    void handleModifyInfo();
+    void handleDelUserInfo();
 private:
     QDialog *modifyInfoWidget;
     QMap<QString, QWidget *> modifyInfoMap;

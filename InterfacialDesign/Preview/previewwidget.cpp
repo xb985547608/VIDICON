@@ -3,6 +3,7 @@
 #include "Control/vlccontrol.h"
 #include <QTimer>
 #include "parsexml.h"
+#include "soundeffect.h"
 
 PreviewWidget::PreviewWidget(QWidget *parent) :
     QWidget(parent),
@@ -20,20 +21,25 @@ PreviewWidget::PreviewWidget(QWidget *parent) :
     ui->blind->setToolTip("遮挡报警");
     ui->blind->setProperty("State", "disable");
     ui->autoRecord->setToolTip("定时录制");
+    ui->autoRecord->setVisible(false);
     ui->snapshot->setToolTip("抓拍");
     ui->voice->setToolTip("启用音频");
+    ui->voice->setVisible(false);
     ui->manualRecord->setToolTip("手动录制");
+    ui->manualRecord->setVisible(false);
     ui->mainStream->setToolTip("主码流");
     ui->subStream->setToolTip("子码流");
 
-    connect(ui->mainStream, &QRadioButton::toggled, this, &PreviewWidget::handlerWidgetSwitch);
-    connect(ui->refresh, &QPushButton::clicked, this, &PreviewWidget::handlerWidgetSwitch);
-    connect(this, &PreviewWidget::signalVlcControl, VlcControl::getInstance(), &VlcControl::handlerVlcControl);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &PreviewWidget::handlerReceiveData);
-    connect(this, &PreviewWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
+    connect(ui->mainStream, &QRadioButton::toggled, this, &PreviewWidget::handleWidgetSwitch);
+    connect(ui->refresh, &QPushButton::clicked, this, &PreviewWidget::handleWidgetSwitch);
+    connect(ui->snapshot, &QPushButton::clicked, this, &PreviewWidget::onSnapshotBtn);
+
+    connect(this, &PreviewWidget::signalVlcControl, VlcControl::getInstance(), &VlcControl::handleVlcControl);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &PreviewWidget::handleReceiveData);
+    connect(this, &PreviewWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
 
     QTimer *timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, &PreviewWidget::handlerTimeout);
+    connect(timer, &QTimer::timeout, this, &PreviewWidget::handleTimeout);
     timer->start(1000);
 
     ui->mainStream->setChecked(true);
@@ -51,16 +57,16 @@ void PreviewWidget::updateDynamicProperty(QWidget *w)
     w->update();
 }
 
-void PreviewWidget::handlerWidgetSwitch()
+void PreviewWidget::handleWidgetSwitch()
 {
     if(isVisible()){
-        handlerStreamSwitch(ui->mainStream->isChecked());
+        handleStreamSwitch(ui->mainStream->isChecked());
     }else{
         emit signalVlcControl(VLCCONTROLSTOP);
     }
 }
 
-void PreviewWidget::handlerStreamSwitch(bool checked)
+void PreviewWidget::handleStreamSwitch(bool checked)
 {
     if(checked){
         emit signalVlcControl(VLCCONTROLINIT, MAINSTREAMTYPE, ui->displayArea->winId());
@@ -70,7 +76,7 @@ void PreviewWidget::handlerStreamSwitch(bool checked)
     replySuccess = true;
 }
 
-void PreviewWidget::handlerTimeout()
+void PreviewWidget::handleTimeout()
 {
     if(isVisible()) {
         if(replySuccess || timeoutSec > 4) {
@@ -105,7 +111,7 @@ void PreviewWidget::handlerTimeout()
     }
 }
 
-void PreviewWidget::handlerReceiveData(int type, QByteArray data)
+void PreviewWidget::handleReceiveData(int type, QByteArray data)
 {
     switch(type) {
     case PULLMESSAGE: {        
@@ -123,11 +129,17 @@ void PreviewWidget::handlerReceiveData(int type, QByteArray data)
                     blindAlarmFlicker = true;
                 }
             }
+            qDebug() << "#PreviewWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
         }
-        qDebug() << "#PreviewWidget# handlerReceiveData, ParameterType:" << type << "parse data success...";
         break;
     }
     default:
         break;
     }
+}
+
+void PreviewWidget::onSnapshotBtn()
+{
+    if (SoundEffect::getInstance()->getSoundEffect(SoundEffect::Snapshot)->isFinished())
+        SoundEffect::getInstance()->triggerSoundEffect(SoundEffect::Snapshot);
 }

@@ -74,7 +74,7 @@
        <widget class="QRadioButton" name="mainStream">
         <property name="minimumSize">
          <size>
-          <width>91</width>
+          <width>65</width>
           <height>18</height>
          </size>
         </property>
@@ -93,7 +93,7 @@
        <widget class="QRadioButton" name="subStream">
         <property name="minimumSize">
          <size>
-          <width>91</width>
+          <width>65</width>
           <height>18</height>
          </size>
         </property>

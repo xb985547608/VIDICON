@@ -6,13 +6,14 @@
 #include <QRadioButton>
 #include <QPushButton>
 #include "Network/httpdownload.h"
+#include <QKeyEvent>
 
 FileManagerDialog::FileManagerDialog(QWidget *parent) :
     QDialog(parent),
     isVideo(true)
 {
-    connect(this, &FileManagerDialog::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &FileManagerDialog::handlerReceiveData);
+    connect(this, &FileManagerDialog::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &FileManagerDialog::handleReceiveData);
 
     QRadioButton *rBtn1 = new QRadioButton("视频", this);
     rBtn1->setChecked(true);
@@ -29,7 +30,7 @@ FileManagerDialog::FileManagerDialog(QWidget *parent) :
     fileView = new FileView(this);
 
     QPushButton *btn = new QPushButton("开始下载", this);
-    connect(btn, &QPushButton::clicked, this, &FileManagerDialog::handlerDownload);
+    connect(btn, &QPushButton::clicked, this, &FileManagerDialog::handleDownload);
 
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->addLayout(layout1);
@@ -39,7 +40,14 @@ FileManagerDialog::FileManagerDialog(QWidget *parent) :
 
 }
 
-void FileManagerDialog::handlerReceiveData(int type, QByteArray data)
+void FileManagerDialog::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_Escape) {
+        close();
+    }
+}
+
+void FileManagerDialog::handleReceiveData(int type, QByteArray data)
 {
     switch(type) {
     case QUERYVIDEONAMEDAY: {
@@ -47,9 +55,9 @@ void FileManagerDialog::handlerReceiveData(int type, QByteArray data)
         param.Type = 1;
         if(ParseXML::getInstance()->parseBackUpQueryParameter(&param, data)) {
             videoList = param.fileList;
-            qDebug() << "#FileManagerDialog# handlerReceiveData, ParameterType:" << type << "parse data success...";
+            qDebug() << "#FileManagerDialog# handleReceiveData, ParameterType:" << type << "parse data success...";
         }else {
-            qDebug() << "#FileManagerDialog# handlerReceiveData, ParameterType:" << type << "parse data error...";
+            qDebug() << "#FileManagerDialog# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
@@ -59,10 +67,10 @@ void FileManagerDialog::handlerReceiveData(int type, QByteArray data)
         if(ParseXML::getInstance()->parseBackUpQueryParameter(&param, data)) {
             pictureList = param.fileList;
             fileView->setDataSource(isVideo ? videoList : pictureList);
-            qDebug() << "#FileManagerDialog# handlerReceiveData, ParameterType:" << type << "parse data success...";
+            qDebug() << "#FileManagerDialog# handleReceiveData, ParameterType:" << type << "parse data success...";
             exec();
         }else {
-            qDebug() << "#FileManagerDialog# handlerReceiveData, ParameterType:" << type << "parse data error...";
+            qDebug() << "#FileManagerDialog# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
@@ -71,7 +79,7 @@ void FileManagerDialog::handlerReceiveData(int type, QByteArray data)
     }
 }
 
-void FileManagerDialog::handlerDownload()
+void FileManagerDialog::handleDownload()
 {
     QList<FileModel::FileInfo> list = fileView->dataSource();
     QStringList files;

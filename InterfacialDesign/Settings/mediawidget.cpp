@@ -25,11 +25,11 @@ MediaWidget::MediaWidget(QWidget *parent) : QStackedWidget(parent)
     initROIWidget();
     initOSDWidget();
 
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &MediaWidget::handlerReceiveData);
-    connect(this, &MediaWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
-    connect(this, &MediaWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &MediaWidget::handleReceiveData);
+    connect(this, &MediaWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
+    connect(this, &MediaWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
     connect(this, &MediaWidget::currentChanged, this, [this](){
-        handlerSwitchTab(QModelIndex());
+        handleSwitchTab(QModelIndex());
     });
 }
 
@@ -173,7 +173,7 @@ void MediaWidget::initAudioVideoWidget()
     audioVideoMap.insert("Audio Codec", comboBox12);
 
     QPushButton *btn = new QPushButton("保存", audioVideoWidget);
-    connect(btn, &QPushButton::clicked, this, [this](){handlerPrepareData();});
+    connect(btn, &QPushButton::clicked, this, [this](){handlePrepareData();});
 
     QGridLayout *layout = new QGridLayout;
     layout->setSpacing(10);
@@ -267,7 +267,7 @@ void MediaWidget::initPrivacyWidget()
 
     QPushButton *btn3 = new QPushButton("保存", privacyWidget);
     privacyMap.insert("Save", btn3);
-    connect(btn3, &QPushButton::clicked, this, &MediaWidget::handlerPrepareData);
+    connect(btn3, &QPushButton::clicked, this, &MediaWidget::handlePrepareData);
 
     QHBoxLayout *layout1 = new QHBoxLayout;
     layout1->addStretch();
@@ -462,7 +462,7 @@ void MediaWidget::initImageWidget()
     imageMap.insert("time2", time2);
 
     QPushButton *btn = new QPushButton("保存", imageWidget);
-    connect(btn, &QPushButton::clicked, this, &MediaWidget::handlerPrepareData);
+    connect(btn, &QPushButton::clicked, this, &MediaWidget::handlePrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(displayArea, 0, 0, 8, 2, Qt::AlignRight);
@@ -634,7 +634,7 @@ void MediaWidget::initOSDWidget()
 
     QPushButton *btn = new QPushButton("保存", osdWidget);
     btn->setFixedWidth(50);
-    connect(btn, &QPushButton::clicked, this, &MediaWidget::handlerPrepareData);
+    connect(btn, &QPushButton::clicked, this, &MediaWidget::handlePrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(displayArea, 0, 0, 8, 2);
@@ -673,7 +673,7 @@ void MediaWidget::refreshParameter()
     }
 }
 
-void MediaWidget::handlerSwitchTab(const QModelIndex &index)
+void MediaWidget::handleSwitchTab(const QModelIndex &index)
 {
     int type = index.row();
     if(sender() != this) {
@@ -700,7 +700,7 @@ void MediaWidget::handlerSwitchTab(const QModelIndex &index)
     }
 }
 
-void MediaWidget::handlerPrepareData()
+void MediaWidget::handlePrepareData()
 {
     switch (currentIndex()) {
     case 0: {
@@ -720,7 +720,7 @@ void MediaWidget::handlerPrepareData()
             param->GovLength = static_cast<QLineEdit *>(audioVideoMap[QString("I Frame Interval %1").arg(i)])->text().toInt();
 
             emit signalSetParameter(VIDEOENCODINGPARAM, param);
-            qDebug() << "#TabMedia# handlerSendData send signal, ParameterType:" << VIDEOENCODINGPARAM
+            qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << VIDEOENCODINGPARAM
                      << "StreamType:" << i;
         }
         VidiconProtocol::AudioEncodingParameter *param = new VidiconProtocol::AudioEncodingParameter;
@@ -729,7 +729,7 @@ void MediaWidget::handlerPrepareData()
         param->Bitrate = 16000;
         param->SampleRate = 8000;
         emit signalSetParameter(AUDIOENCODINGPARAM, param);
-        qDebug() << "#TabMedia# handlerSendData send signal, ParameterType:" << AUDIOENCODINGPARAM;
+        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << AUDIOENCODINGPARAM;
 
         break;
     }
@@ -746,7 +746,7 @@ void MediaWidget::handlerPrepareData()
         }
         emit signalSetParameter(PRIVACYPARAMETER, param);
         w->reset();
-        qDebug() << "#TabMedia# handlerSendData send signal, ParameterType:" << PRIVACYPARAMETER;
+        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << PRIVACYPARAMETER;
 
         break;
     }
@@ -776,7 +776,7 @@ void MediaWidget::handlerPrepareData()
         param->EndTime = static_cast<QTimeEdit *>(imageMap["time2"])->time().toString("HH:MM");
 
         emit signalSetParameter(IMAGEPARAMETER, param);
-        qDebug() << "#TabMedia# handlerSendData send signal, ParameterType:" << IMAGEPARAMETER;
+        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << IMAGEPARAMETER;
 
         break;
     }
@@ -811,7 +811,7 @@ void MediaWidget::handlerPrepareData()
             temp[i] = param[i];
         }
         emit signalSetParameter(OSDPARAMETER, temp);
-        qDebug() << "#TabMedia# handlerSendData send signal, ParameterType:" << OSDPARAMETER;
+        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << OSDPARAMETER;
         break;
     }
     default:
@@ -820,7 +820,7 @@ void MediaWidget::handlerPrepareData()
     WaitingShade::getInstance()->show();
 }
 
-void MediaWidget::handlerReceiveData(int type, QByteArray data)
+void MediaWidget::handleReceiveData(int type, QByteArray data)
 {
     switch(type){
     case VIDEOENCODINGPARAM:{
@@ -833,10 +833,10 @@ void MediaWidget::handlerReceiveData(int type, QByteArray data)
             static_cast<QComboBox *>(audioVideoMap[QString("Video quality %1").arg(param.StreamType)])->setCurrentIndex(param.FixedQuality - 1);
             static_cast<QLineEdit *>(audioVideoMap[QString("Video Rate %1").arg(param.StreamType)])->setText(QString::number(param.ConstantBitRate));
             static_cast<QLineEdit *>(audioVideoMap[QString("I Frame Interval %1").arg(param.StreamType)])->setText(QString::number(param.GovLength));
-            qDebug() << "#TabMedia# handlerReceiveData, ParameterType:" << type
+            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type
                      << "StreamType:" << param.StreamType << "parse data success...";
         }else{
-            qDebug() << "#TabMedia# handlerReceiveData, ParameterType:" << type
+            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type
                      << "StreamType:" << param.StreamType << "parse data error...";
         }
         break;
@@ -846,9 +846,9 @@ void MediaWidget::handlerReceiveData(int type, QByteArray data)
         if(ParseXML::getInstance()->parseAudioEncodingParameter(&param, data)) {
             static_cast<QRadioButton *>(audioVideoMap["Audio Enable"])->setChecked(param.Enabled == 0 ? Qt::Unchecked : Qt::Checked);
             static_cast<QComboBox *>(audioVideoMap["Audio Codec"])->setCurrentText(param.Encoding);
-            qDebug() << "#TabMedia# handlerReceiveData, ParameterType:" << type << "parse data success...";
+            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type << "parse data success...";
         }else{
-            qDebug() << "#TabMedia# handlerReceiveData, ParameterType:" << type << "parse data error...";
+            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
@@ -879,9 +879,9 @@ void MediaWidget::handlerReceiveData(int type, QByteArray data)
                     break;
                 }
             }
-            qDebug() << "#TabMedia# handlerReceiveData, ParameterType:" << type << "parse data success...";
+            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type << "parse data success...";
         }else{
-            qDebug() << "#TabMedia# handlerReceiveData, ParameterType:" << type << "parse data error...";
+            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
@@ -923,9 +923,9 @@ void MediaWidget::handlerReceiveData(int type, QByteArray data)
             static_cast<QTimeEdit *>(imageMap["time1"])->setTime(QTime(param.BeginTime.left(2).toInt(), param.BeginTime.right(2).toInt()));
             static_cast<QTimeEdit *>(imageMap["time2"])->setTime(QTime(param.EndTime.left(2).toInt(), param.EndTime.right(2).toInt()));
 
-            qDebug() << "#TabMedia# handlerReceiveData, ParameterType:" << type << "parse data success...";
+            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type << "parse data success...";
         }else{
-            qDebug() << "#TabMedia# handlerReceiveData, ParameterType:" << type << "parse data error...";
+            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }

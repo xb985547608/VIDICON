@@ -23,10 +23,10 @@ protected:
 signals:
 
 public slots:
-    void handlerFullScreen();
-    void handlerCleanScreen();
-    void handlerReceiveImage(QPixmap *pixmap);
-    void handlerTimeout();
+    void handleFullScreen();
+    void handleCleanScreen();
+    void handleReceiveImage(QPixmap *pixmap);
+    void handleTimeout();
 
 private:
     char **motionRegionMap;

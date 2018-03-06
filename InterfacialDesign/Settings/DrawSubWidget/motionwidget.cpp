@@ -14,11 +14,11 @@ MotionWidget::MotionWidget(QWidget *parent) : QWidget(parent)
 
     timer = new QTimer(this);
     timer->start(100);
-    connect(timer, &QTimer::timeout, this, &MotionWidget::handlerTimeout);
-    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &MotionWidget::handlerReceiveImage);
+    connect(timer, &QTimer::timeout, this, &MotionWidget::handleTimeout);
+    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &MotionWidget::handleReceiveImage);
 }
 
-void MotionWidget::handlerFullScreen()
+void MotionWidget::handleFullScreen()
 {
     for(int i=0; i<REGIONROW; i++){
         for(int j=0; j<REGIONCOLUMN; j++){
@@ -27,7 +27,7 @@ void MotionWidget::handlerFullScreen()
     }
 }
 
-void MotionWidget::handlerCleanScreen()
+void MotionWidget::handleCleanScreen()
 {
     for(int i=0; i<REGIONROW; i++){
         for(int j=0; j<REGIONCOLUMN; j++){
@@ -36,7 +36,7 @@ void MotionWidget::handlerCleanScreen()
     }
 }
 
-void MotionWidget::handlerReceiveImage(QPixmap *pixmap)
+void MotionWidget::handleReceiveImage(QPixmap *pixmap)
 {
     if(isVisible() && !pixmap->isNull()){
         backgroundPixmap = *pixmap;
@@ -45,7 +45,7 @@ void MotionWidget::handlerReceiveImage(QPixmap *pixmap)
     }
 }
 
-void MotionWidget::handlerTimeout()
+void MotionWidget::handleTimeout()
 {
     if(isVisible()){
         if(HttpDownload::getInstance()->isLeisure()){

@@ -18,7 +18,7 @@ VlcControl::VlcControl(QString host, QString port, QObject *parent) : QObject(pa
 
 }
 
-void VlcControl::handlerVlcControl(int type, int subtype, WId id)
+void VlcControl::handleVlcControl(int type, int subtype, WId id)
 {
     switch(type) {
     case VLCCONTROLINIT: {

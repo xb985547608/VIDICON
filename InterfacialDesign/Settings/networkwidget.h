@@ -28,9 +28,9 @@ signals:
     void signalGetParameter(int type, int StreamType = 0, int Channel = 0, QString SessionID = "R00001");
 
 public slots:
-    void handlerSwitchTab(const QModelIndex &index);
-    void handlerPrepareData();
-    void handlerReceiveData(int type, QByteArray data);
+    void handleSwitchTab(const QModelIndex &index);
+    void handlePrepareData();
+    void handleReceiveData(int type, QByteArray data);
 
 private:
     QWidget *tcpIpWidget;

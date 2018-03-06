@@ -56,11 +56,11 @@ void UserInfoView::addData(const QStringList &data)
     const QList<QStringList> list = static_cast<TableModel *>(model())->getDataSource();
     QPushButton *btn1 = new QPushButton("Modify", this);
     btn1->setObjectName(data.at(0));
-    connect(btn1, &QPushButton::clicked, this, &UserInfoView::handlerModifyInfo);
+    connect(btn1, &QPushButton::clicked, this, &UserInfoView::handleModifyInfo);
     setIndexWidget(model()->index(list.length(), 3), btn1);
     QPushButton *btn2 = new QPushButton("DelUser", this);
     btn2->setObjectName(data.at(0));
-    connect(btn2, &QPushButton::clicked, this, &UserInfoView::handlerDelUserInfo);
+    connect(btn2, &QPushButton::clicked, this, &UserInfoView::handleDelUserInfo);
     setIndexWidget(model()->index(list.length(), 4), btn2);
 }
 
@@ -140,13 +140,13 @@ void UserInfoView::mousePressEvent(QMouseEvent *event)
     }
 }
 
-void UserInfoView::handlerModifyInfo()
+void UserInfoView::handleModifyInfo()
 {
     qDebug() << "Modify" << sender()->objectName();
     popupModifyInfoWidget();
 }
 
-void UserInfoView::handlerDelUserInfo()
+void UserInfoView::handleDelUserInfo()
 {
     qDebug() << "DelUser" << sender()->objectName();
     qDebug() << QMessageBox::question(this, "警告", QString("是否删除用户%1").arg(static_cast<TableModel *>(model())->getDataSource().at(sender()->objectName().toInt()).at(1)));

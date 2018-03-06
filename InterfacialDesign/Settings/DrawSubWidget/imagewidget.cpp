@@ -11,8 +11,8 @@ ImageWidget::ImageWidget(QWidget *parent) : QWidget(parent)
 {    
     QTimer *timer = new QTimer(this);
     timer->start(100);
-    connect(timer, &QTimer::timeout, this, &ImageWidget::handlerTimeout);
-    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &ImageWidget::handlerReceiveImage);
+    connect(timer, &QTimer::timeout, this, &ImageWidget::handleTimeout);
+    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &ImageWidget::handleReceiveImage);
 }
 
 void ImageWidget::paintEvent(QPaintEvent *event)
@@ -24,7 +24,7 @@ void ImageWidget::paintEvent(QPaintEvent *event)
     p.drawPixmap(rect(), backgroundPixmap);
 }
 
-void ImageWidget::handlerReceiveImage(QPixmap *pixmap)
+void ImageWidget::handleReceiveImage(QPixmap *pixmap)
 {
     if(isVisible() && !pixmap->isNull()){
         backgroundPixmap = *pixmap;
@@ -33,7 +33,7 @@ void ImageWidget::handlerReceiveImage(QPixmap *pixmap)
     }
 }
 
-void ImageWidget::handlerTimeout()
+void ImageWidget::handleTimeout()
 {
     if(isVisible()) {
         if(HttpDownload::getInstance()->isLeisure()){

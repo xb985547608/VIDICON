@@ -54,6 +54,7 @@
 #define PLAYSTATE            1062
 #define LOGIN                1063
 #define DOWNLOAD             1064
+#define CURRENTPLAYINGTIME   1065
 
 #define RESPONSESTATUS       8888
 #define NETWORKERROR         8889
@@ -497,6 +498,11 @@ public:
         int StateValue;
     }PlayStateParameter;
     void setFastOrSlowPlayState(QString SessionID, const PlayStateParameter &param);
+    typedef struct PlayingTimeParameter{
+        int htmlid;
+        int Playend;
+    }PlayingTimeParameter;
+    Q_INVOKABLE void getCurrentPlayingTime(int htmlid, QString SessionID);
 
     Q_INVOKABLE void downloadFile(QString fileName);
 
@@ -506,11 +512,11 @@ signals:
 
 public slots:
     void init();
-    void handlerTimeout();
-    void handlerPrePare(QNetworkRequest &request, QString RequestBody);
-    void handlerReply(QNetworkReply *reply);
-    void handlerSetParameter(int type, void *param, QString SessionID);
-    void handlerGetParameter(int type, int StreamType, int Channel, QString SessionID);
+    void handleTimeout();
+    void handlePrePare(QNetworkRequest &request, QString RequestBody);
+    void handleReply(QNetworkReply *reply);
+    void handleSetParameter(int type, void *param, QString SessionID);
+    void handleGetParameter(int type, int StreamType, int Channel, QString SessionID);
 
 private:    
     QNetworkAccessManager *manager;

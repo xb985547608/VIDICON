@@ -55,9 +55,9 @@ FileView::FileView(QWidget *parent) : QTableView(parent)
                    QPushButton:hover{color:blue}\
                    QPushButton:pressed{color:red}");
 
-    connect(header, &FileViewHeaderView::signalStateChange, model, &FileModel::handlerStateChange);
-    connect(model, &FileModel::signalStateChange, header, &FileViewHeaderView::handlerStateChange);
-    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &FileView::handlerReceiveImage);
+    connect(header, &FileViewHeaderView::signalStateChange, model, &FileModel::handleStateChange);
+    connect(model, &FileModel::signalStateChange, header, &FileViewHeaderView::handleStateChange);
+    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &FileView::handleReceiveImage);
 }
 
 FileView::~FileView()
@@ -113,7 +113,7 @@ void FileView::mouseReleaseEvent(QMouseEvent *event)
     QTableView::mouseReleaseEvent(event);
 }
 
-void FileView::handlerReceiveImage(QPixmap *pixmap)
+void FileView::handleReceiveImage(QPixmap *pixmap)
 {
     if(isVisible() && !pixmap->isNull()){
         QDialog *d = new QDialog;
@@ -275,7 +275,7 @@ Qt::ItemFlags FileModel::flags(const QModelIndex &index) const
 }
 
 //根据头列表复选框状态的改变来确定列表所有item的状态
-void FileModel::handlerStateChange(int state)
+void FileModel::handleStateChange(int state)
 {
     if(fileList.length() == 0)
         return;
@@ -504,7 +504,7 @@ bool FileViewHeaderView::event(QEvent *event)
     return QHeaderView::event(event);
 }
 
-void FileViewHeaderView::handlerStateChange(int state)
+void FileViewHeaderView::handleStateChange(int state)
 {
     if (state == Qt::PartiallyChecked) {
         bTristate = true;

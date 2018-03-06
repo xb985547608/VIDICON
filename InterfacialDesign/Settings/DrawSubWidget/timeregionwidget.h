@@ -30,9 +30,9 @@ protected:
 signals:
 
 public slots:
-    void handlerTimeChange(QTime time);
-    void handlerWeekSelectState(int state);
-    void handlerTimeSelectState(int state);
+    void handleTimeChange(QTime time);
+    void handleWeekSelectState(int state);
+    void handleTimeSelectState(int state);
 private:
     QMap<int, int> weekStateMap;
     VidiconProtocol::Plan **plans;

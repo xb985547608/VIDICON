@@ -6,5 +6,8 @@
         <file>images/mw_playback.png</file>
         <file>images/mw_preview.png</file>
         <file>images/mw_settings.png</file>
+        <file>error.wav</file>
+        <file>snapshot.wav</file>
+        <file>success.wav</file>
     </qresource>
 </RCC>

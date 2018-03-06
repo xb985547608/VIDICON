@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "datewidget.h"
 #include "filemanagerdialog.h"
+#include <QSound>
 
 namespace Ui{
 class PlaybackForm;
@@ -17,6 +18,10 @@ public:
     ~PlaybackWidget();
 
     void refreshPolish(QWidget *w);
+
+private:
+    void setStateValue(int value);
+
 protected:
     void resizeEvent(QResizeEvent *event) override;
 
@@ -27,15 +32,25 @@ signals:
     void signalAddDownloadTask(QStringList files);
 
 public slots:
-    void handlerWidgetSwitch();
-    void handlerReceiveData(int type, QByteArray data);
+    void handleWidgetSwitch();
+    void handleReceiveData(int type, QByteArray data);
     void onPlayBtnClicked();
+    void onSlowForwardBtnClicked();
+    void onFastPlayBtnClicked();
+    void onSnapshotBtnClicked();
+    void onVolumeBtnClicked();
+    void handleTimeout();
 
 private:
     Ui::PlaybackForm *ui;
     DateWidget *dateWidget;
     FileManagerDialog *fileDialog;
     int htmlid;
+    //-2 *4  -1 *2  0  1 *2  2 *4
+    //    慢放--> 正常 -->快放
+    int stateValue;
+    QSound *snapshotSoundEffect;
+    bool isPlaying;
 };
 
 #endif // PLAYBACKWIDGET_H

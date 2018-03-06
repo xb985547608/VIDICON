@@ -26,7 +26,7 @@ public:
 public slots:
     void loginHandler(LoginWidget::LoginState state);
     void logoutHandler();
-    void handlerReceiveData(int type, QByteArray data);
+    void handleReceiveData(int type, QByteArray data);
 
 private:
     HomeWidget *homeWidget;

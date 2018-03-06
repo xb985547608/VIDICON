@@ -15,7 +15,7 @@ void VidiconProtocol::init()
     manager = new QNetworkAccessManager(this);
     urlPrefix = QString("http://%1:%2").arg(targetHost, targetPort);
 
-    connect(manager, SIGNAL(finished(QNetworkReply *)), this, SLOT(handlerReply(QNetworkReply *)));
+    connect(manager, SIGNAL(finished(QNetworkReply *)), this, SLOT(handleReply(QNetworkReply *)));
 }
 
 VidiconProtocol::~VidiconProtocol()
@@ -34,12 +34,12 @@ void VidiconProtocol::getDeviceInfomation(QString SessionID)
     QString requestBody;
 
     //配置请求头
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = DEVICEINFO;
     //发送POST请求
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::login(QString user, QString passwd)
@@ -55,11 +55,11 @@ void VidiconProtocol::login(QString user, QString passwd)
                                     <Password>%2</Password>\
                                 </UserCheck>").arg(user).arg(passwd));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
     currentType = LOGIN;
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::logout(QString SessionID)
@@ -74,10 +74,10 @@ void VidiconProtocol::logout(QString SessionID)
                                     <SessionID>%1</SessionID>\
                                 </UserCheck>").arg(SessionID));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getVideoEncodingOption(QString SessionID, int Channel, int StreamType)
@@ -93,10 +93,10 @@ void VidiconProtocol::getVideoEncodingOption(QString SessionID, int Channel, int
                                     <StreamType>%2</StreamType>\
                                 </GetVideoEncodeOptions>").arg(Channel).arg(StreamType));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getVideoEncodingParameter(QString SessionID, int Channel, int StreamType)
@@ -112,11 +112,11 @@ void VidiconProtocol::getVideoEncodingParameter(QString SessionID, int Channel, 
                                     "<StreamType>%2</StreamType>"
                                "</VideoParam>").arg(Channel).arg(StreamType));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = VIDEOENCODINGPARAM;
     reply = manager->post(request, requestBody.toStdString().data());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setVideoEncodingParameter(QString SessionID, const VideoEncodingParameter &param)
@@ -151,11 +151,11 @@ void VidiconProtocol::setVideoEncodingParameter(QString SessionID, const VideoEn
                                                .arg(param.SnapShotImageType)
                                                .arg(param.GovLength));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
 //    currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getAudioEncodingCapability(QString SessionID)
@@ -166,10 +166,10 @@ void VidiconProtocol::getAudioEncodingCapability(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getAudioEncodingParameter(QString SessionID)
@@ -180,11 +180,11 @@ void VidiconProtocol::getAudioEncodingParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = AUDIOENCODINGPARAM;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setAudioEncodingParameter(QString SessionID, const AudioEncodingParameter &param)
@@ -205,11 +205,11 @@ void VidiconProtocol::setAudioEncodingParameter(QString SessionID, const AudioEn
                                                 .arg(param.Bitrate)
                                                 .arg(param.SampleRate));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getROIParameter(QString SessionID)
@@ -220,10 +220,10 @@ void VidiconProtocol::getROIParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setROIParameter(QString SessionID, int enabled, int ROIMode, const ROIParameter &param)
@@ -254,11 +254,11 @@ void VidiconProtocol::setROIParameter(QString SessionID, int enabled, int ROIMod
                                             .arg(param.Width)
                                             .arg(param.Height));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getPrivacyMaskParameter(QString SessionID)
@@ -269,7 +269,7 @@ void VidiconProtocol::getPrivacyMaskParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
 }
 
@@ -299,11 +299,11 @@ void VidiconProtocol::setPrivacyMaskParameter(QString SessionID, const PrivacyMa
     }
 
     requestBody.append("</PrivacyMask>");
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getOSDParameter(QString SessionID)
@@ -314,11 +314,11 @@ void VidiconProtocol::getOSDParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = OSDPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setOSDParameter(QString SessionID,
@@ -358,11 +358,11 @@ void VidiconProtocol::setOSDParameter(QString SessionID,
     }
 
     requestBody.append(QString("</OSDInfo>"));
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getBasicParameter(QString SessionID)
@@ -373,11 +373,11 @@ void VidiconProtocol::getBasicParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = TCPIPPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setBasicParameter(QString SessionID, const BasicParameter &param)
@@ -424,11 +424,11 @@ void VidiconProtocol::setBasicParameter(QString SessionID, const BasicParameter 
                                                  .arg(param.ipv6.Ipv6PrefixLength)
                                                  .arg(param.MACAddress));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getEmailParameter(QString SessionID)
@@ -439,11 +439,11 @@ void VidiconProtocol::getEmailParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = EMAILPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setEmailParameter(QString SessionID, const EmailParameter &param)
@@ -484,11 +484,11 @@ void VidiconProtocol::setEmailParameter(QString SessionID, const EmailParameter 
                                                 .arg(param.Receiver_4)
                                                 .arg(param.SmtpPort));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getFTPParameter(QString SessionID)
@@ -499,11 +499,11 @@ void VidiconProtocol::getFTPParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = FTPPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setFTPParameter(QString SessionID, const FTPParameter &param)
@@ -530,11 +530,11 @@ void VidiconProtocol::setFTPParameter(QString SessionID, const FTPParameter &par
                                               .arg(param.UploadDirectory)
                                               .arg(param.FTPPort));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getDDNSParameter(QString SessionID)
@@ -545,11 +545,11 @@ void VidiconProtocol::getDDNSParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = DDNSPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setDDNSParameter(QString SessionID, const DDNSParameter &param)
@@ -574,11 +574,11 @@ void VidiconProtocol::setDDNSParameter(QString SessionID, const DDNSParameter &p
                                                .arg(param.DDNSUser)
                                                .arg(param.DDNSPassword));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getPPPOEParameter(QString SessionID)
@@ -589,11 +589,11 @@ void VidiconProtocol::getPPPOEParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = PPPOEPARAMETR;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setPPPOEParameter(QString SessionID, const PPPOEParameter &param)
@@ -612,11 +612,11 @@ void VidiconProtocol::setPPPOEParameter(QString SessionID, const PPPOEParameter 
                                                 .arg(param.PPPOEName)
                                                 .arg(param.PPPOEPassword));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getSNMPParameter(QString SessionID)
@@ -627,11 +627,11 @@ void VidiconProtocol::getSNMPParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = SNMPPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setSNMPParameter(QString SessionID, const SNMPParameter &param)
@@ -660,11 +660,11 @@ void VidiconProtocol::setSNMPParameter(QString SessionID, const SNMPParameter &p
                                                .arg(param.SnmpPort)
                                                .arg(param.TrapPort));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getP2PParameter(QString SessionID)
@@ -675,11 +675,11 @@ void VidiconProtocol::getP2PParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = P2PPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setP2PParameter(QString SessionID, const P2PParameter &param)
@@ -695,11 +695,11 @@ void VidiconProtocol::setP2PParameter(QString SessionID, const P2PParameter &par
                                     <P2PUUID></P2PUUID>\
                                 </P2PStatus>").arg(param.Enabled));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getBonjourParameter(QString SessionID)
@@ -710,11 +710,11 @@ void VidiconProtocol::getBonjourParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = BONJOURPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setBonjourParameter(QString SessionID, const BonjourParameter &param)
@@ -731,11 +731,11 @@ void VidiconProtocol::setBonjourParameter(QString SessionID, const BonjourParame
                                 </BonjourStatus>").arg(param.Enabled)
                                                   .arg(param.Name));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getHTTPsParameter(QString SessionID)
@@ -746,11 +746,11 @@ void VidiconProtocol::getHTTPsParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = HTTPSPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setHTTPsParameter(QString SessionID, const HTTPsParameter &param)
@@ -767,11 +767,11 @@ void VidiconProtocol::setHTTPsParameter(QString SessionID, const HTTPsParameter 
                                 </HTTPsStatus>").arg(param.Enabled)
                                                 .arg(param.HTTPsPort));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getUPNPParameter(QString SessionID)
@@ -782,11 +782,11 @@ void VidiconProtocol::getUPNPParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = UPNPPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setUPNPParameter(QString SessionID, const UPNPParameter &param)
@@ -801,11 +801,11 @@ void VidiconProtocol::setUPNPParameter(QString SessionID, const UPNPParameter &p
                                     <Enabled>%1</Enabled>\
                                 </UPNPStatus>").arg(param.Enabled));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getOtherParameter(QString SessionID)
@@ -816,11 +816,11 @@ void VidiconProtocol::getOtherParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = OTHERPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setOtherParameter(QString SessionID, const OtherParameter &param)
@@ -846,11 +846,11 @@ void VidiconProtocol::setOtherParameter(QString SessionID, const OtherParameter 
     }
 
     requestBody.append("</ExtServer>");
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getRemoteRecordingPlan(QString SessionID)
@@ -861,11 +861,11 @@ void VidiconProtocol::getRemoteRecordingPlan(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = SCHEDULEPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setRemoteRecordingPlan(QString SessionID, const RemoteRecordingPlan &param)
@@ -898,11 +898,11 @@ void VidiconProtocol::setRemoteRecordingPlan(QString SessionID, const RemoteReco
     }
     requestBody.append("</RemoteVideoPlan>");
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getSDCardStatusQuery(QString SessionID)
@@ -913,11 +913,11 @@ void VidiconProtocol::getSDCardStatusQuery(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = SDCARDPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setSDCardOperation(QString SessionID, int OperType)
@@ -932,11 +932,11 @@ void VidiconProtocol::setSDCardOperation(QString SessionID, int OperType)
                                     <OperType>%1</OperType>\
                                 </SDOperation>").arg(OperType));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getSDStorageParameter(QString SessionID)
@@ -947,11 +947,11 @@ void VidiconProtocol::getSDStorageParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = SDSTORAGEPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setSDStorageParameter(QString SessionID, const SDStorageParameter &param)
@@ -972,11 +972,11 @@ void VidiconProtocol::setSDStorageParameter(QString SessionID, const SDStoragePa
                                               .arg(param.RecordMode)
                                               .arg(param.RecordTime));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getSnapshotPlanParameter(QString SessionID)
@@ -987,11 +987,11 @@ void VidiconProtocol::getSnapshotPlanParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = SNAPSHOTPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setSnapshotPlanParameter(QString SessionID, const SnapshotPlanParameter &param)
@@ -1026,11 +1026,11 @@ void VidiconProtocol::setSnapshotPlanParameter(QString SessionID, const Snapshot
 
     requestBody.append(QString("</SnapshotChannel>"));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getMotionDetectionParameter(QString SessionID)
@@ -1041,11 +1041,11 @@ void VidiconProtocol::getMotionDetectionParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = MOTIONALARAPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setMotionDetectionParameter(QString SessionID, const MotionDetectionParameter &param)
@@ -1093,11 +1093,11 @@ void VidiconProtocol::setMotionDetectionParameter(QString SessionID, const Motio
     requestBody.append(QString("<ZoneSetting><AreaMask>%1</AreaMask></ZoneSetting>\
                                 </MotionDetectionParam>").arg(param.AreaMask));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getSensorAlarmParameter(QString SessionID)
@@ -1108,11 +1108,11 @@ void VidiconProtocol::getSensorAlarmParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = SENSORALARMPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setSensorAlarmParameter(QString SessionID, const SensorAlarmParameter &param)
@@ -1154,11 +1154,11 @@ void VidiconProtocol::setSensorAlarmParameter(QString SessionID, const SensorAla
 
     requestBody.append(QString("</SensorList>"));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getVideoBlindAlarmParameter(QString SessionID)
@@ -1169,11 +1169,11 @@ void VidiconProtocol::getVideoBlindAlarmParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = BLINDALARMPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setVideoBlindAlarmParameter(QString SessionID, const VideoBlindAlarmParameter &param)
@@ -1215,11 +1215,11 @@ void VidiconProtocol::setVideoBlindAlarmParameter(QString SessionID, const Video
 
     requestBody.append(QString("</VideoBlindAlarmParam>"));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getPullAlarmRequest(QString SessionID, int channel)
@@ -1234,11 +1234,11 @@ void VidiconProtocol::getPullAlarmRequest(QString SessionID, int channel)
                                     <Channel>%1</Channel>\
                                 </PullMsg>").arg(channel));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = PULLMESSAGE;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getMotionDetectionChanged(QString SessionID, int MotionArea)
@@ -1253,10 +1253,10 @@ void VidiconProtocol::getMotionDetectionChanged(QString SessionID, int MotionAre
                                     <MotionArea>%1</MotionArea>\
                                 </MotionChange>").arg(MotionArea));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getImageParameter(QString SessionID)
@@ -1267,11 +1267,11 @@ void VidiconProtocol::getImageParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = IMAGEPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setImageParameter(QString SessionID, const ImageParameter &param)
@@ -1345,11 +1345,11 @@ void VidiconProtocol::setImageParameter(QString SessionID, const ImageParameter 
                                                  .arg(param.SaturationLevel)
                                                  .arg(param.HueLevel)
                                                  .arg(param.Sharpness));
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getNTP(QString SessionID)
@@ -1360,11 +1360,11 @@ void VidiconProtocol::getNTP(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = NTPPARAMETER;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setNTP(QString SessionID, const NTPParameter &param)
@@ -1389,11 +1389,11 @@ void VidiconProtocol::setNTP(QString SessionID, const NTPParameter &param)
                                               .arg(param.UTCDateTime)
                                               .arg(param.NTPServer));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setRestoreDefaultParameter(QString SessionID, int Enabled)
@@ -1408,10 +1408,10 @@ void VidiconProtocol::setRestoreDefaultParameter(QString SessionID, int Enabled)
                             <Enabled>%1</Enabled>\
                         </RestoreDefault>").arg(Enabled);
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setDeviceReboot(QString SessionID, int Enabled)
@@ -1426,11 +1426,11 @@ void VidiconProtocol::setDeviceReboot(QString SessionID, int Enabled)
                             <Enabled>%1</Enabled>\
                         </Reboot>").arg(Enabled);
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setFormat(QString SessionID, int param)
@@ -1445,11 +1445,11 @@ void VidiconProtocol::setFormat(QString SessionID, int param)
                             <Param>%1</Param>\
                         </Format>").arg(param);
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::PTZControl(QString SessionID, int Zoom, int Focus)
@@ -1465,10 +1465,10 @@ void VidiconProtocol::PTZControl(QString SessionID, int Zoom, int Focus)
                             <Focus>%2</Focus>\
                         </PTZMotorsCtr>").arg(Zoom).arg(Focus);
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getLPRSystemVersion(QString SessionID)
@@ -1479,10 +1479,10 @@ void VidiconProtocol::getLPRSystemVersion(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getLPRParameter(QString SessionID)
@@ -1493,10 +1493,10 @@ void VidiconProtocol::getLPRParameter(QString SessionID)
 
     QString requestBody;
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setLPRParameter(QString SessionID, const VidiconProtocol::LPRParameter &param1, const VidiconProtocol::AreaPoint &param2)
@@ -1551,10 +1551,10 @@ void VidiconProtocol::setLPRParameter(QString SessionID, const VidiconProtocol::
 
     requestBody.append(QString("</LPRParam>"));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::resetLPRParameter(QString SessionID, int Enabled)
@@ -1569,10 +1569,10 @@ void VidiconProtocol::resetLPRParameter(QString SessionID, int Enabled)
                             <Enabled>%1</Enabled>\
                         </LPRResetParam>").arg(Enabled);
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getInformationOfLatestRecognizedPlates(QString SessionID)
@@ -1587,10 +1587,10 @@ void VidiconProtocol::getInformationOfLatestRecognizedPlates(QString SessionID)
                             <LastCarID>%1</LastCarID>\
                         </LPROutput>").arg("");
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::backUpQuery(QString SessionID, const VidiconProtocol::BackUpQueryParameter &param)
@@ -1607,7 +1607,7 @@ void VidiconProtocol::backUpQuery(QString SessionID, const VidiconProtocol::Back
                         </QueryBackUp>").arg(param.Type)
                                         .arg(param.Date.toString("yyyy-MM-dd")));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     switch(param.Type) {
     case 0: {
         currentType = QUERYVIDEOTIMEDAY;
@@ -1628,7 +1628,7 @@ void VidiconProtocol::backUpQuery(QString SessionID, const VidiconProtocol::Back
     }
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setRecordStartPlayingTime(QString SessionID, const VidiconProtocol::StartPlayingParameter &param)
@@ -1647,11 +1647,11 @@ void VidiconProtocol::setRecordStartPlayingTime(QString SessionID, const Vidicon
                                    .arg(param.playing)
                                    .arg(param.Time.toString("yyyy-MM-ddTHH:mm:ss")));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = STARTPLAYING;
     reply = manager->put(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setFastOrSlowPlayState(QString SessionID, const VidiconProtocol::PlayStateParameter &param)
@@ -1668,11 +1668,30 @@ void VidiconProtocol::setFastOrSlowPlayState(QString SessionID, const VidiconPro
                                 </RecordRunState>").arg(param.htmlid)
                                                    .arg(param.StateValue));
 
-    handlerPrePare(request, requestBody);
+    handlePrePare(request, requestBody);
     currentType = PLAYSTATE;
     reply = manager->post(request, requestBody.toLatin1());
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handlerTimeout);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
+}
+
+void VidiconProtocol::getCurrentPlayingTime(int htmlid, QString SessionID)
+{
+    QString urlSuffix = QString("/ISAPI/Record/GetPosTime?ID=%1").arg(SessionID);
+    QNetworkRequest request;
+    request.setUrl(QUrl(urlPrefix + urlSuffix));
+
+    QString requestBody;
+    requestBody.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
+                        <GetPosTime>\
+                            <htmlid>%1</htmlid>\
+                        </GetPosTime>").arg(htmlid);
+
+    handlePrePare(request, requestBody);
+    currentType = CURRENTPLAYINGTIME;
+    reply = manager->post(request, requestBody.toLatin1());
+    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
+    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::downloadFile(QString fileName)
@@ -1681,16 +1700,16 @@ void VidiconProtocol::downloadFile(QString fileName)
     QNetworkRequest request;
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
-    handlerPrePare(request, "");
+    handlePrePare(request, "");
     currentType = DOWNLOAD;
     reply = manager->get(request);
 }
 
-void VidiconProtocol::handlerTimeout()
+void VidiconProtocol::handleTimeout()
 {
 }
 
-void VidiconProtocol::handlerPrePare(QNetworkRequest &request, QString RequestBody)
+void VidiconProtocol::handlePrePare(QNetworkRequest &request, QString RequestBody)
 {
     request.setRawHeader(QByteArray("Accept"),           QByteArray("text/plain, */*; q=0.01"));
     request.setRawHeader(QByteArray("X-Requested-With"), QByteArray("XMLHttpRequest"));
@@ -1710,7 +1729,7 @@ void VidiconProtocol::handlerPrePare(QNetworkRequest &request, QString RequestBo
     currentState = Busy;
 }
 
-void VidiconProtocol::handlerReply(QNetworkReply *reply)
+void VidiconProtocol::handleReply(QNetworkReply *reply)
 {
     if(reply->error() != QNetworkReply::NoError) {
         qDebug() << "#VidiconProtocol# hanndlerReply,"
@@ -1733,9 +1752,9 @@ void VidiconProtocol::handlerReply(QNetworkReply *reply)
 }
 
 
-void VidiconProtocol::handlerSetParameter(int type, void *param, QString SessionID)
+void VidiconProtocol::handleSetParameter(int type, void *param, QString SessionID)
 {
-    qDebug() << "#VidiconProtocol# handlerSetParameter type:" << type;
+    qDebug() << "#VidiconProtocol# handleSetParameter type:" << type;
     switch (type) {
     case VIDEOENCODINGPARAM: {
         VideoEncodingParameter *temp = static_cast<VideoEncodingParameter *>(param);
@@ -1852,14 +1871,14 @@ void VidiconProtocol::handlerSetParameter(int type, void *param, QString Session
         break;
     }
     default:
-        qDebug() << "#VidiconProtocol# handlerSetParameter ignore signal, type:" << type;
+        qDebug() << "#VidiconProtocol# handleSetParameter ignore signal, type:" << type;
         break;
     }
 }
 
-void VidiconProtocol::handlerGetParameter(int type, int StreamType, int Channel, QString SessionID)
+void VidiconProtocol::handleGetParameter(int type, int StreamType, int Channel, QString SessionID)
 {
-    qDebug() << "#VidiconProtocol# handlerGetParameter type:" << type;
+    qDebug() << "#VidiconProtocol# handleGetParameter type:" << type;
 
     switch (type) {
     case VIDEOENCODINGPARAM: {

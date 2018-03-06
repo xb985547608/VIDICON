@@ -113,7 +113,7 @@ void TimeRegionWidget::drawTimeRegion(int day, const QPoint &sPoint, QPainter *p
     }
 }
 
-void TimeRegionWidget::handlerTimeChange(QTime time)
+void TimeRegionWidget::handleTimeChange(QTime time)
 {
     QString name = sender()->objectName();
     QStringList list = name.split(' ');
@@ -137,7 +137,7 @@ void TimeRegionWidget::handlerTimeChange(QTime time)
     update();
 }
 
-void TimeRegionWidget::handlerWeekSelectState(int state)
+void TimeRegionWidget::handleWeekSelectState(int state)
 {
     int index = sender()->objectName().right(1).toInt();
 
@@ -146,7 +146,7 @@ void TimeRegionWidget::handlerWeekSelectState(int state)
     update();
 }
 
-void TimeRegionWidget::handlerTimeSelectState(int state)
+void TimeRegionWidget::handleTimeSelectState(int state)
 {
     int index = sender()->objectName().right(1).toInt();
 

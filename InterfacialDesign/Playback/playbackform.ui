@@ -71,10 +71,16 @@
             </property>
             <property name="styleSheet">
              <string notr="true">QPushButton[State=&quot;pause&quot;]{
-	border-image: url(:/images/play.png)
+	border-image: url(:/images/pb_play.png) 0 40 0 0
+}
+QPushButton[State=&quot;pause&quot;]:hover{
+	border-image: url(:/images/pb_play.png) 0 0 0 40
 }
 QPushButton[State=&quot;play&quot;]{
-	border-image: url(:/images/pause.png)
+	border-image: url(:/images/pb_pause.png) 0 40 0 0
+}
+QPushButton[State=&quot;play&quot;]:hover{
+	border-image: url(:/images/pb_pause.png) 0 0 0 40
 }</string>
             </property>
             <property name="text">
@@ -83,7 +89,7 @@ QPushButton[State=&quot;play&quot;]{
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="playBtn_2">
+           <widget class="QPushButton" name="slowForwardBtn">
             <property name="minimumSize">
              <size>
               <width>20</width>
@@ -97,11 +103,11 @@ QPushButton[State=&quot;play&quot;]{
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">QPushButton[State=&quot;pause&quot;]{
-	border-image: url(:/images/play.png)
+             <string notr="true">QPushButton{
+	border-image: url(:/images/pb_slowForward.png) 0 40 0 0
 }
-QPushButton[State=&quot;play&quot;]{
-	border-image: url(:/images/pause.png)
+QPushButton:hover{
+	border-image: url(:/images/pb_slowForward.png) 0 0 0 40
 }</string>
             </property>
             <property name="text">
@@ -110,7 +116,7 @@ QPushButton[State=&quot;play&quot;]{
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="playBtn_3">
+           <widget class="QPushButton" name="fastPlayBtn">
             <property name="minimumSize">
              <size>
               <width>20</width>
@@ -124,11 +130,11 @@ QPushButton[State=&quot;play&quot;]{
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">QPushButton[State=&quot;pause&quot;]{
-	border-image: url(:/images/play.png)
+             <string notr="true">QPushButton{
+	border-image: url(:/images/pb_fastPlay.png) 0 40 0 0
 }
-QPushButton[State=&quot;play&quot;]{
-	border-image: url(:/images/pause.png)
+QPushButton:hover{
+	border-image: url(:/images/pb_fastPlay.png) 0 0 0 40
 }</string>
             </property>
             <property name="text">
@@ -137,7 +143,7 @@ QPushButton[State=&quot;play&quot;]{
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="playBtn_4">
+           <widget class="QPushButton" name="snapShotBtn">
             <property name="minimumSize">
              <size>
               <width>20</width>
@@ -151,11 +157,11 @@ QPushButton[State=&quot;play&quot;]{
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">QPushButton[State=&quot;pause&quot;]{
-	border-image: url(:/images/play.png)
+             <string notr="true">QPushButton{
+	border-image: url(:/images/pb_snapshot.png) 0 40 0 0
 }
-QPushButton[State=&quot;play&quot;]{
-	border-image: url(:/images/pause.png)
+QPushButton:hover{
+	border-image: url(:/images/pb_snapshot.png) 0 0 0 40
 }</string>
             </property>
             <property name="text">
@@ -164,7 +170,7 @@ QPushButton[State=&quot;play&quot;]{
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="playBtn_5">
+           <widget class="QPushButton" name="valumeBtn">
             <property name="minimumSize">
              <size>
               <width>20</width>
@@ -178,11 +184,11 @@ QPushButton[State=&quot;play&quot;]{
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">QPushButton[State=&quot;pause&quot;]{
-	border-image: url(:/images/play.png)
+             <string notr="true">QPushButton{
+	border-image: url(:/images/pb_volume.png) 0 40 0 0
 }
-QPushButton[State=&quot;play&quot;]{
-	border-image: url(:/images/pause.png)
+QPushButton:hover{
+	border-image: url(:/images/pb_volume.png) 0 0 0 40
 }</string>
             </property>
             <property name="text">

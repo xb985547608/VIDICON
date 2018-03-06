@@ -18,8 +18,8 @@ OSDWidget::OSDWidget(QWidget *parent) : QWidget(parent) ,
 
     QTimer *timer = new QTimer(this);
     timer->start(100);
-    connect(timer, &QTimer::timeout, this, &OSDWidget::handlerTimeout);
-    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &OSDWidget::handlerReceiveImage);
+    connect(timer, &QTimer::timeout, this, &OSDWidget::handleTimeout);
+    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &OSDWidget::handleReceiveImage);
 }
 
 OSDWidget::~OSDWidget()
@@ -107,7 +107,7 @@ void OSDWidget::mouseReleaseEvent(QMouseEvent *event)
     validPress = false;
 }
 
-void OSDWidget::handlerReceiveImage(QPixmap *pixmap)
+void OSDWidget::handleReceiveImage(QPixmap *pixmap)
 {
     if(isVisible() && !pixmap->isNull()){
         backgroundPixmap = *pixmap;
@@ -116,7 +116,7 @@ void OSDWidget::handlerReceiveImage(QPixmap *pixmap)
     }
 }
 
-void OSDWidget::handlerTimeout()
+void OSDWidget::handleTimeout()
 {
     if(isVisible()) {
         if(HttpDownload::getInstance()->isLeisure()){

@@ -9,6 +9,7 @@
 
 TimerShaft::TimerShaft(int htmlid, QWidget *parent) : QWidget(parent),
     stretchScale(1.0),
+    isPress(false),
     isMoving(false),    
     currentPlayPos(0.1),
     isDragPlayPos(false),
@@ -17,9 +18,9 @@ TimerShaft::TimerShaft(int htmlid, QWidget *parent) : QWidget(parent),
     htmlid(htmlid)
 {
     setMouseTracking(true);
-    connect(this, &TimerShaft::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter);
-    connect(this, &TimerShaft::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerGetParameter);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &TimerShaft::handlerReceiveData);
+    connect(this, &TimerShaft::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
+    connect(this, &TimerShaft::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &TimerShaft::handleReceiveData);
 }
 
 void TimerShaft::drawTick(QPainter &p)
@@ -31,7 +32,7 @@ void TimerShaft::drawTick(QPainter &p)
     QPointF startPos(leftPos + margin, (height - GROOVEHEIGHT) / 2 - 1);
     for(int i=0; i<=24; i++) {
         //整点
-        int x = startPos.x() + i * halfHourTickInterval * 2;
+        qreal x = startPos.x() + i * halfHourTickInterval * 2;
         if((x >= margin) && (x <= (margin + width))){
             p.setPen(QPen());
             p.drawLine(QPointF(x,  startPos.y() - TICKMAXHEIGHT),
@@ -83,20 +84,20 @@ void TimerShaft::drawHighlight(QPainter &p)
     p.setPen(Qt::NoPen);
     p.setBrush(QBrush(Qt::green));
 
-    for(int i=0; i<TimeParamMap.count(); i++) {
+    for (int i=0; i<TimeParamMap.count(); i++) {
         int leftSec = qAbs(TimeParamMap[i].StarTime.secsTo(QTime(0, 0, 0)));
-        int left = leftSec / HALFHOURSEC * halfHourTickInterval;
+        qreal left = leftSec / HALFHOURSEC * halfHourTickInterval;
         left += leftSec % HALFHOURSEC * halfHourTickInterval / HALFHOURSEC + margin;
 
         int rightSec = qAbs(TimeParamMap[i].EndTime.secsTo(QTime(0, 0, 0)));
-        int right = rightSec / HALFHOURSEC * halfHourTickInterval;
+        qreal right = rightSec / HALFHOURSEC * halfHourTickInterval;
         right += rightSec % HALFHOURSEC * halfHourTickInterval / HALFHOURSEC + margin;
 
         left -= qAbs(leftPos);
         right -= qAbs(leftPos);
 
-        left = qMax(left, margin);
-        right = qMin(right, width + margin);
+        left = qMax((int)left, margin);
+        right = qMin((int)right, width + margin);
 
         if(left >= right)
             continue;
@@ -116,7 +117,7 @@ void TimerShaft::drawTimeText(QPainter &p)
     //绘制时间点
     for(int i=0; i<=24; i++) {
         //整点
-        int x = startPos.x() + i * halfHourTickInterval * 2 - margin;
+        qreal x = startPos.x() + i * halfHourTickInterval * 2 - margin;
         if((x >= 0) && (x <= width)) {
             QString timeStr = QString("%1:00").arg(i, 2, 10, QChar('0'));
             p.drawText(QPointF(x, startPos.y() - TICKMAXHEIGHT - 3), timeStr);
@@ -140,7 +141,7 @@ void TimerShaft::drawTimeText(QPainter &p)
             p.drawText(QPointF(x, startPos.y() - TICKMAXHEIGHT / 2 - 3), timeStr);
         }
         x += halfHourTickInterval * 0.5;
-        if(x > width) {
+        if((int)x > width) {
             break;
         }
     }
@@ -175,7 +176,8 @@ void TimerShaft::drawInfo(QPainter &p)
     //绘制播放状态
     p.setPen(QPen(Qt::SolidLine));
     int y = height - 10;
-    p.drawText(QPoint(margin, y), "Play Status:Stopped");
+    QString strStatus = QString("Play Status: %1").arg(isPlaying ? "Playing" : "Stopped");
+    p.drawText(QPoint(margin, y), strStatus);
 
     //绘制提示信息
     QString strTag1("Alarm Record");
@@ -237,7 +239,7 @@ void TimerShaft::drawFloatingFrame(QPainter &p)
     p.restore();
 }
 
-void TimerShaft::handlerReceiveData(int type, QByteArray data)
+void TimerShaft::handleReceiveData(int type, QByteArray data)
 {
     switch(type) {
     case QUERYVIDEOTIMEDAY: {
@@ -247,9 +249,9 @@ void TimerShaft::handlerReceiveData(int type, QByteArray data)
         if(ParseXML::getInstance()->parseBackUpQueryParameter(&param, data)) {
             TimeParamMap = param.TimeParamMap;
             update();
-            qDebug() << "#TimerShaft# handlerReceiveData, ParameterType:" << type << "parse data success...";
+            qDebug() << "#TimerShaft# handleReceiveData, ParameterType:" << type << "parse data success...";
         }else {
-            qDebug() << "#TimerShaft# handlerReceiveData, ParameterType:" << type << "parse data error...";
+            qDebug() << "#TimerShaft# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
@@ -279,7 +281,7 @@ void TimerShaft::paintEvent(QPaintEvent *event)
     drawGroove(p);
     drawHighlight(p);
     drawTimeText(p);
-    drawCurTimeTag(p);
+//    drawCurTimeTag(p);
     drawInfo(p);
     drawFloatingFrame(p);
 }
@@ -302,7 +304,7 @@ void TimerShaft::mousePressEvent(QMouseEvent *event)
 #endif
     QRect rect(margin, 0, width, (height + GROOVEHEIGHT) / 2);
     if(event->buttons() & Qt::LeftButton && rect.contains(event->pos())) {
-        checkStartPlayTime(event->pos());
+        isPress = true;
     }
 }
 
@@ -355,8 +357,15 @@ void TimerShaft::mouseMoveEvent(QMouseEvent *event)
 void TimerShaft::mouseReleaseEvent(QMouseEvent *event)
 {
     Q_UNUSED(event);
+
+    QRect rect(margin, 0, width, (height + GROOVEHEIGHT) / 2);
+    if (isPress && rect.contains(event->pos())) {
+        checkStartPlayTime(event->pos());
+    }
+
     isDragPlayPos = false;
     isMoving = false;
+    isPress = false;
     update();
 }
 

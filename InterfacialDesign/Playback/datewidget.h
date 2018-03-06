@@ -25,8 +25,8 @@ signals:
     void signalDateChange(QDate date);
 
 public slots:
-    void handlerReceiveData(int type, QByteArray data);
-    void handlerDateChangle(const QDate &date);
+    void handleReceiveData(int type, QByteArray data);
+    void handleDateChangle(const QDate &date);
 
 private:
     QMap<int, QLabel *> lblDateMap;

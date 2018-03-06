@@ -8,8 +8,6 @@
         <file>images/waiting.png</file>
         <file>images/downloading.png</file>
         <file>images/cancel.png</file>
-        <file>errorHint.wav</file>
-        <file>successhint.wav</file>
         <file>images/open.png</file>
     </qresource>
 </RCC>

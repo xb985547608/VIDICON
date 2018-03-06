@@ -13,11 +13,12 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
 {
     setMouseTracking(true);
 
-    connect(this, &DateWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handlerSetParameter, Qt::QueuedConnection);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &DateWidget::handlerReceiveData, Qt::QueuedConnection);
+    connect(this, &DateWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter, Qt::QueuedConnection);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &DateWidget::handleReceiveData, Qt::QueuedConnection);
 
     /*********************************界面布局*********************************/
     QGridLayout *layout1 = new QGridLayout;
+
 
 //    QLabel *lbl = new QLabel("文件类型", this);
 //    typeSelect = new QComboBox(this);
@@ -102,7 +103,7 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
 
     dateEdit->setDate(QDate::currentDate());
     MonthMap.clear();
-    handlerDateChangle(QDate::currentDate());
+    handleDateChangle(QDate::currentDate());
 }
 
 void DateWidget::paintEvent(QPaintEvent *event)
@@ -131,12 +132,12 @@ void DateWidget::mousePressEvent(QMouseEvent *event)
         QLabel *lbl = static_cast<QLabel *>(w);
         if(lbl->text().length()) {
             dateEdit->setDate(QDate(dateEdit->date().year(), dateEdit->date().month(), lbl->text().toInt()));
-            handlerDateChangle(dateEdit->date());
+            handleDateChangle(dateEdit->date());
         }
     }
 }
 
-void DateWidget::handlerReceiveData(int type, QByteArray data)
+void DateWidget::handleReceiveData(int type, QByteArray data)
 {
     switch(type) {
     case QUERYFILEMONTH: {
@@ -145,10 +146,10 @@ void DateWidget::handlerReceiveData(int type, QByteArray data)
         param.Type = 6;
         param.MonthMap = &MonthMap;
         if(ParseXML::getInstance()->parseBackUpQueryParameter(&param, data)) {
-            handlerDateChangle(dateEdit->date());
-            qDebug() << "#DateWidget# handlerReceiveData, ParameterType:" << type << "parse data success...";
+            handleDateChangle(dateEdit->date());
+            qDebug() << "#DateWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
         }else {
-            qDebug() << "#DateWidget# handlerReceiveData, ParameterType:" << type << "parse data error...";
+            qDebug() << "#DateWidget# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
@@ -157,7 +158,7 @@ void DateWidget::handlerReceiveData(int type, QByteArray data)
     }
 }
 
-void DateWidget::handlerDateChangle(const QDate &date)
+void DateWidget::handleDateChangle(const QDate &date)
 {
     int startIndex = QDate(date.year(), date.month(), 1).dayOfWeek();
     if(startIndex == 7) {

@@ -23,10 +23,11 @@ signals:
     void signalVlcControl(int type, int subtype = -1, WId id = 0);
 
 public slots:
-    void handlerWidgetSwitch();
-    void handlerStreamSwitch(bool checked);
-    void handlerTimeout();
-    void handlerReceiveData(int type, QByteArray data);
+    void handleWidgetSwitch();
+    void handleStreamSwitch(bool checked);
+    void handleTimeout();
+    void handleReceiveData(int type, QByteArray data);
+    void onSnapshotBtn();
 
 private:
     Ui::PreviewForm *ui;

@@ -44,7 +44,7 @@ public slots:
     void onLoginBtn();
     void onCloseBtn();
     void onMinimizeBtn();
-    void handlerReceiveData(int type, QByteArray data);
+    void handleReceiveData(int type, QByteArray data);
 
 private:
     explicit LoginWidget(QWidget *parent = nullptr);
