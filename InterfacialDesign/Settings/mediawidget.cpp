@@ -284,6 +284,7 @@ void MediaWidget::initPrivacyWidget()
     layout3->addWidget(btn3);
 
     QVBoxLayout *layout4 = new QVBoxLayout;
+    layout4->addStretch();
     layout4->addLayout(layout1);
     layout4->addLayout(layout2);
     layout4->addLayout(layout3);

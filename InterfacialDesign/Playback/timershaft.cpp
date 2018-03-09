@@ -177,7 +177,7 @@ void TimerShaft::drawInfo(QPainter &p)
     p.setPen(QPen(Qt::SolidLine));
     int y = height - 10;
     QString strStatus = QString("Play Status: %1").arg(isPlaying ? "Playing" : "Stopped");
-    p.drawText(QPoint(margin, y), strStatus);
+//    p.drawText(QPoint(margin, y), strStatus);
 
     //绘制提示信息
     QString strTag1("Alarm Record");

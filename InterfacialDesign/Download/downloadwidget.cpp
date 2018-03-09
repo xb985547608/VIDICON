@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QDir>
+#include <QFileDialog>
 #include <QDesktopServices>
 #include "soundeffect.h"
 
@@ -23,9 +24,13 @@ DownloadWidget::DownloadWidget(QWidget *parent) :
     connect(timer, &QTimer::timeout, this, &DownloadWidget::handleTimeout);
     timer->start(500);
 
+    QString dirStr = HttpDownload::getInstance()->getDownloadDir();
+    ui->lblDir->setToolTip(dirStr);
+    dirStr = ui->lblDir->fontMetrics().elidedText(dirStr, Qt::ElideRight, ui->lblDir->width());
+    ui->lblDir->setText(dirStr);
+
     connect(HttpDownload::getInstance(), &HttpDownload::signalFileStatus, this, &DownloadWidget::handleReceiveFileStatus);
     connect(listView, &DownloadInfoView::signalCancelDownload, HttpDownload::getInstance(), &HttpDownload::handleCancelDownload);
-
     connect(ui->allDeleteBtn, &QPushButton::clicked, this, [this](){
         QMetaObject::invokeMethod(HttpDownload::getInstance(), "handleCancelDownload", Q_ARG(QString, listView->data(0, 3).toString()));
         if(QMessageBox::warning(this, "警告", "是否删除所有下载任务", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
@@ -53,6 +58,14 @@ DownloadWidget::DownloadWidget(QWidget *parent) :
     });
     connect(ui->openFolderBtn, &QPushButton::clicked, this, [this](){
         QDesktopServices::openUrl(QUrl(HttpDownload::getInstance()->getDownloadDir()));
+    });
+    connect(ui->changeDirBtn, &QPushButton::clicked, this, [this](){
+        QString dirStr = QFileDialog::getExistingDirectory(this, "选择存放下载文件的目录", QDir::currentPath());
+        QMetaObject::invokeMethod(HttpDownload::getInstance(), "setDownloadDir", Q_ARG(QString, dirStr));
+
+        ui->lblDir->setToolTip(dirStr);
+        dirStr = ui->lblDir->fontMetrics().elidedText(dirStr, Qt::ElideRight, ui->lblDir->width());
+        ui->lblDir->setText(dirStr);
     });
 }
 

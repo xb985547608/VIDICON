@@ -28,7 +28,7 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
 //    layout1->addWidget(typeSelect, 0, 3, 1, 4);
 
     dateEdit = new QDateEdit(this);
-    dateEdit->setDisplayFormat("当前日期:yyyy-MM");
+    dateEdit->setDisplayFormat("当前日期:yyyy-MM-dd");
     connect(dateEdit, &QDateEdit::dateChanged, this, [this](QDate date){
         VidiconProtocol::BackUpQueryParameter *param1 = new VidiconProtocol::BackUpQueryParameter;
         param1->Type = 6;

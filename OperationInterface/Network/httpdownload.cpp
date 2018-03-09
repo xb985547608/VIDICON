@@ -98,6 +98,16 @@ void HttpDownload::init()
     connect(timer, &QTimer::timeout, this, &HttpDownload::handleTimeout);
 }
 
+void HttpDownload::setDownloadDir(QString dirStr)
+{
+    downloadDir = dirStr;
+    QDir dir(downloadDir);
+    if(!dir.exists()) {
+        dir.cdUp();
+        dir.mkdir(DOWNLOADDIR);
+    }
+}
+
 void HttpDownload::getImage(QString path)
 {
     while(!isLeisure()) {

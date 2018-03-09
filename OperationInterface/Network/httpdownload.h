@@ -44,6 +44,7 @@ public:
 
     void init();
     QString getDownloadDir() const { return downloadDir; }
+    Q_INVOKABLE void setDownloadDir(QString dirStr);
 
     Q_INVOKABLE void getImage(QString path = "/ISAPI/Snap/GetImg0.1");
     Q_INVOKABLE void downloadFile(QString fileName);
