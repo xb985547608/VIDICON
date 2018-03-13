@@ -25,12 +25,9 @@ RecordWidget::RecordWidget(QWidget *parent) : QStackedWidget(parent)
 //    initDestinationWidget();
 //    initNASWidget();
 
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &RecordWidget::handleReceiveData);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &RecordWidget::handleReceiveData);
     connect(this, &RecordWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
     connect(this, &RecordWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
-    connect(this, &RecordWidget::currentChanged, this, [this](){
-        handleSwitchTab(QModelIndex());
-    });
 
 //    emit signalGetParameter(SCHEDULEPARAMETER);
 //    emit signalGetParameter(SNAPSHOTPARAMETER);
@@ -250,7 +247,7 @@ void RecordWidget::initSDStorageWidget()
     SDStorageMap.insert("Available Space", lineEdit3);
 
     QPushButton *btn1 = new QPushButton("刷新", SDStorageWidget);
-    connect(btn1, &QPushButton::clicked, this, [this](){ emit signalGetParameter(SDCARDPARAMETER); });
+    connect(btn1, &QPushButton::clicked, this, [this](){ emit signalGetParameter(SDCARD); });
     QPushButton *btn2 = new QPushButton("格式化", SDStorageWidget);
     connect(btn2, &QPushButton::clicked, this, [this](){
         if(QMessageBox::question(this, "警告", "是否格式化SD卡") == QMessageBox::Yes) {
@@ -628,38 +625,36 @@ void RecordWidget::initNASWidget()
 
 void RecordWidget::handleSwitchTab(const QModelIndex &index)
 {
-    int type = index.row();
-    if(sender() != this) {
-        setCurrentIndex(index.row());
-    }else {
-        type = currentIndex();
-    }
+    if (!index.isValid())
+        return;
 
-    switch(type){
+    switch(index.row()){
     case 0: {
-        emit signalGetParameter(SCHEDULEPARAMETER);
+        emit signalGetParameter(SCHEDULE);
         break;
     }
     case 1: {
-        emit signalGetParameter(SDCARDPARAMETER);
-        emit signalGetParameter(SDSTORAGEPARAMETER);
+        emit signalGetParameter(SDCARD);
+        emit signalGetParameter(SDSTORAGE);
         break;
     }
     case 2: {
-        emit signalGetParameter(SNAPSHOTPARAMETER);
+        emit signalGetParameter(SNAPSHOT);
         break;
     }
     case 3: {
-        emit signalGetParameter(DESTINATIONPARAMETER);
+        emit signalGetParameter(DESTINATION);
         break;
     }
     case 4: {
-        emit signalGetParameter(NASPARAMETER);
+        emit signalGetParameter(NAS);
         break;
     }
     default:
         break;
     }
+
+    setCurrentIndex(index.row());
 }
 
 void RecordWidget::handleTimeSelect(int state)
@@ -719,7 +714,7 @@ void RecordWidget::handlePrepareData()
         param->weeksStateMap = static_cast<TimeRegionWidget *>(scheduleMap["region"])->getWeeksState();
         param->Plans = static_cast<TimeRegionWidget *>(scheduleMap["region"])->getPlans();
 
-        emit signalSetParameter(SCHEDULEPARAMETER, param);
+        emit signalSetParameter(SCHEDULE, param);
         break;
     }
     case 1: {
@@ -729,7 +724,7 @@ void RecordWidget::handlePrepareData()
         param->RecordMode = static_cast<QComboBox *>(SDStorageMap["Record Type"])->currentIndex();
         param->RecordTime = static_cast<QLineEdit *>(SDStorageMap["Record Time"])->text().toInt();
 
-        emit signalSetParameter(SDSTORAGEPARAMETER, param);
+        emit signalSetParameter(SDSTORAGE, param);
         break;
     }
     case 2: {
@@ -739,7 +734,7 @@ void RecordWidget::handlePrepareData()
         param->weeksStateMap = static_cast<TimeRegionWidget *>(snapshotMap["region"])->getWeeksState();
         param->Plans = static_cast<TimeRegionWidget *>(snapshotMap["region"])->getPlans();
 
-        emit signalSetParameter(SNAPSHOTPARAMETER, param);
+        emit signalSetParameter(SNAPSHOT, param);
     }
     default:
         break;
@@ -749,7 +744,7 @@ void RecordWidget::handlePrepareData()
 void RecordWidget::handleReceiveData(int type, QByteArray data)
 {
     switch(type) {
-    case SCHEDULEPARAMETER: {
+    case SCHEDULE: {
         VidiconProtocol::RemoteRecordingPlan param;
         param.Plans = static_cast<TimeRegionWidget *>(scheduleMap["region"])->getPlans();
         if(ParseXML::getInstance()->parseScheduleParameter(&param, data)) {
@@ -770,7 +765,7 @@ void RecordWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case SNAPSHOTPARAMETER: {
+    case SNAPSHOT: {
         VidiconProtocol::SnapshotPlanParameter param;
         param.Plans = static_cast<TimeRegionWidget *>(snapshotMap["region"])->getPlans();
         if(ParseXML::getInstance()->parseSnapshotParameter(&param, data)) {
@@ -792,7 +787,7 @@ void RecordWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case SDCARDPARAMETER: {
+    case SDCARD: {
         VidiconProtocol::SDCardStatus param;
         if(ParseXML::getInstance()->parseSDCardStatusParameter(&param, data)) {
             static_cast<QLineEdit *>(SDStorageMap["Used Space"])->setText(QString::number(param.UsedKByte));
@@ -804,7 +799,7 @@ void RecordWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case SDSTORAGEPARAMETER: {
+    case SDSTORAGE: {
         VidiconProtocol::SDStorageParameter param;
         if(ParseXML::getInstance()->parseSDStorageParameter(&param, data)) {
             static_cast<QComboBox *>(SDStorageMap["Overwrite"])->setCurrentIndex(param.OperType);

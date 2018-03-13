@@ -107,7 +107,8 @@ void DownloadInfoView::createActions()
     connect(pauseAction, &QAction::triggered, this, [this](){
         QModelIndex index = model()->index(pointToRow, 1);
         if(data(index).toInt() == Downloading || data(index).toInt() == Waiting) {
-            emit signalCancelDownload(data(model()->index(pointToRow, 3)).toString());
+            QString file = data(model()->index(pointToRow, 3)).toString();
+            emit signalCancelDownload(file);
             setData(model()->index(pointToRow, 1), Pause);
         }
     });
@@ -118,7 +119,8 @@ void DownloadInfoView::createActions()
     connect(cancelDownloadAction, &QAction::triggered, this, [this](){
         QModelIndex index = model()->index(pointToRow, 1);
         if(data(index).toInt() == Downloading) {
-            emit signalCancelDownload(data(model()->index(pointToRow, 3)).toString());
+            QString file = data(model()->index(pointToRow, 3)).toString();
+            emit signalCancelDownload(file);
         }
     });
 

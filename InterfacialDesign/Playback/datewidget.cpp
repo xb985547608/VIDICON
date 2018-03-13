@@ -14,7 +14,7 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
     setMouseTracking(true);
 
     connect(this, &DateWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter, Qt::QueuedConnection);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &DateWidget::handleReceiveData, Qt::QueuedConnection);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &DateWidget::handleReceiveData, Qt::QueuedConnection);
 
     /*********************************界面布局*********************************/
     QGridLayout *layout1 = new QGridLayout;

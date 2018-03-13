@@ -20,7 +20,7 @@ TimerShaft::TimerShaft(int htmlid, QWidget *parent) : QWidget(parent),
     setMouseTracking(true);
     connect(this, &TimerShaft::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
     connect(this, &TimerShaft::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &TimerShaft::handleReceiveData);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &TimerShaft::handleReceiveData);
 }
 
 void TimerShaft::drawTick(QPainter &p)

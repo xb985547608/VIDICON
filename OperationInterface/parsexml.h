@@ -46,6 +46,7 @@ public:
     bool parseSDStorageParameter(VidiconProtocol::SDStorageParameter *param, QByteArray data);
     bool parseBackUpQueryParameter(VidiconProtocol::BackUpQueryParameter *param, QByteArray data);
     bool parsePlayingTimeParameter(VidiconProtocol::PlayingTimeParameter *param, QByteArray data);
+    bool parseUserConfgInfo(QList<VidiconProtocol::UserConfigInfo> &param, QByteArray data);
 
     bool parsePullMsg(VidiconProtocol::PullMessage *param, QByteArray data);
     bool parseResponseStatus(VidiconProtocol::ResponseStatus *param, QByteArray data);

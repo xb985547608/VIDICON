@@ -21,10 +21,7 @@ LoginWidget::LoginWidget(QWidget *parent) :
     ui->password->setContextMenuPolicy(Qt::NoContextMenu);
     ui->password->setPlaceholderText("Password");
     ui->password->setEchoMode(QLineEdit::Password);
-    ui->password->setMaxLength(16);
-    ui->user->setContextMenuPolicy(Qt::NoContextMenu);
-    ui->user->setPlaceholderText("UserName");
-    ui->user->setMaxLength(16);
+    ui->password->setMaxLength(15);
 
     switchButton = new SwitchButton(ui->sbFactoryMode);
     ui->sbFactoryMode->resize(switchButton->size());
@@ -34,7 +31,7 @@ LoginWidget::LoginWidget(QWidget *parent) :
     connect(ui->btnLogin, SIGNAL(clicked()), this, SLOT(onLoginBtn()));
     connect(ui->btnClose, SIGNAL(clicked()), this, SLOT(onCloseBtn()));
     connect(ui->btnMinimize, SIGNAL(clicked()), this, SLOT(onMinimizeBtn()));
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &LoginWidget::handleReceiveData);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &LoginWidget::handleReceiveData);
 
     show();
 }
@@ -46,7 +43,9 @@ LoginWidget::~LoginWidget()
 
 void LoginWidget::clear()
 {
-    ui->user->clear();
+    ui->trainNum->clear();
+    ui->coachNum->clear();
+    ui->seatNum->clear();
     ui->password->clear();
     ui->lblHint->clear();
 }
@@ -84,7 +83,14 @@ void LoginWidget::keyPressEvent(QKeyEvent *event)
 
 void LoginWidget::onLoginBtn()
 {
-    QMetaObject::invokeMethod(VidiconProtocol::getInstance(), "login", Q_ARG(QString, ui->user->text()), Q_ARG(QString, ui->password->text()));
+    if (ui->trainNum->text().isNull() &&
+            ui->coachNum->text().isNull() &&
+            ui->seatNum->text().isNull()) {
+        user = "admin";
+        passwd = "123123";
+    }
+    qDebug() << user << passwd;
+    QMetaObject::invokeMethod(VidiconProtocol::getInstance(), "login", Q_ARG(QString, user), Q_ARG(QString, passwd));
 }
 
 void LoginWidget::onCloseBtn()
@@ -104,8 +110,8 @@ void LoginWidget::handleReceiveData(int type, QByteArray data)
         VidiconProtocol::ResponseStatus reply;
         if(ParseXML::getInstance()->parseResponseStatus(&reply, data)) {
             if(reply.StatusString.compare("OK", Qt::CaseInsensitive) == 0) {
-                VlcControl::getInstance()->setUser(ui->user->text());
-                VlcControl::getInstance()->setPasswd(ui->password->text());
+                VlcControl::getInstance()->setUser(user);
+                VlcControl::getInstance()->setPasswd(passwd);
 
                 emit signalLoginState(switchButton->getState() ? LoginWidget::FactoryLogin : LoginWidget::NormalLogin);
                 clear();

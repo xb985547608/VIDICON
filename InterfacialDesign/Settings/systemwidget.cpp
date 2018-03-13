@@ -22,14 +22,11 @@ SystemWidget::SystemWidget(QWidget *parent) : QStackedWidget(parent)
     initMaintenanceWidget();
     initDeviceInfoWidget();
     initSetTimeWidget();
-//    initUserAdminWidget();
+    initUserConfigWidget();
 
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &SystemWidget::handleReceiveData);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &SystemWidget::handleReceiveData);
     connect(this, &SystemWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
     connect(this, &SystemWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
-    connect(this, &SystemWidget::currentChanged, this, [this](){
-        handleSwitchTab(QModelIndex());
-    });
 }
 
 SystemWidget::~SystemWidget()
@@ -231,67 +228,62 @@ void SystemWidget::initSetTimeWidget()
     addWidget(setTimeWidget);
 }
 
-void SystemWidget::initUserAdminWidget()
+void SystemWidget::initUserConfigWidget()
 {
-    userAdminWidget = new QWidget(this);
+    userConfigWidget = new QWidget(this);
 
-    UserInfoView *view = new UserInfoView(userAdminWidget);
-    QStringList list;
-    for(int i=0; i<10; i++){
-        list << QString::number(i) << "admin" << "Manager";
-        view->addData(list);
-        list.clear();
-    }
+    UserInfoView *view = new UserInfoView(userConfigWidget);
+    userConfigMap.insert("view", view);
 
-    QPushButton *btn = new QPushButton("AddUser", setTimeWidget);
+    QPushButton *btn = new QPushButton("新增用户", setTimeWidget);
     btn->setFixedWidth(100);
+    connect(btn, &QPushButton::clicked, this, [view](){
+        view->handleAddUserInfo();
+    });
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(view, 0, 0, 1, 1);
-
     layout1->addWidget(btn,  1, 0, 1, 1);
 
     QVBoxLayout *layout2 = new QVBoxLayout;
     layout2->addLayout(layout1);
     layout2->addStretch();
 
-    QHBoxLayout *layout3 = new QHBoxLayout(userAdminWidget);
+    QHBoxLayout *layout3 = new QHBoxLayout(userConfigWidget);
     layout3->addStretch(1);
     layout3->addLayout(layout2, 8);
     layout3->addStretch(1);
 
-    addWidget(userAdminWidget);
+    addWidget(userConfigWidget);
 }
 
 void SystemWidget::handleSwitchTab(const QModelIndex &index)
 {
-    int type = index.row();
-    if(sender() != this) {
-        setCurrentIndex(index.row());
-    }else {
-        type = currentIndex();
-    }
+    if (!index.isValid())
+        return;
 
-    switch(type){
+    switch(index.row()){
     case 0: {
-//        emit signalGetParameter(SCHEDULEPARAMETER);
+//        emit signalGetParameter(SCHEDULE);
         break;
     }
     case 1: {
-        emit signalGetParameter(DEVICEINFO);
+        emit signalGetParameter(GETDEVICEINFO);
         break;
     }
     case 2: {
-        emit signalGetParameter(NTPPARAMETER);
+        emit signalGetParameter(NTP);
         break;
     }
     case 3: {
-//        emit signalGetParameter(DESTINATIONPARAMETER);
+        emit signalGetParameter(USERCONFIG);
         break;
     }
     default:
         break;
     }
+
+    setCurrentIndex(index.row());
 }
 
 void SystemWidget::handlePrepareData()
@@ -305,7 +297,7 @@ void SystemWidget::handlePrepareData()
         param->IsUpdateTime = static_cast<QComboBox *>(setTimeMap["PC Time Sync"])->currentIndex();
         param->Enabled = static_cast<QComboBox *>(setTimeMap["NTP"])->currentIndex();
         param->NTPServer = static_cast<QLineEdit *>(setTimeMap["NTP Server"])->text();
-        emit signalSetParameter(NTPPARAMETER, param);
+        emit signalSetParameter(NTP, param);
         break;
     }
     default:
@@ -315,10 +307,13 @@ void SystemWidget::handlePrepareData()
 
 void SystemWidget::handleReceiveData(int type, QByteArray data)
 {
+    bool isOK = false;
+
     switch (type) {
-    case NTPPARAMETER: {
+    case NTP: {
         VidiconProtocol::NTPParameter param;
-        if(ParseXML::getInstance()->parseNTPParameter(&param, data)) {
+        isOK = ParseXML::getInstance()->parseNTPParameter(&param, data);
+        if (isOK) {
             static_cast<QComboBox *>(setTimeMap["Time Zone"])->setCurrentText(param.TZ);
             QStringList list = param.UTCDateTime.split(QRegExp("[^0-9]"), QString::SkipEmptyParts);
             static_cast<QDateEdit *>(setTimeMap["date"])->setDate(QDate(list.at(0).toInt(), list.at(1).toInt(), list.at(2).toInt()));
@@ -326,27 +321,37 @@ void SystemWidget::handleReceiveData(int type, QByteArray data)
             static_cast<QComboBox *>(setTimeMap["PC Time Sync"])->setCurrentIndex(param.IsUpdateTime);
             static_cast<QComboBox *>(setTimeMap["NTP"])->setCurrentIndex(param.Enabled);
             static_cast<QLineEdit *>(setTimeMap["NTP Server"])->setText(param.NTPServer);
-            qDebug() << "#TabSystem# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabSystem# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
-    case DEVICEINFO: {
+    case GETDEVICEINFO: {
         VidiconProtocol::DeviceInfo param;
-        if(ParseXML::getInstance()->parseDeviceInfo(&param, data)) {
+        isOK = ParseXML::getInstance()->parseDeviceInfo(&param, data);
+        if (isOK) {
             static_cast<QLineEdit *>(deviceInfoMap["DeviceName"])->setText(param.DeviceName);
             static_cast<QLineEdit *>(deviceInfoMap["DeviceModel"])->setText(param.DeviceModel);
             static_cast<QLineEdit *>(deviceInfoMap["SoftwareVer"])->setText(param.SoftwareVer);
             static_cast<QLineEdit *>(deviceInfoMap["DeviceID"])->setText(QString::number(param.DeviceID));
-
-            qDebug() << "#TabSystem# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabSystem# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
-    default:
-        break;
+    case USERCONFIG: {
+        QList<VidiconProtocol::UserConfigInfo> param;
+        isOK = ParseXML::getInstance()->parseUserConfgInfo(param, data);
+        if (isOK) {
+            for (int i=0; i<param.size(); i++) {
+                qDebug() << param[i].UserName << param[i].PassWord << param[i].Privilege;
+            }
+
+            static_cast<UserInfoView *>(userConfigMap["view"])->setDataSource(param);
+        }
     }
+    default:
+        return;
+    }
+
+    if (isOK)
+        qDebug() << "#SystemWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
+    else
+        qDebug() << "#SystemWidget# handleReceiveData, ParameterType:" << type << "parse data error...";
 }

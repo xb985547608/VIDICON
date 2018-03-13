@@ -35,7 +35,7 @@ PreviewWidget::PreviewWidget(QWidget *parent) :
     connect(ui->snapshot, &QPushButton::clicked, this, &PreviewWidget::onSnapshotBtn);
 
     connect(this, &PreviewWidget::signalVlcControl, VlcControl::getInstance(), &VlcControl::handleVlcControl);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &PreviewWidget::handleReceiveData);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &PreviewWidget::handleReceiveData);
     connect(this, &PreviewWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
 
     QTimer *timer = new QTimer(this);

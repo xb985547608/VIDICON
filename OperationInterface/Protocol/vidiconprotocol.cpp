@@ -4,6 +4,32 @@
 #include <QThread>
 #include <QEventLoop>
 
+QNetworkReply *NetworkAccessManager::post(const QNetworkRequest &request, const QByteArray &data)
+{
+    QNetworkReply *reply = QNetworkAccessManager::post(request, data);
+
+    //超时控制
+    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
+    connect(timeout, &ReplyTimeout::timeout, this, [this](){
+        errorMsg = tr("网络超时");
+    });
+
+    return reply;
+}
+
+QNetworkReply *NetworkAccessManager::put(const QNetworkRequest &request, const QByteArray &data)
+{
+    QNetworkReply *reply = QNetworkAccessManager::put(request, data);
+
+    //超时控制
+    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
+    connect(timeout, &ReplyTimeout::timeout, this, [this](){
+        errorMsg = tr("网络超时");
+    });
+
+    return reply;
+}
+
 VidiconProtocol *VidiconProtocol::_instance = NULL;
 VidiconProtocol::VidiconProtocol(QString host, QString port, QObject *parent) : QObject(parent) ,
     reply(NULL), targetHost(host), targetPort(port), currentState(Leisure), currentType(-1)
@@ -12,7 +38,7 @@ VidiconProtocol::VidiconProtocol(QString host, QString port, QObject *parent) : 
 
 void VidiconProtocol::init()
 {
-    manager = new QNetworkAccessManager(this);
+    manager = new NetworkAccessManager(this);
     urlPrefix = QString("http://%1:%2").arg(targetHost, targetPort);
 
     connect(manager, SIGNAL(finished(QNetworkReply *)), this, SLOT(handleReply(QNetworkReply *)));
@@ -25,21 +51,15 @@ VidiconProtocol::~VidiconProtocol()
 
 void VidiconProtocol::getDeviceInfomation(QString SessionID)
 {
-    //配置请求行的URL
     QString urlSuffix = QString("/ISAPI/DeviceInfo?ID=%1").arg(SessionID);
     QNetworkRequest request;
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
-    //配置请求体
     QString requestBody;
 
-    //配置请求头
     handlePrePare(request, requestBody);
-    currentType = DEVICEINFO;
-    //发送POST请求
+    currentType = GETDEVICEINFO;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::login(QString user, QString passwd)
@@ -49,17 +69,15 @@ void VidiconProtocol::login(QString user, QString passwd)
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <UserCheck>\
-                                    <Username>%1</Username>\
-                                    <Password>%2</Password>\
-                                </UserCheck>").arg(user).arg(passwd));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<UserCheck>"
+                                    "<Username>%1</Username>"
+                                    "<Password>%2</Password>"
+                                "</UserCheck>").arg(user).arg(passwd));
 
     handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
     currentType = LOGIN;
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::logout(QString SessionID)
@@ -69,37 +87,35 @@ void VidiconProtocol::logout(QString SessionID)
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <UserCheck>\
-                                    <SessionID>%1</SessionID>\
-                                </UserCheck>").arg(SessionID));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<UserCheck>"
+                                    "<SessionID>%1</SessionID>"
+                                "</UserCheck>").arg(SessionID));
 
     handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
-void VidiconProtocol::getVideoEncodingOption(QString SessionID, int Channel, int StreamType)
+void VidiconProtocol::getVideoEncodingOption(QString SessionID, const VideoEncoding &param)
 {
     QString urlSuffix = QString("/ISAPI/VideoInfo/VideoEncodeOptions?ID=%1").arg(SessionID);
     QNetworkRequest request;
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <GetVideoEncodeOptions>\
-                                    <Channel>%1</Channel>\
-                                    <StreamType>%2</StreamType>\
-                                </GetVideoEncodeOptions>").arg(Channel).arg(StreamType));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<GetVideoEncodeOptions>"
+                                    "<Channel>%1</Channel>"
+                                    "<StreamType>%2</StreamType>"
+                                "</GetVideoEncodeOptions>")
+                       .arg(param.Channel)
+                       .arg(param.StreamType));
 
     handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
-void VidiconProtocol::getVideoEncodingParameter(QString SessionID, int Channel, int StreamType)
+void VidiconProtocol::getVideoEncodingParameter(QString SessionID, const VideoEncoding &param)
 {
     QString urlSuffix = QString("/ISAPI/VideoInfo/VideoConfig?ID=%1").arg(SessionID);
     QNetworkRequest request;
@@ -110,13 +126,13 @@ void VidiconProtocol::getVideoEncodingParameter(QString SessionID, int Channel, 
                                "<VideoParam>"
                                     "<Channel>%1</Channel>"
                                     "<StreamType>%2</StreamType>"
-                               "</VideoParam>").arg(Channel).arg(StreamType));
+                               "</VideoParam>")
+                       .arg(param.Channel)
+                       .arg(param.StreamType));
 
     handlePrePare(request, requestBody);
-    currentType = VIDEOENCODINGPARAM;
+    currentType = VIDEOENCODING;
     reply = manager->post(request, requestBody.toStdString().data());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setVideoEncodingParameter(QString SessionID, const VideoEncodingParameter &param)
@@ -126,36 +142,35 @@ void VidiconProtocol::setVideoEncodingParameter(QString SessionID, const VideoEn
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <VideoParam>\
-                                    <Channel>%1</Channel>\
-                                    <StreamType>%2</StreamType>\
-                                    <VideoCodecType>%3</VideoCodecType>\
-                                    <VideoResolutionWidth>%4</VideoResolutionWidth>\
-                                    <VideoResolutionHeight>%5</VideoResolutionHeight>\
-                                    <VideoQualityControlType>%6</VideoQualityControlType>\
-                                    <ConstantBitRate>%7</ConstantBitRate>\
-                                    <FixedQuality>%8</FixedQuality>\
-                                    <FrameRate>%9</FrameRate>\
-                                    <SnapShotImageType>%10</SnapShotImageType>\
-                                    <GovLength>%11</GovLength>\
-                                </VideoParam>").arg(param.Channel)
-                                               .arg(param.StreamType)
-                                               .arg(param.VideoCodecType)
-                                               .arg(param.VideoResolutionWidth)
-                                               .arg(param.VideoResolutionHeight)
-                                               .arg(param.VideoQualityControlType)
-                                               .arg(param.ConstantBitRate)
-                                               .arg(param.FixedQuality)
-                                               .arg(param.FrameRate)
-                                               .arg(param.SnapShotImageType)
-                                               .arg(param.GovLength));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<VideoParam>"
+                                    "<Channel>%1</Channel>"
+                                    "<StreamType>%2</StreamType>"
+                                    "<VideoCodecType>%3</VideoCodecType>"
+                                    "<VideoResolutionWidth>%4</VideoResolutionWidth>"
+                                    "<VideoResolutionHeight>%5</VideoResolutionHeight>"
+                                    "<VideoQualityControlType>%6</VideoQualityControlType>"
+                                    "<ConstantBitRate>%7</ConstantBitRate>"
+                                    "<FixedQuality>%8</FixedQuality>"
+                                    "<FrameRate>%9</FrameRate>"
+                                    "<SnapShotImageType>%10</SnapShotImageType>"
+                                    "<GovLength>%11</GovLength>"
+                                "</VideoParam>")
+                       .arg(param.Channel)
+                       .arg(param.StreamType)
+                       .arg(param.VideoCodecType)
+                       .arg(param.VideoResolutionWidth)
+                       .arg(param.VideoResolutionHeight)
+                       .arg(param.VideoQualityControlType)
+                       .arg(param.ConstantBitRate)
+                       .arg(param.FixedQuality)
+                       .arg(param.FrameRate)
+                       .arg(param.SnapShotImageType)
+                       .arg(param.GovLength));
 
     handlePrePare(request, requestBody);
 //    currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getAudioEncodingCapability(QString SessionID)
@@ -168,8 +183,6 @@ void VidiconProtocol::getAudioEncodingCapability(QString SessionID)
 
     handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getAudioEncodingParameter(QString SessionID)
@@ -181,10 +194,8 @@ void VidiconProtocol::getAudioEncodingParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = AUDIOENCODINGPARAM;
+    currentType = AUDIOENCODING;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setAudioEncodingParameter(QString SessionID, const AudioEncodingParameter &param)
@@ -194,13 +205,13 @@ void VidiconProtocol::setAudioEncodingParameter(QString SessionID, const AudioEn
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <AudioConfig>\
-                                    <Enabled>%1</Enabled>\
-                                    <Encoding>%2</Encoding>\
-                                    <Bitrate>%3</Bitrate>\
-                                    <SampleRate>%4</SampleRate>\
-                                </AudioConfig>").arg(param.Enabled)
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<AudioConfig>"
+                                    "<Enabled>%1</Enabled>"
+                                    "<Encoding>%2</Encoding>"
+                                    "<Bitrate>%3</Bitrate>"
+                                    "<SampleRate>%4</SampleRate>"
+                                "</AudioConfig>").arg(param.Enabled)
                                                 .arg(param.Encoding)
                                                 .arg(param.Bitrate)
                                                 .arg(param.SampleRate));
@@ -208,8 +219,6 @@ void VidiconProtocol::setAudioEncodingParameter(QString SessionID, const AudioEn
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getROIParameter(QString SessionID)
@@ -222,8 +231,6 @@ void VidiconProtocol::getROIParameter(QString SessionID)
 
     handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setROIParameter(QString SessionID, int enabled, int ROIMode, const ROIParameter &param)
@@ -233,19 +240,19 @@ void VidiconProtocol::setROIParameter(QString SessionID, int enabled, int ROIMod
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                               <ROIParam>\
-                               <Enabled>%1</Enabled>\
-                               <ROIMode>%2</ROIMode>\
-                               <ZoneSetting_0>\
-                                   <AreaID>%3</AreaID>\
-                                   <Enabled>%4</Enabled>\
-                                   <PosX>%5</PosX>\
-                                   <PosY>%6</PosY>\
-                                   <Width>%7</Width>\
-                                   <Height>%8</Height>\
-                               </ZoneSetting_0>\
-                               </ROIParam>").arg(enabled)
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                               "<ROIParam>"
+                               "<Enabled>%1</Enabled>"
+                               "<ROIMode>%2</ROIMode>"
+                               "<ZoneSetting_0>"
+                                   "<AreaID>%3</AreaID>"
+                                   "<Enabled>%4</Enabled>"
+                                   "<PosX>%5</PosX>"
+                                   "<PosY>%6</PosY>"
+                                   "<Width>%7</Width>"
+                                   "<Height>%8</Height>"
+                               "</ZoneSetting_0>"
+                               "</ROIParam>").arg(enabled)
                                             .arg(ROIMode)
                                             .arg(param.AreaID)
                                             .arg(param.Enabled)
@@ -257,8 +264,6 @@ void VidiconProtocol::setROIParameter(QString SessionID, int enabled, int ROIMod
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getPrivacyMaskParameter(QString SessionID)
@@ -281,16 +286,16 @@ void VidiconProtocol::setPrivacyMaskParameter(QString SessionID, const PrivacyMa
 
     QString requestBody;
 
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <PrivacyMask>"));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                               "<PrivacyMask>"));
     for(int i=0; i<4; i++) {
-        requestBody.append(QString("<ZoneSetting_%6>\
-                                        <Enabled>%1</Enabled>\
-                                        <PosX>%2</PosX>\
-                                        <PosY>%3</PosY>\
-                                        <Width>%4</Width>\
-                                        <Height>%5</Height>\
-                                    </ZoneSetting_%6>").arg(param[i].Enabled)
+        requestBody.append(QString("<ZoneSetting_%6>"
+                                        "<Enabled>%1</Enabled>"
+                                        "<PosX>%2</PosX>"
+                                        "<PosY>%3</PosY>"
+                                        "<Width>%4</Width>"
+                                        "<Height>%5</Height>"
+                                    "</ZoneSetting_%6>").arg(param[i].Enabled)
                                                        .arg(param[i].PosX)
                                                        .arg(param[i].PosY)
                                                        .arg(param[i].Width)
@@ -302,8 +307,6 @@ void VidiconProtocol::setPrivacyMaskParameter(QString SessionID, const PrivacyMa
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getOSDParameter(QString SessionID)
@@ -315,10 +318,8 @@ void VidiconProtocol::getOSDParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = OSDPARAMETER;
+    currentType = OSD;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setOSDParameter(QString SessionID,
@@ -336,18 +337,18 @@ void VidiconProtocol::setOSDParameter(QString SessionID,
 
     const OSDParameter param[4] = {param1, param2, param3, param4};
     for(int i=0; i<4; i++){
-        requestBody.append(QString("<OSDParam_%1>\
-                                        <OSDType>%2</OSDType>\
-                                        <Position>\
-                                            <Enabled>%3</Enabled>\
-                                            <OSDText>%4</OSDText>\
-                                            <X>%5</X>\
-                                            <Y>%6</Y>\
-                                        </Position>\
-                                        <DateFormat>%7</DateFormat>\
-                                        <FontSize>%8</FontSize>\
-                                        <FontColor>%9</FontColor>\
-                                    </OSDParam_%1>").arg(i).arg(param[i].OSDType)
+        requestBody.append(QString("<OSDParam_%1>"
+                                        "<OSDType>%2</OSDType>"
+                                        "<Position>"
+                                            "<Enabled>%3</Enabled>"
+                                            "<OSDText>%4</OSDText>"
+                                            "<X>%5</X>"
+                                            "<Y>%6</Y>"
+                                        "</Position>"
+                                        "<DateFormat>%7</DateFormat>"
+                                        "<FontSize>%8</FontSize>"
+                                        "<FontColor>%9</FontColor>"
+                                    "</OSDParam_%1>").arg(i).arg(param[i].OSDType)
                                                            .arg(param[i].Enabled)
                                                            .arg(param[i].OSDText)
                                                            .arg(param[i].x)
@@ -361,8 +362,6 @@ void VidiconProtocol::setOSDParameter(QString SessionID,
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getBasicParameter(QString SessionID)
@@ -374,10 +373,8 @@ void VidiconProtocol::getBasicParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = TCPIPPARAMETER;
+    currentType = TCPIP;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setBasicParameter(QString SessionID, const BasicParameter &param)
@@ -387,29 +384,29 @@ void VidiconProtocol::setBasicParameter(QString SessionID, const BasicParameter 
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                               <NetworkConfig>\
-                                   <NetLink>\
-                                   <MaxLink>%1</MaxLink>\
-                                   <DHCP>%2</DHCP>\
-                                   <Name>%3</Name>\
-                                   <Ipv4>\
-                                       <IpAddr>%4</IpAddr>\
-                                       <SubnetMask>%5</SubnetMask>\
-                                       <Gateway>%6</Gateway>\
-                                       <DNS1>%7</DNS1>\
-                                       <DNS2>%8</DNS2>\
-                                   </Ipv4>\
-                                   <Ipv6>\
-                                       <IpAddr>%9</IpAddr>\
-                                       <Gateway>%10</Gateway>\
-                                       <DNS1>%11</DNS1>\
-                                       <DNS2>%12</DNS2>\
-                                       <Ipv6PrefixLength>%13</Ipv6PrefixLength>\
-                                   </Ipv6>\
-                                   <MACAddress><%14</MACAddress>\
-                                   </NetLink>\
-                               </NetworkConfig>").arg(param.MaxLink)
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                               "<NetworkConfig>"
+                                   "<NetLink>"
+                                   "<MaxLink>%1</MaxLink>"
+                                   "<DHCP>%2</DHCP>"
+                                   "<Name>%3</Name>"
+                                   "<Ipv4>"
+                                       "<IpAddr>%4</IpAddr>"
+                                       "<SubnetMask>%5</SubnetMask>"
+                                       "<Gateway>%6</Gateway>"
+                                       "<DNS1>%7</DNS1>"
+                                       "<DNS2>%8</DNS2>"
+                                   "</Ipv4>"
+                                   "<Ipv6>"
+                                       "<IpAddr>%9</IpAddr>"
+                                       "<Gateway>%10</Gateway>"
+                                       "<DNS1>%11</DNS1>"
+                                       "<DNS2>%12</DNS2>"
+                                       "<Ipv6PrefixLength>%13</Ipv6PrefixLength>"
+                                   "</Ipv6>"
+                                   "<MACAddress><%14</MACAddress>"
+                                   "</NetLink>"
+                               "</NetworkConfig>").arg(param.MaxLink)
                                                  .arg(param.DHCP)
                                                  .arg(param.Name)
                                                  .arg(param.ipv4.IpAddr)
@@ -427,8 +424,6 @@ void VidiconProtocol::setBasicParameter(QString SessionID, const BasicParameter 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getEmailParameter(QString SessionID)
@@ -440,10 +435,8 @@ void VidiconProtocol::getEmailParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = EMAILPARAMETER;
+    currentType = EMAIL;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setEmailParameter(QString SessionID, const EmailParameter &param)
@@ -453,23 +446,23 @@ void VidiconProtocol::setEmailParameter(QString SessionID, const EmailParameter 
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <EmailStatus>\
-                                    <Enabled>%1</Enabled>\
-                                    <MotionAlarmTitle>%2</MotionAlarmTitle>\
-                                    <SensorAlarmTitle>%3</SensorAlarmTitle>\
-                                    <VideoBlindAlarmTitle>%4</VideoBlindAlarmTitle>\
-                                    <VideoLossAlarmTitle>%5</VideoLossAlarmTitle>\
-                                    <SmtpServer>%6</SmtpServer>\
-                                    <SmtpUser>%7</SmtpUser>\
-                                    <SmtpPassword>%8</SmtpPassword>\
-                                    <Sender>%9</Sender>\
-                                    <Receiver_1>%10</Receiver_1>\
-                                    <Receiver_2>%11</Receiver_2>\
-                                    <Receiver_3>%12</Receiver_3>\
-                                    <Receiver_4>%13</Receiver_4>\
-                                    <SmtpPort>%14</SmtpPort>\
-                                </EmailStatus>").arg(param.Enabled)
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<EmailStatus>"
+                                    "<Enabled>%1</Enabled>"
+                                    "<MotionAlarmTitle>%2</MotionAlarmTitle>"
+                                    "<SensorAlarmTitle>%3</SensorAlarmTitle>"
+                                    "<VideoBlindAlarmTitle>%4</VideoBlindAlarmTitle>"
+                                    "<VideoLossAlarmTitle>%5</VideoLossAlarmTitle>"
+                                    "<SmtpServer>%6</SmtpServer>"
+                                    "<SmtpUser>%7</SmtpUser>"
+                                    "<SmtpPassword>%8</SmtpPassword>"
+                                    "<Sender>%9</Sender>"
+                                    "<Receiver_1>%10</Receiver_1>"
+                                    "<Receiver_2>%11</Receiver_2>"
+                                    "<Receiver_3>%12</Receiver_3>"
+                                    "<Receiver_4>%13</Receiver_4>"
+                                    "<SmtpPort>%14</SmtpPort>"
+                                "</EmailStatus>").arg(param.Enabled)
                                                 .arg(param.MotionAlarmTitle)
                                                 .arg(param.SensorAlarmTitle)
                                                 .arg(param.VideoBlindAlarmTitle)
@@ -487,8 +480,6 @@ void VidiconProtocol::setEmailParameter(QString SessionID, const EmailParameter 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getFTPParameter(QString SessionID)
@@ -500,10 +491,8 @@ void VidiconProtocol::getFTPParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = FTPPARAMETER;
+    currentType = FTP;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setFTPParameter(QString SessionID, const FTPParameter &param)
@@ -513,16 +502,16 @@ void VidiconProtocol::setFTPParameter(QString SessionID, const FTPParameter &par
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <FTPStatus>\
-                                    <Enabled>%1</Enabled>\
-                                    <FTPMode>%2</FTPMode>\
-                                    <FTPServer>%3</FTPServer>\
-                                    <FTPUser>%4</FTPUser>\
-                                    <FTPPassword>%5</FTPPassword>\
-                                    <UploadDirectory>%6</UploadDirectory>\
-                                    <FTPPort>%7</FTPPort>\
-                                </FTPStatus>").arg(param.Enabled)
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<FTPStatus>"
+                                    "<Enabled>%1</Enabled>"
+                                    "<FTPMode>%2</FTPMode>"
+                                    "<FTPServer>%3</FTPServer>"
+                                    "<FTPUser>%4</FTPUser>"
+                                    "<FTPPassword>%5</FTPPassword>"
+                                    "<UploadDirectory>%6</UploadDirectory>"
+                                    "<FTPPort>%7</FTPPort>"
+                                "</FTPStatus>").arg(param.Enabled)
                                               .arg(param.FTPMode)
                                               .arg(param.FTPServer)
                                               .arg(param.FTPUser)
@@ -533,8 +522,6 @@ void VidiconProtocol::setFTPParameter(QString SessionID, const FTPParameter &par
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getDDNSParameter(QString SessionID)
@@ -546,10 +533,8 @@ void VidiconProtocol::getDDNSParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = DDNSPARAMETER;
+    currentType = DDNS;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setDDNSParameter(QString SessionID, const DDNSParameter &param)
@@ -559,15 +544,15 @@ void VidiconProtocol::setDDNSParameter(QString SessionID, const DDNSParameter &p
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <DDNSStatus>\
-                                   <Enabled>%1</Enabled>\
-                                   <DDNSType>%2</DDNSType>\
-                                   <DDNSServerName>%3</DDNSServerName>\
-                                   <DDNSName>%4</DDNSName>\
-                                   <DDNSUser>%5</DDNSUser>\
-                                   <DDNSPassword>%6</DDNSPassword>\
-                                </DDNSStatus>").arg(param.Enabled)
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<DDNSStatus>"
+                                   "<Enabled>%1</Enabled>"
+                                   "<DDNSType>%2</DDNSType>"
+                                   "<DDNSServerName>%3</DDNSServerName>"
+                                   "<DDNSName>%4</DDNSName>"
+                                   "<DDNSUser>%5</DDNSUser>"
+                                   "<DDNSPassword>%6</DDNSPassword>"
+                                "</DDNSStatus>").arg(param.Enabled)
                                                .arg(param.DDNSType)
                                                .arg(param.DDNSServerName)
                                                .arg(param.DDNSName)
@@ -577,8 +562,6 @@ void VidiconProtocol::setDDNSParameter(QString SessionID, const DDNSParameter &p
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getPPPOEParameter(QString SessionID)
@@ -590,10 +573,8 @@ void VidiconProtocol::getPPPOEParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = PPPOEPARAMETR;
+    currentType = PPPOE;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setPPPOEParameter(QString SessionID, const PPPOEParameter &param)
@@ -603,20 +584,18 @@ void VidiconProtocol::setPPPOEParameter(QString SessionID, const PPPOEParameter 
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <PPPOEStatus>\
-                                    <Enabled>%1</Enabled>\
-                                    <PPPOEName>%2</PPPOEName>\
-                                    <PPPOEPassword>%3</PPPOEPassword>\
-                                </PPPOEStatus>").arg(param.Enabled)
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<PPPOEStatus>"
+                                    "<Enabled>%1</Enabled>"
+                                    "<PPPOEName>%2</PPPOEName>"
+                                    "<PPPOEPassword>%3</PPPOEPassword>"
+                                "</PPPOEStatus>").arg(param.Enabled)
                                                 .arg(param.PPPOEName)
                                                 .arg(param.PPPOEPassword));
 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getSNMPParameter(QString SessionID)
@@ -628,10 +607,8 @@ void VidiconProtocol::getSNMPParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = SNMPPARAMETER;
+    currentType = SNMP;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setSNMPParameter(QString SessionID, const SNMPParameter &param)
@@ -641,18 +618,18 @@ void VidiconProtocol::setSNMPParameter(QString SessionID, const SNMPParameter &p
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <SNMPStatus>\
-                                    <Enabled>\
-                                        <Ver1>%1</Ver1>\
-                                        <Ver2>%2</Ver2>\
-                                    </Enabled>\
-                                    <ReadPublic>%3</ReadPublic>\
-                                    <WritePublic>%4</WritePublic>\
-                                    <TrapAddress>%5</TrapAddress>\
-                                    <SnmpPort>%6</SnmpPort>\
-                                    <TrapPort>%7</TrapPort>\
-                                </SNMPStatus>").arg(param.EnabledVer1)
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<SNMPStatus>"
+                                    "<Enabled>"
+                                        "<Ver1>%1</Ver1>"
+                                        "<Ver2>%2</Ver2>"
+                                    "</Enabled>"
+                                    "<ReadPublic>%3</ReadPublic>"
+                                    "<WritePublic>%4</WritePublic>"
+                                    "<TrapAddress>%5</TrapAddress>"
+                                    "<SnmpPort>%6</SnmpPort>"
+                                    "<TrapPort>%7</TrapPort>"
+                                "</SNMPStatus>").arg(param.EnabledVer1)
                                                .arg(param.EnabledVer2)
                                                .arg(param.ReadPublic)
                                                .arg(param.WritePublic)
@@ -663,8 +640,6 @@ void VidiconProtocol::setSNMPParameter(QString SessionID, const SNMPParameter &p
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getP2PParameter(QString SessionID)
@@ -676,10 +651,8 @@ void VidiconProtocol::getP2PParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = P2PPARAMETER;
+    currentType = P2P;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setP2PParameter(QString SessionID, const P2PParameter &param)
@@ -689,17 +662,15 @@ void VidiconProtocol::setP2PParameter(QString SessionID, const P2PParameter &par
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <P2PStatus>\
-                                    <Enabled>%1</Enabled>\
-                                    <P2PUUID></P2PUUID>\
-                                </P2PStatus>").arg(param.Enabled));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<P2PStatus>"
+                                    "<Enabled>%1</Enabled>"
+                                    "<P2PUUID></P2PUUID>"
+                                "</P2PStatus>").arg(param.Enabled));
 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getBonjourParameter(QString SessionID)
@@ -711,10 +682,8 @@ void VidiconProtocol::getBonjourParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = BONJOURPARAMETER;
+    currentType = BONJOUR;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setBonjourParameter(QString SessionID, const BonjourParameter &param)
@@ -724,18 +693,16 @@ void VidiconProtocol::setBonjourParameter(QString SessionID, const BonjourParame
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <BonjourStatus>\
-                                    <Enabled>%1</Enabled>\
-                                    <Name>%2</Name>\
-                                </BonjourStatus>").arg(param.Enabled)
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<BonjourStatus>"
+                                    "<Enabled>%1</Enabled>"
+                                    "<Name>%2</Name>"
+                                "</BonjourStatus>").arg(param.Enabled)
                                                   .arg(param.Name));
 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getHTTPsParameter(QString SessionID)
@@ -747,10 +714,8 @@ void VidiconProtocol::getHTTPsParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = HTTPSPARAMETER;
+    currentType = HTTPS;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setHTTPsParameter(QString SessionID, const HTTPsParameter &param)
@@ -760,18 +725,16 @@ void VidiconProtocol::setHTTPsParameter(QString SessionID, const HTTPsParameter 
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <HTTPsStatus>\
-                                    <Enabled>%1</Enabled>\
-                                    <HTTPsPort>%2</HTTPsPort>\
-                                </HTTPsStatus>").arg(param.Enabled)
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<HTTPsStatus>"
+                                    "<Enabled>%1</Enabled>"
+                                    "<HTTPsPort>%2</HTTPsPort>"
+                                "</HTTPsStatus>").arg(param.Enabled)
                                                 .arg(param.HTTPsPort));
 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getUPNPParameter(QString SessionID)
@@ -783,10 +746,8 @@ void VidiconProtocol::getUPNPParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = UPNPPARAMETER;
+    currentType = UPNP;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setUPNPParameter(QString SessionID, const UPNPParameter &param)
@@ -796,16 +757,14 @@ void VidiconProtocol::setUPNPParameter(QString SessionID, const UPNPParameter &p
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <UPNPStatus>\
-                                    <Enabled>%1</Enabled>\
-                                </UPNPStatus>").arg(param.Enabled));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<UPNPStatus>"
+                                    "<Enabled>%1</Enabled>"
+                                "</UPNPStatus>").arg(param.Enabled));
 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getOtherParameter(QString SessionID)
@@ -817,10 +776,8 @@ void VidiconProtocol::getOtherParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = OTHERPARAMETER;
+    currentType = OTHER;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setOtherParameter(QString SessionID, const OtherParameter &param)
@@ -830,15 +787,15 @@ void VidiconProtocol::setOtherParameter(QString SessionID, const OtherParameter 
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <ExtServer>"));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<ExtServer>"));
     OtherBasicParameter *param1 = (OtherBasicParameter *)&param;
     for(int i=0; i<3; i++) {
-        requestBody.append(QString("<Option_%4>\
-                                        <ServerType>%1</ServerType>\
-                                        <Enabled>%2</Enabled>\
-                                        <Port>%3</Port>\
-                                    </Option_%4>").arg(param1->ServerType)
+        requestBody.append(QString("<Option_%4>"
+                                        "<ServerType>%1</ServerType>"
+                                        "<Enabled>%2</Enabled>"
+                                        "<Port>%3</Port>"
+                                    "</Option_%4>").arg(param1->ServerType)
                                                   .arg(param1->Enabled)
                                                   .arg(param1->Port)
                                                   .arg(i));
@@ -849,8 +806,6 @@ void VidiconProtocol::setOtherParameter(QString SessionID, const OtherParameter 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getRemoteRecordingPlan(QString SessionID)
@@ -862,10 +817,8 @@ void VidiconProtocol::getRemoteRecordingPlan(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = SCHEDULEPARAMETER;
+    currentType = SCHEDULE;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setRemoteRecordingPlan(QString SessionID, const RemoteRecordingPlan &param)
@@ -875,20 +828,20 @@ void VidiconProtocol::setRemoteRecordingPlan(QString SessionID, const RemoteReco
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <RemoteVideoPlan>\
-                                <Enabled>%1</Enabled>").arg(param.Enabled));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<RemoteVideoPlan>"
+                                "<Enabled>%1</Enabled>").arg(param.Enabled));
 
     for(int i=0; i<7; i++){
         if(param.weeksStateMap[i] != Qt::Checked)
             continue;
         requestBody.append(QString("<WeekDay_%1>").arg(i));
         for(int j=0; j<4; j++){
-            requestBody.append(QString("<Section_%1>\
-                                            <PlanTimeEnabled>%2</PlanTimeEnabled>\
-                                            <BeginTime>%3</BeginTime>\
-                                            <EndTime>%4</EndTime>\
-                                        </Section_%1>").arg(j)
+            requestBody.append(QString("<Section_%1>"
+                                            "<PlanTimeEnabled>%2</PlanTimeEnabled>"
+                                            "<BeginTime>%3</BeginTime>"
+                                            "<EndTime>%4</EndTime>"
+                                        "</Section_%1>").arg(j)
                                                       .arg(param.Plans[i][j].PlanTimeEnabled)
                                                       .arg(param.Plans[i][j].BeginTime.toString("HH:mm:ss"))
                                                       .arg(param.Plans[i][j].EndTime.toString("HH:mm:ss")));
@@ -901,8 +854,6 @@ void VidiconProtocol::setRemoteRecordingPlan(QString SessionID, const RemoteReco
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getSDCardStatusQuery(QString SessionID)
@@ -914,10 +865,8 @@ void VidiconProtocol::getSDCardStatusQuery(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = SDCARDPARAMETER;
+    currentType = SDCARD;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setSDCardOperation(QString SessionID, int OperType)
@@ -927,16 +876,14 @@ void VidiconProtocol::setSDCardOperation(QString SessionID, int OperType)
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <SDOperation>\
-                                    <OperType>%1</OperType>\
-                                </SDOperation>").arg(OperType));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<SDOperation>"
+                                    "<OperType>%1</OperType>"
+                                "</SDOperation>").arg(OperType));
 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getSDStorageParameter(QString SessionID)
@@ -948,10 +895,8 @@ void VidiconProtocol::getSDStorageParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = SDSTORAGEPARAMETER;
+    currentType = SDSTORAGE;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setSDStorageParameter(QString SessionID, const SDStorageParameter &param)
@@ -961,13 +906,13 @@ void VidiconProtocol::setSDStorageParameter(QString SessionID, const SDStoragePa
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <SDStorage>\
-                                    <OperType>%1</OperType>\
-                                   <RecordSelect>%2</RecordSelect>\
-                                   <RecordMode>%3</RecordMode>\
-                                   <RecordTime>%4</RecordTime>\
-                                </SDStorage>").arg(param.OperType)
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<SDStorage>"
+                                    "<OperType>%1</OperType>"
+                                   "<RecordSelect>%2</RecordSelect>"
+                                   "<RecordMode>%3</RecordMode>"
+                                   "<RecordTime>%4</RecordTime>"
+                                "</SDStorage>").arg(param.OperType)
                                               .arg(param.RecordSelect)
                                               .arg(param.RecordMode)
                                               .arg(param.RecordTime));
@@ -975,8 +920,6 @@ void VidiconProtocol::setSDStorageParameter(QString SessionID, const SDStoragePa
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getSnapshotPlanParameter(QString SessionID)
@@ -988,10 +931,8 @@ void VidiconProtocol::getSnapshotPlanParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = SNAPSHOTPARAMETER;
+    currentType = SNAPSHOT;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setSnapshotPlanParameter(QString SessionID, const SnapshotPlanParameter &param)
@@ -1001,36 +942,35 @@ void VidiconProtocol::setSnapshotPlanParameter(QString SessionID, const Snapshot
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <SnapshotChannel>\
-                                <Enabled>%1</Enabled>\
-                                <SnapIntervalTime>%2</SnapIntervalTime>").arg(param.Enabled).arg(param.SnapIntervalTime));
-
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<SnapshotChannel>"
+                                "<Enabled>%1</Enabled>"
+                                "<SnapIntervalTime>%2</SnapIntervalTime>")
+                       .arg(param.Enabled)
+                       .arg(param.SnapIntervalTime));
     for(int i=0; i<7; i++){
         if(param.weeksStateMap[i] != Qt::Checked)
             continue;
         requestBody.append(QString("<WeekDay_%1>").arg(i));
         for(int j=0; j<4; j++){
-            requestBody.append(QString("<Section_%1>\
-                                            <PlanTimeEnabled>%2</PlanTimeEnabled>\
-                                            <BeginTime>%3</BeginTime>\
-                                            <EndTime>%4</EndTime>\
-                                        </Section_%1>").arg(j)
-                                                      .arg(param.Plans[i][j].PlanTimeEnabled)
-                                                      .arg(param.Plans[i][j].BeginTime.toString("HH:mm:ss"))
-                                                      .arg(param.Plans[i][j].EndTime.toString("HH:mm:ss")));
+            requestBody.append(QString("<Section_%1>"
+                                            "<PlanTimeEnabled>%2</PlanTimeEnabled>"
+                                            "<BeginTime>%3</BeginTime>"
+                                            "<EndTime>%4</EndTime>"
+                                        "</Section_%1>")
+                               .arg(j)
+                               .arg(param.Plans[i][j].PlanTimeEnabled)
+                               .arg(param.Plans[i][j].BeginTime.toString("HH:mm:ss"))
+                               .arg(param.Plans[i][j].EndTime.toString("HH:mm:ss")));
         }
 
         requestBody.append(QString("</WeekDay_%1>").arg(i));
     }
-
     requestBody.append(QString("</SnapshotChannel>"));
 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getMotionDetectionParameter(QString SessionID)
@@ -1042,10 +982,8 @@ void VidiconProtocol::getMotionDetectionParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = MOTIONALARAPARAMETER;
+    currentType = MOTION;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setMotionDetectionParameter(QString SessionID, const MotionDetectionParameter &param)
@@ -1055,49 +993,47 @@ void VidiconProtocol::setMotionDetectionParameter(QString SessionID, const Motio
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <MotionDetectionParam>\
-                                    <Enabled>%1</Enabled>\
-                                    <AlarmOutput>%2</AlarmOutput>\
-                                    <VideoOutput>%3</VideoOutput>\
-                                    <AlarmDuration>%4</AlarmDuration>\
-                                    <AlarmThreshold>%5</AlarmThreshold>\
-                                    <PreRecTime>%6</PreRecTime>\
-                                    <DelayRecTime>%7</DelayRecTime>\
-                                    <Sensitivity>%8</Sensitivity>").arg(param.Enabled)
-                                                                   .arg(param.AlarmOutput)
-                                                                   .arg(param.VideoOutput)
-                                                                   .arg(param.AlarmDuration)
-                                                                   .arg(param.AlarmThreshold)
-                                                                   .arg(param.PreRecTime)
-                                                                   .arg(param.DelayRecTime)
-                                                                   .arg(param.Sensitivity));
-
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<MotionDetectionParam>"
+                                    "<Enabled>%1</Enabled>"
+                                    "<AlarmOutput>%2</AlarmOutput>"
+                                    "<VideoOutput>%3</VideoOutput>"
+                                    "<AlarmDuration>%4</AlarmDuration>"
+                                    "<AlarmThreshold>%5</AlarmThreshold>"
+                                    "<PreRecTime>%6</PreRecTime>"
+                                    "<DelayRecTime>%7</DelayRecTime>"
+                                    "<Sensitivity>%8</Sensitivity>")
+                               .arg(param.Enabled)
+                               .arg(param.AlarmOutput)
+                               .arg(param.VideoOutput)
+                               .arg(param.AlarmDuration)
+                               .arg(param.AlarmThreshold)
+                               .arg(param.PreRecTime)
+                               .arg(param.DelayRecTime)
+                               .arg(param.Sensitivity));
     for(int i=0; i<7; i++){
         if(param.weeksStateMap[i] != Qt::Checked || param.onlyRegion)
             continue;
         requestBody.append(QString("<WeekDay_%1>").arg(i));
         for(int j=0; j<4; j++){
-            requestBody.append(QString("<Section_%1>\
-                                            <PlanTimeEnabled>%2</PlanTimeEnabled>\
-                                            <BeginTime>%3</BeginTime>\
-                                            <EndTime>%4</EndTime>\
-                                        </Section_%1>").arg(j)
-                                                       .arg(param.Plans[i][j].PlanTimeEnabled)
-                                                       .arg(param.Plans[i][j].BeginTime.toString("HH:mm:ss"))
-                                                       .arg(param.Plans[i][j].EndTime.toString("HH:mm:ss")));
+            requestBody.append(QString("<Section_%1>"
+                                            "<PlanTimeEnabled>%2</PlanTimeEnabled>"
+                                            "<BeginTime>%3</BeginTime>"
+                                            "<EndTime>%4</EndTime>"
+                                        "</Section_%1>")
+                                       .arg(j)
+                                       .arg(param.Plans[i][j].PlanTimeEnabled)
+                                       .arg(param.Plans[i][j].BeginTime.toString("HH:mm:ss"))
+                                       .arg(param.Plans[i][j].EndTime.toString("HH:mm:ss")));
         }
         requestBody.append(QString("</WeekDay_%1>").arg(i));
     }
-
     requestBody.append(QString("<ZoneSetting><AreaMask>%1</AreaMask></ZoneSetting>\
                                 </MotionDetectionParam>").arg(param.AreaMask));
 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getSensorAlarmParameter(QString SessionID)
@@ -1109,10 +1045,8 @@ void VidiconProtocol::getSensorAlarmParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = SENSORALARMPARAMETER;
+    currentType = SENSOR;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setSensorAlarmParameter(QString SessionID, const SensorAlarmParameter &param)
@@ -1122,43 +1056,41 @@ void VidiconProtocol::setSensorAlarmParameter(QString SessionID, const SensorAla
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <SensorList>\
-                                    <Enabled>%1</Enabled>\
-                                    <AlarmOutput>%2</AlarmOutput>\
-                                    <VideoOutput>%3</VideoOutput>\
-                                    <AlarmDuration>%4</AlarmDuration>\
-                                    <SensorType>%5</SensorType>").arg(param.Enabled)
-                                                                 .arg(param.AlarmOutput)
-                                                                 .arg(param.VideoOutput)
-                                                                 .arg(param.AlarmDuration)
-                                                                 .arg(param.SensorType));
-
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<SensorList>"
+                                    "<Enabled>%1</Enabled>"
+                                    "<AlarmOutput>%2</AlarmOutput>"
+                                    "<VideoOutput>%3</VideoOutput>"
+                                    "<AlarmDuration>%4</AlarmDuration>"
+                                    "<SensorType>%5</SensorType>")
+                       .arg(param.Enabled)
+                       .arg(param.AlarmOutput)
+                       .arg(param.VideoOutput)
+                       .arg(param.AlarmDuration)
+                       .arg(param.SensorType));
     for(int i=0; i<7; i++){
         if(param.weeksStateMap[i] != Qt::Checked)
             continue;
         requestBody.append(QString("<WeekDay_%1>").arg(i));
         for(int j=0; j<4; j++){
-            requestBody.append(QString("<Section_%1>\
-                                            <PlanTimeEnabled>%2</PlanTimeEnabled>\
-                                            <BeginTime>%3</BeginTime>\
-                                            <EndTime>%4</EndTime>\
-                                        </Section_%1>").arg(j)
-                                                       .arg(param.Plans[i][j].PlanTimeEnabled)
-                                                       .arg(param.Plans[i][j].BeginTime.toString("HH:mm:ss"))
-                                                       .arg(param.Plans[i][j].EndTime.toString("HH:mm:ss")));
+            requestBody.append(QString("<Section_%1>"
+                                            "<PlanTimeEnabled>%2</PlanTimeEnabled>"
+                                            "<BeginTime>%3</BeginTime>"
+                                            "<EndTime>%4</EndTime>"
+                                        "</Section_%1>")
+                               .arg(j)
+                               .arg(param.Plans[i][j].PlanTimeEnabled)
+                               .arg(param.Plans[i][j].BeginTime.toString("HH:mm:ss"))
+                               .arg(param.Plans[i][j].EndTime.toString("HH:mm:ss")));
         }
 
         requestBody.append(QString("</WeekDay_%1>").arg(i));
     }
-
     requestBody.append(QString("</SensorList>"));
 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getVideoBlindAlarmParameter(QString SessionID)
@@ -1170,10 +1102,8 @@ void VidiconProtocol::getVideoBlindAlarmParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = BLINDALARMPARAMETER;
+    currentType = BLIND;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setVideoBlindAlarmParameter(QString SessionID, const VideoBlindAlarmParameter &param)
@@ -1183,43 +1113,41 @@ void VidiconProtocol::setVideoBlindAlarmParameter(QString SessionID, const Video
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <VideoBlindAlarmParam>\
-                                    <Enabled>%1</Enabled>\
-                                    <AlarmOutput>%2</AlarmOutput>\
-                                    <VideoOutput>%3</VideoOutput>\
-                                    <AlarmDuration>%4</AlarmDuration>\
-                                    <Sensitivity>%5</Sensitivity>").arg(param.Enabled)
-                                                                   .arg(param.AlarmOutput)
-                                                                   .arg(param.VideoOutput)
-                                                                   .arg(param.AlarmDuration)
-                                                                   .arg(param.Sensitivity));
-
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<VideoBlindAlarmParam>"
+                                    "<Enabled>%1</Enabled>"
+                                    "<AlarmOutput>%2</AlarmOutput>"
+                                    "<VideoOutput>%3</VideoOutput>"
+                                    "<AlarmDuration>%4</AlarmDuration>"
+                                    "<Sensitivity>%5</Sensitivity>")
+                       .arg(param.Enabled)
+                       .arg(param.AlarmOutput)
+                       .arg(param.VideoOutput)
+                       .arg(param.AlarmDuration)
+                       .arg(param.Sensitivity));
     for(int i=0; i<7; i++){
         if(param.weeksStateMap[i] != Qt::Checked)
             continue;
         requestBody.append(QString("<WeekDay_%1>").arg(i));
         for(int j=0; j<4; j++){
-            requestBody.append(QString("<Section_%1>\
-                                            <PlanTimeEnabled>%2</PlanTimeEnabled>\
-                                            <BeginTime>%3</BeginTime>\
-                                            <EndTime>%4</EndTime>\
-                                        </Section_%1>").arg(j)
-                                                       .arg(param.Plans[i][j].PlanTimeEnabled)
-                                                       .arg(param.Plans[i][j].BeginTime.toString("HH:mm:ss"))
-                                                       .arg(param.Plans[i][j].EndTime.toString("HH:mm:ss")));
+            requestBody.append(QString("<Section_%1>"
+                                            "<PlanTimeEnabled>%2</PlanTimeEnabled>"
+                                            "<BeginTime>%3</BeginTime>"
+                                            "<EndTime>%4</EndTime>"
+                                        "</Section_%1>")
+                               .arg(j)
+                               .arg(param.Plans[i][j].PlanTimeEnabled)
+                               .arg(param.Plans[i][j].BeginTime.toString("HH:mm:ss"))
+                               .arg(param.Plans[i][j].EndTime.toString("HH:mm:ss")));
         }
 
         requestBody.append(QString("</WeekDay_%1>").arg(i));
     }
-
     requestBody.append(QString("</VideoBlindAlarmParam>"));
 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getPullAlarmRequest(QString SessionID, int channel)
@@ -1229,16 +1157,15 @@ void VidiconProtocol::getPullAlarmRequest(QString SessionID, int channel)
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <PullMsg>\
-                                    <Channel>%1</Channel>\
-                                </PullMsg>").arg(channel));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<PullMsg>"
+                                    "<Channel>%1</Channel>"
+                                "</PullMsg>")
+                       .arg(channel));
 
     handlePrePare(request, requestBody);
     currentType = PULLMESSAGE;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getMotionDetectionChanged(QString SessionID, int MotionArea)
@@ -1248,15 +1175,14 @@ void VidiconProtocol::getMotionDetectionChanged(QString SessionID, int MotionAre
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <MotionChange>\
-                                    <MotionArea>%1</MotionArea>\
-                                </MotionChange>").arg(MotionArea));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<MotionChange>"
+                                    "<MotionArea>%1</MotionArea>"
+                                "</MotionChange>")
+                       .arg(MotionArea));
 
     handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getImageParameter(QString SessionID)
@@ -1268,10 +1194,8 @@ void VidiconProtocol::getImageParameter(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = IMAGEPARAMETER;
+    currentType = IMAGE;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setImageParameter(QString SessionID, const ImageParameter &param)
@@ -1281,75 +1205,75 @@ void VidiconProtocol::setImageParameter(QString SessionID, const ImageParameter 
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <ImageChannel>\
-                                    <ImageFlip>\
-                                        <Mirror>%1</Mirror>\
-                                        <Turn>%2</Turn>\
-                                    </ImageFlip>\
-                                    <Vision>\
-                                        <VisionMode>%3</VisionMode>\
-                                    </Vision>\
-                                    <Exposure>\
-                                        <ExposureMode>%4</ExposureMode>\
-                                        <Shutter>%5</Shutter>\
-                                    </Exposure>\
-                                    <IrcutFilter>\
-                                        <IrcutFilterMode>%6</IrcutFilterMode>\
-                                        <HighLowLevel>%7</HighLowLevel>\
-                                        <BeginTime>%8</BeginTime>\
-                                        <EndTime>%9</EndTime>\
-                                    </IrcutFilter>\
-                                    <AntiFlash>\
-                                        <AntiFlashMode>%10</AntiFlashMode>\
-                                    </AntiFlash>\
-                                    <BLC>\
-                                        <BLCMode>%11</BLCMode>\
-                                        <BLCIntensity>%12</BLCIntensity>\
-                                        <WDRIntensity>%13</WDRIntensity>\
-                                        <HLCIntensity>%14</HLCIntensity>\
-                                        <DWDRIntensity>%15</DWDRIntensity>\
-                                    </BLC>\
-                                    <NoiseReduce>\
-                                        <NoiseReduceMode>%16</NoiseReduceMode>\
-                                    </NoiseReduce>\
-                                    <LDC>\
-                                        <LDCEnabled>%17</LDCEnabled>\
-                                    </LDC>\
-                                    <Color>\
-                                        <BrightnessLevel>%18</BrightnessLevel>\
-                                        <ContrastLevel>%19</ContrastLevel>\
-                                        <SaturationLevel>%20</SaturationLevel>\
-                                        <HueLevel>%21</HueLevel>\
-                                        <Sharpness>%22</Sharpness>\
-                                    </Color>\
-                                </ImageChannel>").arg(param.Mirror)
-                                                 .arg(param.Turn)
-                                                 .arg(param.VisionMode)
-                                                 .arg(param.ExposureMode)
-                                                 .arg(param.Shutter)
-                                                 .arg(param.IrcutFilterMode)
-                                                 .arg(param.HighLowLevel)
-                                                 .arg(param.BeginTime)
-                                                 .arg(param.EndTime)
-                                                 .arg(param.AntiFlashMode)
-                                                 .arg(param.BLCMode)
-                                                 .arg(param.BLCIntensity)
-                                                 .arg(param.WDRIntensity)
-                                                 .arg(param.HLCIntensity)
-                                                 .arg(param.DWDRIntensity)
-                                                 .arg(param.NoiseReduceMode)
-                                                 .arg(param.LDCEnabled)
-                                                 .arg(param.BrightnessLevel)
-                                                 .arg(param.ContrastLevel)
-                                                 .arg(param.SaturationLevel)
-                                                 .arg(param.HueLevel)
-                                                 .arg(param.Sharpness));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<ImageChannel>"
+                                    "<ImageFlip>"
+                                        "<Mirror>%1</Mirror>"
+                                        "<Turn>%2</Turn>"
+                                    "</ImageFlip>"
+                                    "<Vision>"
+                                        "<VisionMode>%3</VisionMode>"
+                                    "</Vision>"
+                                    "<Exposure>"
+                                        "<ExposureMode>%4</ExposureMode>"
+                                        "<Shutter>%5</Shutter>"
+                                    "</Exposure>"
+                                    "<IrcutFilter>"
+                                        "<IrcutFilterMode>%6</IrcutFilterMode>"
+                                        "<HighLowLevel>%7</HighLowLevel>"
+                                        "<BeginTime>%8</BeginTime>"
+                                        "<EndTime>%9</EndTime>"
+                                    "</IrcutFilter>"
+                                    "<AntiFlash>"
+                                        "<AntiFlashMode>%10</AntiFlashMode>"
+                                    "</AntiFlash>"
+                                    "<BLC>"
+                                        "<BLCMode>%11</BLCMode>"
+                                        "<BLCIntensity>%12</BLCIntensity>"
+                                        "<WDRIntensity>%13</WDRIntensity>"
+                                        "<HLCIntensity>%14</HLCIntensity>"
+                                        "<DWDRIntensity>%15</DWDRIntensity>"
+                                    "</BLC>"
+                                    "<NoiseReduce>"
+                                        "<NoiseReduceMode>%16</NoiseReduceMode>"
+                                    "</NoiseReduce>"
+                                    "<LDC>"
+                                        "<LDCEnabled>%17</LDCEnabled>"
+                                    "</LDC>"
+                                    "<Color>"
+                                        "<BrightnessLevel>%18</BrightnessLevel>"
+                                        "<ContrastLevel>%19</ContrastLevel>"
+                                        "<SaturationLevel>%20</SaturationLevel>"
+                                        "<HueLevel>%21</HueLevel>"
+                                        "<Sharpness>%22</Sharpness>"
+                                    "</Color>"
+                                "</ImageChannel>")
+                       .arg(param.Mirror)
+                       .arg(param.Turn)
+                       .arg(param.VisionMode)
+                       .arg(param.ExposureMode)
+                       .arg(param.Shutter)
+                       .arg(param.IrcutFilterMode)
+                       .arg(param.HighLowLevel)
+                       .arg(param.BeginTime)
+                       .arg(param.EndTime)
+                       .arg(param.AntiFlashMode)
+                       .arg(param.BLCMode)
+                       .arg(param.BLCIntensity)
+                       .arg(param.WDRIntensity)
+                       .arg(param.HLCIntensity)
+                       .arg(param.DWDRIntensity)
+                       .arg(param.NoiseReduceMode)
+                       .arg(param.LDCEnabled)
+                       .arg(param.BrightnessLevel)
+                       .arg(param.ContrastLevel)
+                       .arg(param.SaturationLevel)
+                       .arg(param.HueLevel)
+                       .arg(param.Sharpness));
+
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getNTP(QString SessionID)
@@ -1361,10 +1285,8 @@ void VidiconProtocol::getNTP(QString SessionID)
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = NTPPARAMETER;
+    currentType = NTP;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setNTP(QString SessionID, const NTPParameter &param)
@@ -1374,26 +1296,25 @@ void VidiconProtocol::setNTP(QString SessionID, const NTPParameter &param)
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <NTPStatus>\
-                                    <TimeZone>\
-                                        <TZ>%1</TZ>\
-                                    </TimeZone>\
-                                    <IsUpdateTime>%2</IsUpdateTime>\
-                                    <Enabled>%3</Enabled>\
-                                    <UTCDateTime>%4</UTCDateTime>\
-                                    <NTPServer>%5</NTPServer>\
-                                </NTPStatus>").arg(param.TZ)
-                                              .arg(param.IsUpdateTime)
-                                              .arg(param.Enabled)
-                                              .arg(param.UTCDateTime)
-                                              .arg(param.NTPServer));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                               " <NTPStatus>"
+                                    "<TimeZone>"
+                                        "<TZ>%1</TZ>"
+                                    "</TimeZone>"
+                                    "<IsUpdateTime>%2</IsUpdateTime>"
+                                    "<Enabled>%3</Enabled>"
+                                    "<UTCDateTime>%4</UTCDateTime>"
+                                    "<NTPServer>%5</NTPServer>"
+                                "</NTPStatus>")
+                       .arg(param.TZ)
+                       .arg(param.IsUpdateTime)
+                       .arg(param.Enabled)
+                       .arg(param.UTCDateTime)
+                       .arg(param.NTPServer));
 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setRestoreDefaultParameter(QString SessionID, int Enabled)
@@ -1403,15 +1324,14 @@ void VidiconProtocol::setRestoreDefaultParameter(QString SessionID, int Enabled)
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                        <RestoreDefault>\
-                            <Enabled>%1</Enabled>\
-                        </RestoreDefault>").arg(Enabled);
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                        "<RestoreDefault>"
+                            "<Enabled>%1</Enabled>"
+                        "</RestoreDefault>")
+                       .arg(Enabled));
 
     handlePrePare(request, requestBody);
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setDeviceReboot(QString SessionID, int Enabled)
@@ -1421,16 +1341,15 @@ void VidiconProtocol::setDeviceReboot(QString SessionID, int Enabled)
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                        <Reboot>\
-                            <Enabled>%1</Enabled>\
-                        </Reboot>").arg(Enabled);
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                        "<Reboot>"
+                            "<Enabled>%1</Enabled>"
+                        "</Reboot>")
+                       .arg(Enabled));
 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setFormat(QString SessionID, int param)
@@ -1440,16 +1359,15 @@ void VidiconProtocol::setFormat(QString SessionID, int param)
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                        <Format>\
-                            <Param>%1</Param>\
-                        </Format>").arg(param);
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                        "<Format>"
+                            "<Param>%1</Param>"
+                        "</Format>")
+                       .arg(param));
 
     handlePrePare(request, requestBody);
     currentType = RESPONSESTATUS;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::PTZControl(QString SessionID, int Zoom, int Focus)
@@ -1459,16 +1377,16 @@ void VidiconProtocol::PTZControl(QString SessionID, int Zoom, int Focus)
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                        <PTZMotorsCtr>\
-                            <Zoom>%1</Zoom>\
-                            <Focus>%2</Focus>\
-                        </PTZMotorsCtr>").arg(Zoom).arg(Focus);
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                        "<PTZMotorsCtr>"
+                            "<Zoom>%1</Zoom>"
+                            "<Focus>%2</Focus>"
+                        "</PTZMotorsCtr>")
+                       .arg(Zoom)
+                       .arg(Focus));
 
     handlePrePare(request, requestBody);
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getLPRSystemVersion(QString SessionID)
@@ -1481,8 +1399,6 @@ void VidiconProtocol::getLPRSystemVersion(QString SessionID)
 
     handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getLPRParameter(QString SessionID)
@@ -1495,8 +1411,6 @@ void VidiconProtocol::getLPRParameter(QString SessionID)
 
     handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setLPRParameter(QString SessionID, const VidiconProtocol::LPRParameter &param1, const VidiconProtocol::AreaPoint &param2)
@@ -1506,55 +1420,57 @@ void VidiconProtocol::setLPRParameter(QString SessionID, const VidiconProtocol::
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <LPRParam>\
-                                    <Enabled>%1</Enabled>\
-                                    <MinPlateWidth>%2</MinPlateWidth>\
-                                    <MaxPlateWidth>%3</MaxPlateWidth>\
-                                    <MinSymbolCount>%4</MinSymbolCount>\
-                                    <MaxSymbolCount>%5</MaxSymbolCount>\
-                                    <TTLMilliSeconds>%6</TTLMilliSeconds>\
-                                    <ResultDelayMilliSeconds>%7</ResultDelayMilliSeconds>").arg(param1.Enabled)
-                                                                                           .arg(param1.MinPlateWidth)
-                                                                                           .arg(param1.MaxPlateWidth)
-                                                                                           .arg(param1.MinSymbolCount)
-                                                                                           .arg(param1.MaxSymbolCount)
-                                                                                           .arg(param1.TTLMilliSeconds)
-                                                                                           .arg(param1.ResultDelayMilliSeconds));
-
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<LPRParam>"
+                                    "<Enabled>%1</Enabled>"
+                                    "<MinPlateWidth>%2</MinPlateWidth>"
+                                    "<MaxPlateWidth>%3</MaxPlateWidth>"
+                                    "<MinSymbolCount>%4</MinSymbolCount>"
+                                    "<MaxSymbolCount>%5</MaxSymbolCount>"
+                                    "<TTLMilliSeconds>%6</TTLMilliSeconds>"
+                                    "<ResultDelayMilliSeconds>%7</ResultDelayMilliSeconds>")
+                       .arg(param1.Enabled)
+                       .arg(param1.MinPlateWidth)
+                       .arg(param1.MaxPlateWidth)
+                       .arg(param1.MinSymbolCount)
+                       .arg(param1.MaxSymbolCount)
+                       .arg(param1.TTLMilliSeconds)
+                       .arg(param1.ResultDelayMilliSeconds));
     for(int i=0; i<1; i++){
         requestBody.append(QString("<ZoneSetting_%1>").arg(i));
 
-        requestBody.append(QString("<AreaID><!-- req, xs: int --></AreaID>\
-                                    <TopLeft>\
-                                        <X>%1</X>\
-                                        <Y>%2</Y>\
-                                    </TopLeft>\
-                                    <TopRight>\
-                                        <X>%3</X>\
-                                        <Y>%4</Y>\
-                                    </TopRight>\
-                                    <BottomRight>\
-                                        <X>%5</X>\
-                                        <Y>%6</Y>\
-                                    </BottomRight>\
-                                    <BottomLeft>\
-                                        <X>%7</X>\
-                                        <Y>%8</Y>\
-                                    </BottomLeft>").arg(param2.TopLeft.x())     .arg(param2.TopLeft.y())
-                                                   .arg(param2.TopRight.x())    .arg(param2.TopRight.y())
-                                                   .arg(param2.BottomRight.x()) .arg(param2.BottomRight.y())
-                                                   .arg(param2.BottomLeft.x())  .arg(param2.BottomLeft.y()));
+        requestBody.append(QString("<AreaID><!-- req, xs: int --></AreaID>"
+                                    "<TopLeft>"
+                                        "<X>%1</X>"
+                                        "<Y>%2</Y>"
+                                    "</TopLeft>"
+                                    "<TopRight>"
+                                        "<X>%3</X>"
+                                        "<Y>%4</Y>"
+                                    "</TopRight>"
+                                    "<BottomRight>"
+                                        "<X>%5</X>"
+                                        "<Y>%6</Y>"
+                                    "</BottomRight>"
+                                    "<BottomLeft>"
+                                        "<X>%7</X>"
+                                        "<Y>%8</Y>"
+                                    "</BottomLeft>")
+                           .arg(param2.TopLeft.x())
+                           .arg(param2.TopLeft.y())
+                           .arg(param2.TopRight.x())
+                           .arg(param2.TopRight.y())
+                           .arg(param2.BottomRight.x())
+                           .arg(param2.BottomRight.y())
+                           .arg(param2.BottomLeft.x())
+                           .arg(param2.BottomLeft.y()));
 
         requestBody.append(QString("</ZoneSetting_%1>").arg(i));
     }
-
     requestBody.append(QString("</LPRParam>"));
 
     handlePrePare(request, requestBody);
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::resetLPRParameter(QString SessionID, int Enabled)
@@ -1564,15 +1480,14 @@ void VidiconProtocol::resetLPRParameter(QString SessionID, int Enabled)
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                        <LPRResetParam>\
-                            <Enabled>%1</Enabled>\
-                        </LPRResetParam>").arg(Enabled);
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                        "<LPRResetParam>"
+                            "<Enabled>%1</Enabled>"
+                        "</LPRResetParam>")
+                       .arg(Enabled));
 
     handlePrePare(request, requestBody);
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getInformationOfLatestRecognizedPlates(QString SessionID)
@@ -1582,15 +1497,14 @@ void VidiconProtocol::getInformationOfLatestRecognizedPlates(QString SessionID)
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                        <LPROutput>\
-                            <LastCarID>%1</LastCarID>\
-                        </LPROutput>").arg("");
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                        "<LPROutput>"
+                            "<LastCarID>%1</LastCarID>"
+                        "</LPROutput>")
+                       .arg(""));
 
     handlePrePare(request, requestBody);
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::backUpQuery(QString SessionID, const VidiconProtocol::BackUpQueryParameter &param)
@@ -1600,12 +1514,13 @@ void VidiconProtocol::backUpQuery(QString SessionID, const VidiconProtocol::Back
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                        <QueryBackUp>\
-                            <Type>%1</Type>\
-                            <Time>%2</Time>\
-                        </QueryBackUp>").arg(param.Type)
-                                        .arg(param.Date.toString("yyyy-MM-dd")));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                        "<QueryBackUp>"
+                            "<Type>%1</Type>"
+                            "<Time>%2</Time>"
+                        "</QueryBackUp>")
+                       .arg(param.Type)
+                       .arg(param.Date.toString("yyyy-MM-dd")));
 
     handlePrePare(request, requestBody);
     switch(param.Type) {
@@ -1627,8 +1542,6 @@ void VidiconProtocol::backUpQuery(QString SessionID, const VidiconProtocol::Back
     }
     }
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setRecordStartPlayingTime(QString SessionID, const VidiconProtocol::StartPlayingParameter &param)
@@ -1638,20 +1551,19 @@ void VidiconProtocol::setRecordStartPlayingTime(QString SessionID, const Vidicon
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <TimePos>\
-                                    <htmlid>%1</htmlid>\
-                                    <playing>%2</playing>\
-                                    <Time>%3</Time>\
-                                </TimePos>").arg(param.htmlid)
-                                   .arg(param.playing)
-                                   .arg(param.Time.toString("yyyy-MM-ddTHH:mm:ss")));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<TimePos>"
+                                    "<htmlid>%1</htmlid>"
+                                    "<playing>%2</playing>"
+                                    "<Time>%3</Time>"
+                                "</TimePos>")
+                       .arg(param.htmlid)
+                       .arg(param.playing)
+                       .arg(param.Time.toString("yyyy-MM-ddTHH:mm:ss")));
 
     handlePrePare(request, requestBody);
     currentType = STARTPLAYING;
     reply = manager->put(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::setFastOrSlowPlayState(QString SessionID, const VidiconProtocol::PlayStateParameter &param)
@@ -1661,18 +1573,17 @@ void VidiconProtocol::setFastOrSlowPlayState(QString SessionID, const VidiconPro
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                                <RecordRunState>\
-                                    <htmlid>%1</htmlid>\
-                                    <StateValue>%2</StateValue>\
-                                </RecordRunState>").arg(param.htmlid)
-                                                   .arg(param.StateValue));
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                                "<RecordRunState>"
+                                    "<htmlid>%1</htmlid>"
+                                    "<StateValue>%2</StateValue>"
+                                "</RecordRunState>")
+                       .arg(param.htmlid)
+                       .arg(param.StateValue));
 
     handlePrePare(request, requestBody);
     currentType = PLAYSTATE;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
 void VidiconProtocol::getCurrentPlayingTime(int htmlid, QString SessionID)
@@ -1682,31 +1593,90 @@ void VidiconProtocol::getCurrentPlayingTime(int htmlid, QString SessionID)
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
     QString requestBody;
-    requestBody.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\
-                        <GetPosTime>\
-                            <htmlid>%1</htmlid>\
-                        </GetPosTime>").arg(htmlid);
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                        "<GetPosTime>"
+                            "<htmlid>%1</htmlid>"
+                        "</GetPosTime>")
+                       .arg(htmlid));
 
     handlePrePare(request, requestBody);
     currentType = CURRENTPLAYINGTIME;
     reply = manager->post(request, requestBody.toLatin1());
-    ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, &VidiconProtocol::handleTimeout);
 }
 
-void VidiconProtocol::downloadFile(QString fileName)
+void VidiconProtocol::getUserConfig(QString SessionID)
 {
-    QString urlSuffix = QString("/record/%1").arg(fileName);
+    QString urlSuffix = QString("/ISAPI/UserManagement/UsrConfig?ID=%1").arg(SessionID);
     QNetworkRequest request;
     request.setUrl(QUrl(urlPrefix + urlSuffix));
 
-    handlePrePare(request, "");
-    currentType = DOWNLOAD;
-    reply = manager->get(request);
+    QString requestBody;
+
+    handlePrePare(request, requestBody);
+    currentType = USERCONFIG;
+    reply = manager->post(request, requestBody.toLatin1());
 }
 
-void VidiconProtocol::handleTimeout()
+void VidiconProtocol::setUserConfig(QString SessionID, const UserConfigInfo &info)
 {
+    QString urlSuffix = QString("/ISAPI/UserManagement/UsrConfig?ID=%1").arg(SessionID);
+    QNetworkRequest request;
+    request.setUrl(QUrl(urlPrefix + urlSuffix));
+
+    QString requestBody;
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                               "<UserManagment>"
+                                   "<UserName>%1</UserName>"
+                                   "<PassWord>%2</PassWord>"
+                                   "<Privilege>%3</Privilege>"
+                               "</UserManagment>")
+                       .arg(info.UserName)
+                       .arg(info.PassWord)
+                       .arg(info.Privilege));
+
+    handlePrePare(request, requestBody);
+    currentType = RESPONSESTATUS;
+    reply = manager->put(request, requestBody.toLatin1());
+}
+
+void VidiconProtocol::addUser(QString SessionID, const VidiconProtocol::UserConfigInfo &info)
+{
+    QString urlSuffix = QString("/ISAPI/UserManagement/AddUsr?ID=%1").arg(SessionID);
+    QNetworkRequest request;
+    request.setUrl(QUrl(urlPrefix + urlSuffix));
+
+    QString requestBody;
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                               "<AddUsr>"
+                                   "<UserName>%1</UserName>"
+                                   "<PassWord>%2</PassWord>"
+                                   "<Privilege>%3</Privilege>"
+                               "</AddUsr>")
+                       .arg(info.UserName)
+                       .arg(info.PassWord)
+                       .arg(info.Privilege));
+
+    handlePrePare(request, requestBody);
+    currentType = RESPONSESTATUS;
+    reply = manager->put(request, requestBody.toLatin1());
+}
+
+void VidiconProtocol::delUser(QString SessionID, const VidiconProtocol::UserConfigInfo &info)
+{
+    QString urlSuffix = QString("/ISAPI/UserManagement/DelUsr?ID=%1").arg(SessionID);
+    QNetworkRequest request;
+    request.setUrl(QUrl(urlPrefix + urlSuffix));
+
+    QString requestBody;
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                               "<DelUsr>"
+                                   "<UserName>%1</UserName>"
+                               "</DelUsr>")
+                       .arg(info.UserName));
+
+    handlePrePare(request, requestBody);
+    currentType = RESPONSESTATUS;
+    reply = manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::handlePrePare(QNetworkRequest &request, QString RequestBody)
@@ -1735,20 +1705,21 @@ void VidiconProtocol::handleReply(QNetworkReply *reply)
         qDebug() << "#VidiconProtocol# hanndlerReply,"
                  << "StatusCode:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
                  << "ErrorType:" << reply->error();
-        emit signalSendData(NETWORKERROR, QByteArray());
+        emit signalReceiveData(NETWORKERROR, manager->getErrorMsg().toStdString().data());
     }else {
         qDebug("#VidiconProtocol# hanndlerReply, response content start............");
         QByteArray bytes = reply->readAll();
         qDebug() << bytes.toStdString().data();
         if(currentType != -1){
             qDebug() << "#VidiconProtocol# hanndlerReply, send signal ParameterType:" << currentType;
-            emit signalSendData(currentType, bytes);
+            emit signalReceiveData(currentType, bytes);
 
         }
         qDebug("#VidiconProtocol# hanndlerReply, response content end  ............");
     }
     currentState = Leisure;
     currentType = -1;
+    manager->resetErrorMsg();
 }
 
 
@@ -1756,85 +1727,85 @@ void VidiconProtocol::handleSetParameter(int type, void *param, QString SessionI
 {
     qDebug() << "#VidiconProtocol# handleSetParameter type:" << type;
     switch (type) {
-    case VIDEOENCODINGPARAM: {
+    case VIDEOENCODING: {
         VideoEncodingParameter *temp = static_cast<VideoEncodingParameter *>(param);
         setVideoEncodingParameter(SessionID, *temp);
         delete temp;
         break;
     }
-    case AUDIOENCODINGPARAM: {
+    case AUDIOENCODING: {
         AudioEncodingParameter *temp = static_cast<AudioEncodingParameter *>(param);
         setAudioEncodingParameter(SessionID, *temp);
         delete temp;
         break;
     }
-    case OSDPARAMETER: {
+    case OSD: {
         OSDParameter *temp = static_cast<OSDParameter *>(param);
         setOSDParameter(SessionID, temp[0], temp[1], temp[2], temp[3]);
         delete []temp;
         break;
     }
-    case NTPPARAMETER: {
+    case NTP: {
         NTPParameter *temp = static_cast<NTPParameter *>(param);
         setNTP(SessionID, *temp);
         delete temp;
         break;
     }
-    case PRIVACYPARAMETER: {
+    case PRIVACY: {
         PrivacyMaskParameter *temp = static_cast<PrivacyMaskParameter *>(param);
         setPrivacyMaskParameter(SessionID, temp);
         delete []temp;
         break;
     }
-    case IMAGEPARAMETER: {
+    case IMAGE: {
         ImageParameter *temp = static_cast<ImageParameter *>(param);
         setImageParameter(SessionID, *temp);
         delete temp;
         break;
     }
-    case TCPIPPARAMETER: {
+    case TCPIP: {
         BasicParameter *temp = static_cast<BasicParameter *>(param);
         setBasicParameter(SessionID, *temp);
         delete temp;
         break;
     }
-    case OTHERPARAMETER: {
+    case OTHER: {
         OtherParameter *temp = static_cast<OtherParameter *>(param);
         setOtherParameter(SessionID, *temp);
         delete temp;
         break;
     }
-    case MOTIONALARAPARAMETER: {
+    case MOTION: {
         MotionDetectionParameter *temp = static_cast<MotionDetectionParameter *>(param);
         setMotionDetectionParameter(SessionID, *temp);
         delete temp;
         break;
     }
-    case BLINDALARMPARAMETER: {
+    case BLIND: {
         VideoBlindAlarmParameter *temp = static_cast<VideoBlindAlarmParameter *>(param);
         setVideoBlindAlarmParameter(SessionID, *temp);
         delete temp;
         break;
     }
-    case SENSORALARMPARAMETER: {
+    case SENSOR: {
         SensorAlarmParameter *temp = static_cast<SensorAlarmParameter *>(param);
         setSensorAlarmParameter(SessionID, *temp);
         delete temp;
         break;
     }
-    case SCHEDULEPARAMETER: {
+    case SCHEDULE: {
         RemoteRecordingPlan *temp = static_cast<RemoteRecordingPlan *>(param);
         setRemoteRecordingPlan(SessionID, *temp);
         delete temp;
         break;
     }
-    case SDSTORAGEPARAMETER: {
+    case SDSTORAGE: {
         SDStorageParameter *temp = static_cast<SDStorageParameter *>(param);
         setSDStorageParameter(SessionID, *temp);
         delete temp;
         break;
     }
-    case SNAPSHOTPARAMETER: {
+    case SNAPSHOT: {
         SnapshotPlanParameter *temp = static_cast<SnapshotPlanParameter *>(param);
         setSnapshotPlanParameter(SessionID, *temp);
         delete temp;
@@ -1870,114 +1841,134 @@ void VidiconProtocol::handleSetParameter(int type, void *param, QString SessionI
         delete temp;
         break;
     }
+    case USERCONFIG: {
+        UserConfigInfo *temp = static_cast<UserConfigInfo *>(param);
+        setUserConfig(SessionID, *temp);
+        delete temp;
+        break;
+    }
+    case ADDUSER: {
+        UserConfigInfo *temp = static_cast<UserConfigInfo *>(param);
+        addUser(SessionID, *temp);
+        delete temp;
+        break;
+    }
+    case DELETEUSER: {
+        UserConfigInfo *temp = static_cast<UserConfigInfo *>(param);
+        delUser(SessionID, *temp);
+        delete temp;
+        break;
+    }
     default:
         qDebug() << "#VidiconProtocol# handleSetParameter ignore signal, type:" << type;
         break;
     }
 }
 
-void VidiconProtocol::handleGetParameter(int type, int StreamType, int Channel, QString SessionID)
+void VidiconProtocol::handleGetParameter(int type, void *param, QString SessionID)
 {
     qDebug() << "#VidiconProtocol# handleGetParameter type:" << type;
 
     switch (type) {
-    case VIDEOENCODINGPARAM: {
-        getVideoEncodingParameter(SessionID, Channel, StreamType);
+    case VIDEOENCODING: {
+        VideoEncoding *temp = static_cast<VideoEncoding *>(param);
+        getVideoEncodingParameter(SessionID, *temp);
+        delete temp;
         break;
     }
-    case AUDIOENCODINGPARAM: {
+    case AUDIOENCODING: {
         getAudioEncodingParameter(SessionID);
         break;
     }
-    case IMAGEPARAMETER: {
+    case IMAGE: {
         getImageParameter(SessionID);
         break;
     }
-    case OSDPARAMETER: {
+    case OSD: {
         getOSDParameter(SessionID);
         break;
     }
-    case TCPIPPARAMETER: {
+    case TCPIP: {
         getBasicParameter(SessionID);
         break;
     }
-    case OTHERPARAMETER: {
+    case OTHER: {
         getOtherParameter(SessionID);
         break;
     }
-    case PPPOEPARAMETR: {
+    case PPPOE: {
         getPPPOEParameter(SessionID);
         break;
     }
-    case DDNSPARAMETER: {
+    case DDNS: {
         getDDNSParameter(SessionID);
         break;
     }
-    case EMAILPARAMETER: {
+    case EMAIL: {
         getEmailParameter(SessionID);
         break;
     }
-    case FTPPARAMETER: {
+    case FTP: {
         getFTPParameter(SessionID);
         break;
     }
-    case BONJOURPARAMETER: {
+    case BONJOUR: {
         getBonjourParameter(SessionID);
         break;
     }
-    case SNMPPARAMETER: {
+    case SNMP: {
         getSNMPParameter(SessionID);
         break;
     }
-    case UPNPPARAMETER: {
+    case UPNP: {
         getUPNPParameter(SessionID);
         break;
     }
-    case HTTPSPARAMETER: {
+    case HTTPS: {
         getHTTPsParameter(SessionID);
         break;
     }
-    case P2PPARAMETER: {
+    case P2P: {
         getP2PParameter(SessionID);
         break;
     }
-    case RTSPPARAMETER: {
+    case RTSP: {
         getOtherParameter(SessionID);
         break;
     }
-    case MOTIONALARAPARAMETER: {
+    case MOTION: {
         getMotionDetectionParameter(SessionID);
         break;
     }
-    case SENSORALARMPARAMETER: {
+    case SENSOR: {
         getSensorAlarmParameter(SessionID);
         break;
     }
-    case BLINDALARMPARAMETER: {
+    case BLIND: {
         getVideoBlindAlarmParameter(SessionID);
         break;
     }
-    case SCHEDULEPARAMETER: {
+    case SCHEDULE: {
         getRemoteRecordingPlan(SessionID);
         break;
     }
-    case SDSTORAGEPARAMETER: {
+    case SDSTORAGE: {
         getSDStorageParameter(SessionID);
         break;
     }
-    case SDCARDPARAMETER: {
+    case SDCARD: {
         getSDCardStatusQuery(SessionID);
         break;
     }
-    case SNAPSHOTPARAMETER: {
+    case SNAPSHOT: {
         getSnapshotPlanParameter(SessionID);
         break;
     }
-    case NTPPARAMETER: {
+    case NTP: {
         getNTP(SessionID);
         break;
     }
-    case DEVICEINFO: {
+    case GETDEVICEINFO: {
         getDeviceInfomation(SessionID);
         break;
     }
@@ -1985,7 +1976,12 @@ void VidiconProtocol::handleGetParameter(int type, int StreamType, int Channel, 
         getPullAlarmRequest(SessionID, 0);
         break;
     }
+    case USERCONFIG: {
+        getUserConfig(SessionID);
+    }
     default:
         break;
     }
 }
+
+

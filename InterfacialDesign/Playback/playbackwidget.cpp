@@ -23,7 +23,7 @@ PlaybackWidget::PlaybackWidget(QWidget *parent) :
 
     connect(this, &PlaybackWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
     connect(this, &PlaybackWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &PlaybackWidget::handleReceiveData);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &PlaybackWidget::handleReceiveData);
     connect(this, &PlaybackWidget::signalVlcControl, VlcControl::getInstance(), &VlcControl::handleVlcControl);
 
     fileDialog = new FileManagerDialog(this);
@@ -93,10 +93,10 @@ void PlaybackWidget::handleWidgetSwitch()
 
 void PlaybackWidget::handleReceiveData(int type, QByteArray data)
 {
+    Q_UNUSED(data);
     StatusTip *s = StatusTip::getInstance();
     bool isOK = false;
 
-    Q_UNUSED(data);
     switch(type) {
     case STARTPLAYING: {
         VidiconProtocol::ResponseStatus reply;
@@ -131,6 +131,7 @@ void PlaybackWidget::handleReceiveData(int type, QByteArray data)
     default:
         return;
     }
+
     if (isOK)
         qDebug() << "#PlaybackWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
     else

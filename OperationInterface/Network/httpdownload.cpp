@@ -94,6 +94,7 @@ void HttpDownload::init()
         QFile::remove(info.absoluteFilePath());
     }
 
+    //该定时器用来计算每秒平均下载速率
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &HttpDownload::handleTimeout);
 }
@@ -141,7 +142,7 @@ void HttpDownload::downloadFile(QString fileName)
                                               .arg(port)
                                               .arg(fileName))));
     //测试链接
-//    reply = manager->get(QNetworkRequest(QUrl("http://sw.bos.baidu.com/sw-search-sp/software/06da2b30f1c74/BaiduNetdisk_5.7.3.1.exe")));
+    //reply = manager->get(QNetworkRequest(QUrl("http://sw.bos.baidu.com/sw-search-sp/software/06da2b30f1c74/BaiduNetdisk_5.7.3.1.exe")));
     connect(reply, &QNetworkReply::readyRead, this, &HttpDownload::readyRead);
     connect(reply, &QNetworkReply::downloadProgress, this, &HttpDownload::downloadProgress);
 
@@ -188,7 +189,6 @@ void HttpDownload::finished(QNetworkReply */*reply*/)
         }
     }
     if(currentCmd == CMD_DOWNLOAD) {
-        fileStatus.fileName = QString("");
         lastReceiveBytes = 0;
         if(timer->isActive()) {
             timer->stop();

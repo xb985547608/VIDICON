@@ -29,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
     StatusTip::getInstance(this);
 
     connect(playbackWidget, &PlaybackWidget::signalAddDownloadTask, downloadWidget, &DownloadWidget::enqueue);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &MainWindow::handleReceiveData);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &MainWindow::handleReceiveData);
     connect(LoginWidget::getInstance(), SIGNAL(signalLoginState(LoginWidget::LoginState)), this, SLOT(loginHandler(LoginWidget::LoginState)));
     connect(navigationWidget, &NavigationWidget::currentChanged, this, [this](int index) {
         previewWidget->handleWidgetSwitch();
@@ -86,7 +86,10 @@ void MainWindow::handleReceiveData(int type, QByteArray data)
         break;
     }
     case NETWORKERROR: {
-        s->showStatusTip("夭寿啦~~网络出状况了");
+        if (data.isNull())
+            s->showStatusTip("夭寿啦~~网络出现未知状况");
+        else
+            s->showStatusTip(data);
         if(w->isVisible()) {
             w->hide();
         }

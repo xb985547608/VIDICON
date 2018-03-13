@@ -25,12 +25,9 @@ MediaWidget::MediaWidget(QWidget *parent) : QStackedWidget(parent)
     initROIWidget();
     initOSDWidget();
 
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &MediaWidget::handleReceiveData);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &MediaWidget::handleReceiveData);
     connect(this, &MediaWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
     connect(this, &MediaWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
-    connect(this, &MediaWidget::currentChanged, this, [this](){
-        handleSwitchTab(QModelIndex());
-    });
 }
 
 MediaWidget::~MediaWidget()
@@ -676,29 +673,33 @@ void MediaWidget::refreshParameter()
 
 void MediaWidget::handleSwitchTab(const QModelIndex &index)
 {
-    int type = index.row();
-    if(sender() != this) {
-        setCurrentIndex(index.row());
-    }else {
-        type = currentIndex();
-    }
+    if (!index.isValid())
+        return;
 
-    switch(type){
+    switch(index.row()){
     case 0: {
-        emit signalGetParameter(VIDEOENCODINGPARAM, 0);
-        emit signalGetParameter(VIDEOENCODINGPARAM, 1);
-        emit signalGetParameter(AUDIOENCODINGPARAM);
+        VidiconProtocol::VideoEncoding *param1 = new VidiconProtocol::VideoEncoding;
+        param1->Channel = 0;
+        param1->StreamType = 0;
+        emit signalGetParameter(VIDEOENCODING, param1);
+        VidiconProtocol::VideoEncoding *param2 = new VidiconProtocol::VideoEncoding;
+        param2->Channel = 0;
+        param2->StreamType = 1;
+        emit signalGetParameter(VIDEOENCODING, param2);
+        emit signalGetParameter(AUDIOENCODING);
         break;
     }
     case 2: {
-        emit signalGetParameter(IMAGEPARAMETER);
+        emit signalGetParameter(IMAGE);
     }
     case 4: {
-        emit signalGetParameter(OSDPARAMETER);
+        emit signalGetParameter(OSD);
     }
     default:
         break;
     }
+
+    setCurrentIndex(index.row());
 }
 
 void MediaWidget::handlePrepareData()
@@ -720,8 +721,8 @@ void MediaWidget::handlePrepareData()
             param->SnapShotImageType = "JPEG";
             param->GovLength = static_cast<QLineEdit *>(audioVideoMap[QString("I Frame Interval %1").arg(i)])->text().toInt();
 
-            emit signalSetParameter(VIDEOENCODINGPARAM, param);
-            qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << VIDEOENCODINGPARAM
+            emit signalSetParameter(VIDEOENCODING, param);
+            qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << VIDEOENCODING
                      << "StreamType:" << i;
         }
         VidiconProtocol::AudioEncodingParameter *param = new VidiconProtocol::AudioEncodingParameter;
@@ -729,8 +730,8 @@ void MediaWidget::handlePrepareData()
         param->Encoding = static_cast<QComboBox *>(audioVideoMap["Audio Codec"])->currentText();
         param->Bitrate = 16000;
         param->SampleRate = 8000;
-        emit signalSetParameter(AUDIOENCODINGPARAM, param);
-        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << AUDIOENCODINGPARAM;
+        emit signalSetParameter(AUDIOENCODING, param);
+        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << AUDIOENCODING;
 
         break;
     }
@@ -745,9 +746,9 @@ void MediaWidget::handlePrepareData()
             param[i].Width = rects[i].width() * XSCALEMAX / w->size().width();
             param[i].Height = rects[i].height() * YSCALEMAX / w->size().height();
         }
-        emit signalSetParameter(PRIVACYPARAMETER, param);
+        emit signalSetParameter(PRIVACY, param);
         w->reset();
-        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << PRIVACYPARAMETER;
+        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << PRIVACY;
 
         break;
     }
@@ -776,8 +777,8 @@ void MediaWidget::handlePrepareData()
         param->BeginTime = static_cast<QTimeEdit *>(imageMap["time1"])->time().toString("HH:MM");
         param->EndTime = static_cast<QTimeEdit *>(imageMap["time2"])->time().toString("HH:MM");
 
-        emit signalSetParameter(IMAGEPARAMETER, param);
-        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << IMAGEPARAMETER;
+        emit signalSetParameter(IMAGE, param);
+        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << IMAGE;
 
         break;
     }
@@ -811,8 +812,8 @@ void MediaWidget::handlePrepareData()
         for(int i=0; i<4; i++) {
             temp[i] = param[i];
         }
-        emit signalSetParameter(OSDPARAMETER, temp);
-        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << OSDPARAMETER;
+        emit signalSetParameter(OSD, temp);
+        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << OSD;
         break;
     }
     default:
@@ -824,7 +825,7 @@ void MediaWidget::handlePrepareData()
 void MediaWidget::handleReceiveData(int type, QByteArray data)
 {
     switch(type){
-    case VIDEOENCODINGPARAM:{
+    case VIDEOENCODING:{
         VidiconProtocol::VideoEncodingParameter param;
         if(ParseXML::getInstance()->parseVideoEncodingParameter(&param, data)) {
             static_cast<QComboBox *>(audioVideoMap[QString("Frame Rate %1").arg(param.StreamType)])->setCurrentText(QString::number(param.FrameRate));
@@ -842,7 +843,7 @@ void MediaWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case AUDIOENCODINGPARAM:{
+    case AUDIOENCODING:{
         VidiconProtocol::AudioEncodingParameter param;
         if(ParseXML::getInstance()->parseAudioEncodingParameter(&param, data)) {
             static_cast<QRadioButton *>(audioVideoMap["Audio Enable"])->setChecked(param.Enabled == 0 ? Qt::Unchecked : Qt::Checked);
@@ -853,7 +854,7 @@ void MediaWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case OSDPARAMETER:{
+    case OSD:{
         VidiconProtocol::OSDParameter *param = static_cast<OSDWidget *>(OSDMap["DisplayArea"])->getOSDParameters();
         if(ParseXML::getInstance()->parseOSDParameter(param, data)) {
             for(int i=0; i<4; i++) {
@@ -886,7 +887,7 @@ void MediaWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case IMAGEPARAMETER: {
+    case IMAGE: {
         VidiconProtocol::ImageParameter param;
         if(ParseXML::getInstance()->parseImageParameter(&param, data)) {
             static_cast<QSlider *>(imageMap["HueLevel"])->setValue(param.HueLevel);

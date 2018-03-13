@@ -26,12 +26,9 @@ NetworkWidget::NetworkWidget(QWidget *parent) : QStackedWidget(parent)
     initP2PWidget();
     initRTSPWidget();
 
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &NetworkWidget::handleReceiveData);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &NetworkWidget::handleReceiveData);
     connect(this, &NetworkWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
     connect(this, &NetworkWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
-    connect(this, &NetworkWidget::currentChanged, this, [this](){
-        handleSwitchTab(QModelIndex());
-    });
 }
 
 NetworkWidget::~NetworkWidget()
@@ -742,62 +739,60 @@ void NetworkWidget::initRTSPWidget()
 
 void NetworkWidget::handleSwitchTab(const QModelIndex &index)
 {
-    int type = index.row();
-    if(sender() != this) {
-        setCurrentIndex(index.row());
-    }else {
-        type = currentIndex();
-    }
+    if (!index.isValid())
+        return;
 
-    switch(type){
+    switch(index.row()){
     case 0: {
-        emit signalGetParameter(TCPIPPARAMETER);
-        emit signalGetParameter(OTHERPARAMETER);
+        emit signalGetParameter(TCPIP);
+        emit signalGetParameter(OTHER);
         break;
     }
     case 1: {
-        emit signalGetParameter(PPPOEPARAMETR);
+        emit signalGetParameter(PPPOE);
         break;
     }
     case 2: {
-        emit signalGetParameter(DDNSPARAMETER);
+        emit signalGetParameter(DDNS);
         break;
     }
     case 3: {
-        emit signalGetParameter(EMAILPARAMETER);
+        emit signalGetParameter(EMAIL);
         break;
     }
     case 4: {
-        emit signalGetParameter(FTPPARAMETER);
+        emit signalGetParameter(FTP);
         break;
     }
     case 5: {
-        emit signalGetParameter(BONJOURPARAMETER);
+        emit signalGetParameter(BONJOUR);
         break;
     }
     case 6: {
-        emit signalGetParameter(SNMPPARAMETER);
+        emit signalGetParameter(SNMP);
         break;
     }
     case 7: {
-        emit signalGetParameter(UPNPPARAMETER);
+        emit signalGetParameter(UPNP);
         break;
     }
     case 8: {
-        emit signalGetParameter(HTTPSPARAMETER);
+        emit signalGetParameter(HTTPS);
         break;
     }
     case 9: {
-        emit signalGetParameter(P2PPARAMETER);
+        emit signalGetParameter(P2P);
         break;
     }
     case 10: {
-        emit signalGetParameter(RTSPPARAMETER);
+        emit signalGetParameter(RTSP);
         break;
     }
     default:
         break;
     }
+
+    setCurrentIndex(index.row());
 }
 
 void NetworkWidget::handlePrepareData()
@@ -817,7 +812,7 @@ void NetworkWidget::handlePrepareData()
         param1->ipv6.DNS1 = static_cast<QLineEdit *>(tcpIpMap["IPv6 DNS 1"])->text();
         param1->ipv6.DNS2 = static_cast<QLineEdit *>(tcpIpMap["IPv6 DNS 2"])->text();
         param1->MACAddress = static_cast<QLineEdit *>(tcpIpMap["IPv4 MacAddr"])->text();
-        emit signalSetParameter(TCPIPPARAMETER, param1);
+        emit signalSetParameter(TCPIP, param1);
 
         VidiconProtocol::OtherParameter *param2 = new VidiconProtocol::OtherParameter;
         param2->type1.Enabled = 1;
@@ -829,9 +824,9 @@ void NetworkWidget::handlePrepareData()
         param2->type3.Enabled = 1;
         param2->type3.ServerType = 3;
         param2->type3.Port = static_cast<QLineEdit *>(tcpIpMap["RTSP Port"])->text().toInt();
-        emit signalSetParameter(OTHERPARAMETER, param2);
+        emit signalSetParameter(OTHER, param2);
 
-        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << TCPIPPARAMETER << OTHERPARAMETER;
+        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << TCPIP << OTHER;
         break;
     }
     default:
@@ -842,7 +837,7 @@ void NetworkWidget::handlePrepareData()
 void NetworkWidget::handleReceiveData(int type, QByteArray data)
 {
     switch (type) {
-    case TCPIPPARAMETER: {
+    case TCPIP: {
         VidiconProtocol::BasicParameter param;
         if(ParseXML::getInstance()->parseBasicParameter(&param, data)) {
             static_cast<QLineEdit *>(tcpIpMap["Max connection"])->setText(QString::number(param.MaxLink));
@@ -863,7 +858,7 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case OTHERPARAMETER: {
+    case OTHER: {
         VidiconProtocol::OtherParameter param;
         VidiconProtocol::OtherBasicParameter *param1 = (VidiconProtocol::OtherBasicParameter *)(&param);
         if(ParseXML::getInstance()->parseOtherParameter(&param, data)) {
@@ -885,7 +880,7 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case PPPOEPARAMETR: {
+    case PPPOE: {
         VidiconProtocol::PPPOEParameter param;
         if(ParseXML::getInstance()->parsePPPOEParameter(&param, data)) {
             static_cast<QRadioButton *>(PPPOEMap["Enable"])->setChecked(param.Enabled ? true : false);
@@ -897,7 +892,7 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case DDNSPARAMETER: {
+    case DDNS: {
         VidiconProtocol::DDNSParameter param;
         if(ParseXML::getInstance()->parseDDNSParameter(&param, data)) {
             static_cast<QRadioButton *>(DDNSClientMap["Enable"])->setChecked(param.Enabled ? true : false);
@@ -912,7 +907,7 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case EMAILPARAMETER: {
+    case EMAIL: {
         VidiconProtocol::EmailParameter param;
         if(ParseXML::getInstance()->parseEmailParameter(&param, data)) {
             static_cast<QRadioButton *>(EmailMap["Enable"])->setChecked(param.Enabled ? true : false);
@@ -932,7 +927,7 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case FTPPARAMETER: {
+    case FTP: {
         VidiconProtocol::FTPParameter param;
         if(ParseXML::getInstance()->parseFTPParameter(&param, data)) {
             static_cast<QRadioButton *>(FTPMap["Enable"])->setChecked(param.Enabled ? true : false);
@@ -948,7 +943,7 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case BONJOURPARAMETER: {
+    case BONJOUR: {
         VidiconProtocol::BonjourParameter param;
         if(ParseXML::getInstance()->parseBonjourParameter(&param, data)) {
             static_cast<QRadioButton *>(BonjourMap["Enable"])->setChecked(param.Enabled ? true : false);
@@ -959,7 +954,7 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case SNMPPARAMETER: {
+    case SNMP: {
         VidiconProtocol::SNMPParameter param;
         if(ParseXML::getInstance()->parseSNMPParameter(&param, data)) {
             static_cast<QCheckBox *>(SNMPMap["SNMP v1"])->setChecked(param.EnabledVer1 ? true : false);
@@ -975,7 +970,7 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case UPNPPARAMETER: {
+    case UPNP: {
         VidiconProtocol::UPNPParameter param;
         if(ParseXML::getInstance()->parseUPNPParameter(&param, data)) {
             static_cast<QComboBox *>(UPNPMap["UPNP"])->setCurrentIndex(param.Enabled);
@@ -985,7 +980,7 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case HTTPSPARAMETER: {
+    case HTTPS: {
         VidiconProtocol::HTTPsParameter param;
         if(ParseXML::getInstance()->parseHTTPsParameter(&param, data)) {
             static_cast<QRadioButton *>(HTTPsMap["Enable"])->setChecked(param.Enabled ? true : false);
@@ -996,7 +991,7 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case P2PPARAMETER: {
+    case P2P: {
         VidiconProtocol::P2PParameter param;
         if(ParseXML::getInstance()->parseP2PParameter(&param, data)) {
             static_cast<QRadioButton *>(P2PMap["P2P"])->setChecked(param.Enabled ? true : false);

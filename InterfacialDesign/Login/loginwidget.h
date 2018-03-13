@@ -54,6 +54,9 @@ private:
     bool windowMove;
     QPoint moveStartPos;
     SwitchButton *switchButton;
+
+    QString user;
+    QString passwd;
 };
 
 #endif // LOGINWIDGET_H

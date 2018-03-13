@@ -8,6 +8,7 @@
 #include <QFileDialog>
 #include <QDesktopServices>
 #include "soundeffect.h"
+#include "statustip.h"
 
 DownloadWidget::DownloadWidget(QWidget *parent) :
     QWidget(parent),
@@ -79,6 +80,8 @@ void DownloadWidget::handleTimeout()
             listView->setData(model->index(0, 1), Downloading);
             QMetaObject::invokeMethod(h, "downloadFile", Q_ARG(QString, file));
             qDebug() << "#DownloadWidget# handleTimeout(), Start Download file --> " << file;
+
+            StatusTip::getInstance()->showStatusTip(QString("开始下载文件：%1").arg(file));
         }
     }
 }
@@ -94,9 +97,11 @@ void DownloadWidget::handleReceiveFileStatus(const HttpDownload::FileStatus *fil
         listView->setData(model->index(0, 2), 100);
         SoundEffect::getInstance()->triggerSoundEffect(SoundEffect::Success);
         ui->lblSpeed->setText("");
+        StatusTip::getInstance()->showStatusTip(QString("文件下载完成：%1").arg(fileStatus->fileName));
     }else if(fileStatus->state == Error) {
         SoundEffect::getInstance()->triggerSoundEffect(SoundEffect::Error);
         ui->lblSpeed->setText("");
+        StatusTip::getInstance()->showStatusTip(QString("文件下载出错：%1").arg(fileStatus->fileName));
     }
     listView->setData(model->index(0, 1), fileStatus->state);
 }

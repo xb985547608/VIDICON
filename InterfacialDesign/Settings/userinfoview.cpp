@@ -14,7 +14,7 @@
 
 UserInfoView::UserInfoView(QWidget *parent) : QTableView(parent)
 {
-    setModel(new TableModel(this));
+    setModel(new UserInfoModel(this));
 //    setItemDelegate(new TableViewDelegate(this));
     //无法选中
     setSelectionMode(QAbstractItemView::NoSelection);
@@ -27,7 +27,7 @@ UserInfoView::UserInfoView(QWidget *parent) : QTableView(parent)
     //不显示网格
     setShowGrid(true);
     //表格边框风格
-    setFrameShape(QFrame::NoFrame);
+    setFrameShape(QFrame::Box);
     //设置鼠标跟踪
     setMouseTracking(true);
     //行交替颜色
@@ -36,7 +36,20 @@ UserInfoView::UserInfoView(QWidget *parent) : QTableView(parent)
                     background-color: #3399FF;    /*选中行颜色*/  \
                    }");
 
+    //合并第3、4列
     setSpan(0, 3, 1, 2);
+
+    setColumnWidth(0, 120);
+    setColumnWidth(1, 120);
+    setColumnWidth(2, 120);
+    setColumnWidth(3, 120);
+    setColumnWidth(4, 120);
+    setFixedWidth(610);
+
+    initModifyInfoWidget();
+    initAddUserInfoWidget();
+
+    connect(this, &UserInfoView::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
 }
 
 UserInfoView::~UserInfoView()
@@ -44,61 +57,67 @@ UserInfoView::~UserInfoView()
     qDebug("delete Tableview");
 }
 
-void UserInfoView::setDataSource(const QList<QStringList> &l)
+void UserInfoView::setDataSource(const QList<VidiconProtocol::UserConfigInfo> &l)
 {
-    static_cast<TableModel *>(model())->setDataSource(l);
+    static_cast<UserInfoModel *>(model())->setDataSource(l);
+
+    for (int i=0; i<l.size(); i++) {
+        VidiconProtocol::UserConfigInfo info = l.at(i);
+
+        QPushButton *btn1 = new QPushButton("Modify", this);
+        btn1->setObjectName(QString::number(i + 1));
+        connect(btn1, &QPushButton::clicked, this, &UserInfoView::handleModifyInfo);
+        setIndexWidget(model()->index(i + 1, 3), btn1);
+
+        QPushButton *btn2 = new QPushButton("DelUser", this);
+        btn2->setObjectName(QString::number(i + 1));
+        connect(btn2, &QPushButton::clicked, this, &UserInfoView::handleDelUserInfo);
+        setIndexWidget(model()->index(i + 1, 4), btn2);
+    }
 }
 
-void UserInfoView::addData(const QStringList &data)
+void UserInfoView::initModifyInfoWidget()
 {
-    static_cast<TableModel *>(model())->addData(data);
-
-    const QList<QStringList> list = static_cast<TableModel *>(model())->getDataSource();
-    QPushButton *btn1 = new QPushButton("Modify", this);
-    btn1->setObjectName(data.at(0));
-    connect(btn1, &QPushButton::clicked, this, &UserInfoView::handleModifyInfo);
-    setIndexWidget(model()->index(list.length(), 3), btn1);
-    QPushButton *btn2 = new QPushButton("DelUser", this);
-    btn2->setObjectName(data.at(0));
-    connect(btn2, &QPushButton::clicked, this, &UserInfoView::handleDelUserInfo);
-    setIndexWidget(model()->index(list.length(), 4), btn2);
-}
-
-void UserInfoView::popupModifyInfoWidget()
-{
-    bool isOK = false;
-    int index = sender()->objectName().toInt(&isOK);
-    if(!isOK)
-        return;
-    QStringList data = static_cast<TableModel *>(model())->getDataSource().at(index);
     QStringList list;
-    QDialog *modifyInfoWidget = new QDialog(this);
+
+    modifyInfoWidget = new QDialog(this);
     modifyInfoWidget->setFixedSize(400, 150);
 
-    QLabel *lbl1 = new QLabel("User：", modifyInfoWidget);
+    QLabel *lbl1 = new QLabel("用户名：", modifyInfoWidget);
     QLineEdit *lineEdit1 = new QLineEdit(modifyInfoWidget);
-    lineEdit1->setText(data.at(1));
+    lineEdit1->setReadOnly(true);
     modifyInfoMap.insert("User", lineEdit1);
 
-    QLabel *lbl2 = new QLabel("Group：", modifyInfoWidget);
+    QLabel *lbl2 = new QLabel("权限：", modifyInfoWidget);
     QComboBox *comboBox1 = new QComboBox(modifyInfoWidget);
-    list << "Supervisor" << "Manager" << "User";
-
+    list << "管理权限" << "维护权限" << "一般权限";
     comboBox1->addItems(list);
-    comboBox1->setCurrentText(data.at(2));
-    list.clear();
     modifyInfoMap.insert("Group", comboBox1);
 
-    QLabel *lbl3 = new QLabel("Password：", modifyInfoWidget);
+    QLabel *lbl3 = new QLabel("输入密码：", modifyInfoWidget);
     QLineEdit *lineEdit2 = new QLineEdit(modifyInfoWidget);
+    lineEdit2->setMaxLength(15);
     modifyInfoMap.insert("Password", lineEdit2);
 
-    QLabel *lbl4 = new QLabel("Confirm：", modifyInfoWidget);
+    QLabel *lbl4 = new QLabel("确认密码：", modifyInfoWidget);
     QLineEdit *lineEdit3 = new QLineEdit(modifyInfoWidget);
+    lineEdit3->setMaxLength(15);
     modifyInfoMap.insert("Confirm", lineEdit3);
 
     QPushButton *btn = new QPushButton("Save", modifyInfoWidget);
     btn->setFixedWidth(50);
+    connect(btn, &QPushButton::clicked, this, [this](){
+        QString passwd1 = static_cast<QLineEdit *>(modifyInfoMap["Password"])->text();
+        QString passwd2 = static_cast<QLineEdit *>(modifyInfoMap["Confirm"])->text();
+
+        if (passwd1 == passwd2) {
+            VidiconProtocol::UserConfigInfo *info = new VidiconProtocol::UserConfigInfo;
+            info->UserName = static_cast<QLineEdit *>(modifyInfoMap["User"])->text();
+            info->PassWord = passwd1;
+            info->Privilege = static_cast<QComboBox *>(modifyInfoMap["Group"])->currentIndex();
+            emit signalSetParameter(USERCONFIG, info);
+        }
+    });
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(lbl1,      0, 0, 1, 1);
@@ -123,11 +142,74 @@ void UserInfoView::popupModifyInfoWidget()
     layout3->addStretch(1);
     layout3->addLayout(layout2, 4);
     layout3->addStretch(1);
+}
 
-    modifyInfoWidget->exec();
+void UserInfoView::initAddUserInfoWidget()
+{
+    QStringList list;
 
-    qDebug() << lineEdit1->text() << lineEdit2->text() << lineEdit3->text() << comboBox1->itemText(comboBox1->currentIndex());
-    delete modifyInfoWidget;
+    addUserInfoWidget = new QDialog(this);
+    addUserInfoWidget->setFixedSize(400, 150);
+
+    QLabel *lbl1 = new QLabel("用户名：", addUserInfoWidget);
+    QLineEdit *lineEdit1 = new QLineEdit(addUserInfoWidget);
+    lineEdit1->setReadOnly(false);
+    addUserInfoMap.insert("User", lineEdit1);
+
+    QLabel *lbl2 = new QLabel("权限：", addUserInfoWidget);
+    QComboBox *comboBox1 = new QComboBox(addUserInfoWidget);
+    list << "管理权限" << "维护权限" << "一般权限";
+    comboBox1->addItems(list);
+    addUserInfoMap.insert("Group", comboBox1);
+
+    QLabel *lbl3 = new QLabel("输入密码：", addUserInfoWidget);
+    QLineEdit *lineEdit2 = new QLineEdit(addUserInfoWidget);
+    lineEdit2->setMaxLength(15);
+    addUserInfoMap.insert("Password", lineEdit2);
+
+    QLabel *lbl4 = new QLabel("确认密码：", addUserInfoWidget);
+    QLineEdit *lineEdit3 = new QLineEdit(addUserInfoWidget);
+    lineEdit3->setMaxLength(15);
+    addUserInfoMap.insert("Confirm", lineEdit3);
+
+    QPushButton *btn = new QPushButton("Save", addUserInfoWidget);
+    btn->setFixedWidth(50);
+    connect(btn, &QPushButton::clicked, this, [this](){
+        QString passwd1 = static_cast<QLineEdit *>(addUserInfoMap["Password"])->text();
+        QString passwd2 = static_cast<QLineEdit *>(addUserInfoMap["Confirm"])->text();
+
+        if (passwd1 == passwd2) {
+            VidiconProtocol::UserConfigInfo *info = new VidiconProtocol::UserConfigInfo;
+            info->UserName = static_cast<QLineEdit *>(addUserInfoMap["User"])->text();
+            info->PassWord = passwd1;
+            info->Privilege = static_cast<QComboBox *>(addUserInfoMap["Group"])->currentIndex();
+            emit signalSetParameter(ADDUSER, info);
+        }
+    });
+
+    QGridLayout *layout1 = new QGridLayout;
+    layout1->addWidget(lbl1,      0, 0, 1, 1);
+    layout1->addWidget(lineEdit1, 0, 1, 1, 2);
+
+    layout1->addWidget(lbl2,      1, 0, 1, 1);
+    layout1->addWidget(comboBox1, 1, 1, 1, 2);
+
+    layout1->addWidget(lbl3,      2, 0, 1, 1);
+    layout1->addWidget(lineEdit2, 2, 1, 1, 2);
+
+    layout1->addWidget(lbl4,      3, 0, 1, 1);
+    layout1->addWidget(lineEdit3, 3, 1, 1, 2);
+
+    layout1->addWidget(btn,       4, 0, 1, 3, Qt::AlignCenter);
+
+    QVBoxLayout *layout2 = new QVBoxLayout;
+    layout2->addLayout(layout1);
+    layout2->addStretch();
+
+    QHBoxLayout *layout3 = new QHBoxLayout(addUserInfoWidget);
+    layout3->addStretch(1);
+    layout3->addLayout(layout2, 4);
+    layout3->addStretch(1);
 }
 
 void UserInfoView::mousePressEvent(QMouseEvent *event)
@@ -142,40 +224,64 @@ void UserInfoView::mousePressEvent(QMouseEvent *event)
 
 void UserInfoView::handleModifyInfo()
 {
-    qDebug() << "Modify" << sender()->objectName();
-    popupModifyInfoWidget();
+    int row = sender()->objectName().toInt();
+
+    static_cast<QLineEdit *>(modifyInfoMap["User"])->setText(model()->data(model()->index(row, 1)).toString());
+    static_cast<QComboBox *>(modifyInfoMap["Group"])->setCurrentIndex(model()->data(model()->index(row, 2)).toInt());
+
+    static_cast<QLineEdit *>(modifyInfoMap["Password"])->clear();
+    static_cast<QLineEdit *>(modifyInfoMap["Confirm"])->clear();
+
+    modifyInfoWidget->exec();
 }
 
 void UserInfoView::handleDelUserInfo()
 {
-    qDebug() << "DelUser" << sender()->objectName();
-    qDebug() << QMessageBox::question(this, "警告", QString("是否删除用户%1").arg(static_cast<TableModel *>(model())->getDataSource().at(sender()->objectName().toInt()).at(1)));
+    int row = sender()->objectName().toInt();
+
+    QString user = model()->data(model()->index(row, 1)).toString();
+    if (QMessageBox::question(this, "删除用户！！", QString("是否删除用户名为：%1的账号信息").arg(user.toStdString().data()))
+            == QMessageBox::Yes) {
+        VidiconProtocol::UserConfigInfo *info = new VidiconProtocol::UserConfigInfo;
+        info->UserName = user;
+        emit signalSetParameter(DELETEUSER, info);
+    }
 }
 
-TableModel::TableModel(QObject *parent) : QAbstractTableModel(parent),
+void UserInfoView::handleAddUserInfo()
+{
+    static_cast<QLineEdit *>(addUserInfoMap["User"])->clear();
+    static_cast<QComboBox *>(addUserInfoMap["Group"])->clear();
+    static_cast<QLineEdit *>(addUserInfoMap["Password"])->clear();
+    static_cast<QLineEdit *>(addUserInfoMap["Confirm"])->clear();
+
+    addUserInfoWidget->exec();
+}
+
+UserInfoModel::UserInfoModel(QObject *parent) : QAbstractTableModel(parent),
     column(5)
 {
-    headList << "No." << "User" << "Group" << "Operate";
+    headList << "No." << "用户名" << "权限" << "操作";
 }
 
-TableModel::~TableModel()
+UserInfoModel::~UserInfoModel()
 {
 
 }
 
-int TableModel::rowCount(const QModelIndex &parent) const
+int UserInfoModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
     return list.size() + 1;
 }
 
-int TableModel::columnCount(const QModelIndex &parent) const
+int UserInfoModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
     return column;
 }
 
-QVariant TableModel::data(const QModelIndex &index, int role) const
+QVariant UserInfoModel::data(const QModelIndex &index, int role) const
 {
     if(!index.isValid()){
         return QVariant();
@@ -193,11 +299,14 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
                     return headList.at(index.column());
                 }
                 if(0 == index.column())
-                    return list.at(index.row() - 1).at(0);
+                    return index.row();
                 else if(1 == index.column())
-                    return list.at(index.row() - 1).at(1);
-                else if(2 == index.column())
-                    return list.at(index.row() - 1).at(2);
+                    return list.at(index.row() - 1).UserName;
+                else if(2 == index.column()) {
+                    QStringList list;
+                    list << "管理权限" << "维护权限" << "一般权限";
+                    return list.at(this->list.at(index.row() - 1).Privilege);
+                }
             }
             break;
         //显示的字体样式
@@ -236,7 +345,7 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-Qt::ItemFlags TableModel::flags(const QModelIndex &index) const
+Qt::ItemFlags UserInfoModel::flags(const QModelIndex &index) const
 {
     if(!index.isValid()){
         return Qt::NoItemFlags;
@@ -244,82 +353,14 @@ Qt::ItemFlags TableModel::flags(const QModelIndex &index) const
 
     Qt::ItemFlags flags = QAbstractTableModel::flags(index);
 
-    if(index.row() != 0 && (index.column() == 3 || index.column() == 4))
-        flags |= Qt::ItemIsEditable;
+    flags &= !Qt::ItemIsEditable;
 
     return flags;
 }
 
-void TableModel::addData(const QStringList &data)
-{
-    list.append(data);
-}
-
-void TableModel::setDataSource(const QList<QStringList> &l)
+void UserInfoModel::setDataSource(const QList<VidiconProtocol::UserConfigInfo> &l)
 {
     list = l;
-}
-
-
-TableViewDelegate::TableViewDelegate(QObject *parent):QItemDelegate(parent)
-{
-
-}
-
-void TableViewDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
-    if(!index.isValid())
-        return;
-
-    if(index.row() != 0){
-        QStyleOptionButton *btnOption = btnOptions.value(index, NULL);
-
-        if(!btnOption){
-            if(index.column() == 3){
-                btnOption = new QStyleOptionButton;
-                btnOption->state |= QStyle::State_Enabled;
-                btnOption->text = QString("Modify");
-                btnOption->rect = option.rect.adjusted(4, 2, -4, -2);
-
-                (const_cast<TableViewDelegate *>(this))->btnOptions.insert(index, btnOption);
-            }else if(index.column() == 4){
-                btnOption = new QStyleOptionButton;
-                btnOption->state |= QStyle::State_Enabled;
-                btnOption->text = QString("DelUser");
-                btnOption->rect = option.rect.adjusted(4, 2, -4, -2);
-
-                (const_cast<TableViewDelegate *>(this))->btnOptions.insert(index, btnOption);
-            }
-        }
-
-        if(btnOption){
-            painter->save();
-            btnOption->rect = option.rect.adjusted(4, 2, -4, -2);
-            UserInfoView *view = static_cast<UserInfoView *>(const_cast<QWidget *>(option.widget));
-            view->style()->drawControl(QStyle::CE_PushButton, btnOption, painter);
-            painter->restore();
-            return;
-        }
-    }
-    QItemDelegate::paint(painter, option, index);
-}
-
-bool TableViewDelegate::editorEvent(QEvent *event, QAbstractItemModel *model,
-                                    const QStyleOptionViewItem &option, const QModelIndex &index)
-{
-    if (event->type() == QEvent::MouseButtonPress) {
-        QMouseEvent* e =(QMouseEvent*)event;
-
-        if (option.rect.adjusted(4, 2, -4, -2).contains(e->x(), e->y()) && btnOptions.contains(index)) {
-            btnOptions.value(index)->state |= QStyle::State_Sunken;
-        }
-    }
-    if (event->type() == QEvent::MouseButtonRelease) {
-        QMouseEvent* e =(QMouseEvent*)event;
-
-        if (option.rect.adjusted(4, 2, -4, -2).contains(e->x(), e->y()) && btnOptions.contains(index)) {
-            btnOptions.value(index)->state &= (~QStyle::State_Sunken);
-        }
-    }
-    return QItemDelegate::editorEvent(event, model, option, index);
+    beginResetModel();
+    endResetModel();
 }

@@ -25,12 +25,9 @@ AlarmWidget::AlarmWidget(QWidget *parent) : QStackedWidget(parent)
     initVideoBlindWidget();
     initAlarmWidget();
 
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &AlarmWidget::handleReceiveData);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &AlarmWidget::handleReceiveData);
     connect(this, &AlarmWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
     connect(this, &AlarmWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
-    connect(this, &AlarmWidget::currentChanged, this, [this](){
-        handleSwitchTab(QModelIndex());
-    });
 
 //    emit signalGetParameter(MOTIONALARAPARAMETER);
 //    emit signalGetParameter(BLINDALARMPARAMETER);
@@ -720,29 +717,27 @@ void AlarmWidget::initRegionEditDialog()
 
 void AlarmWidget::handleSwitchTab(const QModelIndex &index)
 {
-    int type = index.row();
-    if(sender() != this) {
-        setCurrentIndex(index.row());
-    }else {
-        type = currentIndex();
-    }
+    if (!index.isValid())
+        return;
 
-    switch(type){
+    switch(index.row()){
     case 0: {
-        emit signalGetParameter(MOTIONALARAPARAMETER);
+        emit signalGetParameter(MOTION);
         break;
     }
     case 1: {
-        emit signalGetParameter(BLINDALARMPARAMETER);
+        emit signalGetParameter(BLIND);
         break;
     }
     case 2: {
-        emit signalGetParameter(SENSORALARMPARAMETER);
+        emit signalGetParameter(SENSOR);
         break;
     }
     default:
         break;
     }
+
+    setCurrentIndex(index.row());
 }
 
 void AlarmWidget::handleTimeSelect(int state)
@@ -827,7 +822,7 @@ void AlarmWidget::handlePrepareData()
         }else {
             param->onlyRegion = false;
         }
-        emit signalSetParameter(MOTIONALARAPARAMETER, param);
+        emit signalSetParameter(MOTION, param);
         break;
     }
     case 1: {
@@ -839,7 +834,7 @@ void AlarmWidget::handlePrepareData()
         param->Sensitivity = static_cast<QComboBox *>(videoBlindMap["Sensitivity"])->currentIndex();
         param->weeksStateMap = static_cast<TimeRegionWidget *>(videoBlindMap["region"])->getWeeksState();
         param->Plans = static_cast<TimeRegionWidget *>(videoBlindMap["region"])->getPlans();
-        emit signalSetParameter(BLINDALARMPARAMETER, param);
+        emit signalSetParameter(BLIND, param);
         break;
     }
     case 2: {
@@ -851,7 +846,7 @@ void AlarmWidget::handlePrepareData()
         param->SensorType = static_cast<QComboBox *>(alarmMap["Type"])->currentIndex();
         param->weeksStateMap = static_cast<TimeRegionWidget *>(alarmMap["region"])->getWeeksState();
         param->Plans = static_cast<TimeRegionWidget *>(alarmMap["region"])->getPlans();
-        emit signalSetParameter(SENSORALARMPARAMETER, param);
+        emit signalSetParameter(SENSOR, param);
         break;
     }
     default:
@@ -862,7 +857,7 @@ void AlarmWidget::handlePrepareData()
 void AlarmWidget::handleReceiveData(int type, QByteArray data)
 {    
     switch(type) {
-    case MOTIONALARAPARAMETER: {
+    case MOTION: {
         VidiconProtocol::MotionDetectionParameter param;
         param.Plans = static_cast<TimeRegionWidget *>(motionDetectionMap["region"])->getPlans();
         if(ParseXML::getInstance()->parseMotionParameter(&param, data)) {
@@ -899,7 +894,7 @@ void AlarmWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case BLINDALARMPARAMETER: {
+    case BLIND: {
         VidiconProtocol::VideoBlindAlarmParameter param;
         param.Plans = static_cast<TimeRegionWidget *>(videoBlindMap["region"])->getPlans();
         if(ParseXML::getInstance()->parseBlindParameter(&param, data)) {
@@ -925,7 +920,7 @@ void AlarmWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case SENSORALARMPARAMETER: {
+    case SENSOR: {
         VidiconProtocol::SensorAlarmParameter param;
         param.Plans = static_cast<TimeRegionWidget *>(alarmMap["region"])->getPlans();
         if(ParseXML::getInstance()->parseSensorParameter(&param, data)) {

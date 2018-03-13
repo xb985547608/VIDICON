@@ -1549,6 +1549,59 @@ bool ParseXML::parsePlayingTimeParameter(VidiconProtocol::PlayingTimeParameter *
     return true;
 }
 
+bool ParseXML::parseUserConfgInfo(QList<VidiconProtocol::UserConfigInfo> &param, QByteArray data)
+{
+    QDomDocument *doc = new QDomDocument();
+    QString errorMsg;
+    int errorLine, errorColumn;
+
+    if(!doc->setContent(data, &errorMsg, &errorLine, &errorColumn)) {
+        qDebug() << "#ParseXML# parseUserConfgInfo Error occurred: "
+                 << "errorMsg" << errorMsg
+                 << "errorLine" << errorLine
+                 << "errorColumn" << errorColumn;
+        delete doc;
+        return false;
+    }
+
+    QDomElement root = doc->documentElement();
+    if(root.isNull()) {
+        delete doc;
+        return false;
+    }
+
+    if (root.tagName().compare("UserManagment", Qt::CaseInsensitive) != 0) {
+        qDebug("#ParseXML# parseUserConfgInfo XML data unmatched");
+        delete doc;
+        return false;
+    }
+    QDomElement child = root.firstChildElement();
+
+    while (!child.isNull()) {
+        if (child.tagName().left(5).compare("User_", Qt::CaseInsensitive) == 0) {
+            QDomElement child2 = child.firstChildElement();
+            VidiconProtocol::UserConfigInfo info;
+            while (!child2.isNull()) {
+                if (child2.tagName().compare("UserName", Qt::CaseInsensitive) == 0) {
+                    info.UserName = child2.text();
+                } else if (child2.tagName().compare("PassWord", Qt::CaseInsensitive) == 0) {
+                    info.PassWord = child2.text();
+                } else if (child2.tagName().compare("Privilege", Qt::CaseInsensitive) == 0) {
+                    info.Privilege = child2.text().toInt();
+                }
+
+                child2 = child2.nextSiblingElement();
+            }
+            param.append(info);
+        }
+
+        child = child.nextSiblingElement();
+    }
+
+    delete doc;
+    return true;
+}
+
 bool ParseXML::parsePullMsg(VidiconProtocol::PullMessage *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();

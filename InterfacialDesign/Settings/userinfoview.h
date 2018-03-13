@@ -5,8 +5,9 @@
 #include <QItemDelegate>
 #include <QDialog>
 #include <QMap>
+#include "Protocol/vidiconprotocol.h"
 
-class TableModel;
+class UserInfoModel;
 
 class UserInfoView : public QTableView
 {
@@ -15,30 +16,38 @@ public:
     explicit UserInfoView(QWidget *parent = Q_NULLPTR);
     ~UserInfoView();
 
-    void setDataSource(const QList<QStringList> &l);
-    void addData(const QStringList &data);
-    void popupModifyInfoWidget();
+    void setDataSource(const QList<VidiconProtocol::UserConfigInfo> &l);
+
+    void initModifyInfoWidget();
+    void initAddUserInfoWidget();
+signals:
+    void signalSetParameter(int type, void *param = NULL, QString SessionID = "R00001");
 
 protected:
     virtual void mousePressEvent(QMouseEvent *event);
+
 public slots:
     void handleModifyInfo();
     void handleDelUserInfo();
+    void handleAddUserInfo();
+
 private:
     QDialog *modifyInfoWidget;
     QMap<QString, QWidget *> modifyInfoMap;
+
+    QDialog *addUserInfoWidget;
+    QMap<QString, QWidget *> addUserInfoMap;
 };
 
-class TableModel : public QAbstractTableModel
+class UserInfoModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit TableModel(QObject *parent = 0);
-    ~TableModel();
+    explicit UserInfoModel(QObject *parent = 0);
+    ~UserInfoModel();
 
-    void setDataSource(const QList<QStringList> &l);
-    void addData(const QStringList &data);
-    const QList<QStringList> &getDataSource() { return list; }
+    void setDataSource(const QList<VidiconProtocol::UserConfigInfo> &l);
+
 protected:
     //获取行数
     virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
@@ -53,25 +62,8 @@ public slots:
 
 private:
     int column;
-    QList<QStringList> list;
+    QList<VidiconProtocol::UserConfigInfo> list;
     QStringList headList;
-};
-
-
-class TableViewDelegate : public QItemDelegate
-{
-    Q_OBJECT
-public:
-    explicit TableViewDelegate(QObject *parent = 0);
-
-    // painting
-    void paint(QPainter *painter,
-               const QStyleOptionViewItem &option,
-               const QModelIndex &index) const override;
-    bool editorEvent(QEvent *event, QAbstractItemModel *model,
-                     const QStyleOptionViewItem &option, const QModelIndex &index) Q_DECL_OVERRIDE;
-
-    QMap<QModelIndex, QStyleOptionButton *> btnOptions;
 };
 
 #endif // TABLEVIEW_H

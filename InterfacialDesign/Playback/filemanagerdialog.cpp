@@ -13,7 +13,7 @@ FileManagerDialog::FileManagerDialog(QWidget *parent) :
     isVideo(true)
 {
     connect(this, &FileManagerDialog::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalSendData, this, &FileManagerDialog::handleReceiveData);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &FileManagerDialog::handleReceiveData);
 
     QRadioButton *rBtn1 = new QRadioButton("视频", this);
     rBtn1->setChecked(true);

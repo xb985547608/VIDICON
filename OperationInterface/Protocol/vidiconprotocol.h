@@ -13,53 +13,73 @@
 #include <QDebug>
 #include "operationinterface_global.h"
 
-#define VIDEOENCODINGPARAM   1024
-#define AUDIOENCODINGPARAM   1025
-#define OSDPARAMETER         1026
-#define NTPPARAMETER         1027
-#define DEVICEINFO           1028
-#define PRIVACYPARAMETER     1029
-#define IMAGEPARAMETER       1030
-#define TCPIPPARAMETER       1031
-#define OTHERPARAMETER       1032
-#define PPPOEPARAMETR        1033
-#define DDNSPARAMETER        1034
-#define EMAILPARAMETER       1035
-#define FTPPARAMETER         1036
-#define BONJOURPARAMETER     1037
-#define SNMPPARAMETER        1038
-#define UPNPPARAMETER        1039
-#define HTTPSPARAMETER       1040
-#define P2PPARAMETER         1041
-#define RTSPPARAMETER        1042
-#define MOTIONALARAPARAMETER 1043
-#define BLINDALARMPARAMETER  1044
-#define SENSORALARMPARAMETER 1045
-#define SCHEDULEPARAMETER    1046
-#define SDSTORAGEPARAMETER   1047
-#define SNAPSHOTPARAMETER    1048
-#define DESTINATIONPARAMETER 1049
-#define NASPARAMETER         1050
-#define SDCARDPARAMETER      1051
-#define FORMATSDCARD         1052
-#define REBOOT               1053
-#define RECOVEDEFAULT        1054
-#define QUERYVIDEONAMEDAY    1055
-#define QUERYVIDEOTIMEDAY    1056
-#define QUERYFILEMONTH       1057
-#define QUERYPICTURENAMEDAY  1058
-#define BACKQUERY            1059
-#define PULLMESSAGE          1060
-#define STARTPLAYING         1061
-#define PLAYSTATE            1062
-#define LOGIN                1063
-#define DOWNLOAD             1064
-#define CURRENTPLAYINGTIME   1065
+#define VIDEOENCODING       1024
+#define AUDIOENCODING       1025
+#define OSD                 1026
+#define NTP                 1027
+#define GETDEVICEINFO       1028
+#define PRIVACY             1029
+#define IMAGE               1030
+#define TCPIP               1031
+#define OTHER               1032
+#define PPPOE               1033
+#define DDNS                1034
+#define EMAIL               1035
+#define FTP                 1036
+#define BONJOUR             1037
+#define SNMP                1038
+#define UPNP                1039
+#define HTTPS               1040
+#define P2P                 1041
+#define RTSP                1042
+#define MOTION              1043
+#define BLIND               1044
+#define SENSOR              1045
+#define SCHEDULE            1046
+#define SDSTORAGE           1047
+#define SNAPSHOT            1048
+#define DESTINATION         1049
+#define NAS                 1050
+#define SDCARD              1051
+#define FORMATSDCARD        1052
+#define REBOOT              1053
+#define RECOVEDEFAULT       1054
+#define QUERYVIDEONAMEDAY   1055
+#define QUERYVIDEOTIMEDAY   1056
+#define QUERYFILEMONTH      1057
+#define QUERYPICTURENAMEDAY 1058
+#define BACKQUERY           1059
+#define PULLMESSAGE         1060
+#define STARTPLAYING        1061
+#define PLAYSTATE           1062
+#define LOGIN               1063
+#define DOWNLOAD            1064
+#define CURRENTPLAYINGTIME  1065
+#define USERCONFIG          1066
+#define ADDUSER             1067
+#define DELETEUSER          1068
 
-#define RESPONSESTATUS       8888
-#define NETWORKERROR         8889
+#define RESPONSESTATUS      8888
+#define NETWORKERROR        8889
 
-#define TIMEOUTMSEC          2000
+#define TIMEOUTMSEC         2000
+
+class ReplyTimeout;
+
+class OPERATIONINTERFACESHARED_EXPORT NetworkAccessManager : public QNetworkAccessManager
+{
+public:
+    explicit NetworkAccessManager(QObject *parent = NULL) : QNetworkAccessManager(parent) {}
+
+    QNetworkReply *post(const QNetworkRequest &request, const QByteArray &data);
+    QNetworkReply *put(const QNetworkRequest &request, const QByteArray &data);
+
+    const QString &getErrorMsg() const { return errorMsg; }
+    void resetErrorMsg() { errorMsg.clear(); }
+
+private:
+    QString errorMsg;
+};
 
 class OPERATIONINTERFACESHARED_EXPORT VidiconProtocol : public QObject
 {
@@ -97,16 +117,21 @@ public:
         QString FactoryInfo;
     }DeviceInfo;
     void getDeviceInfomation(QString SessionID);
+
+    //登录、登出操作
     Q_INVOKABLE void login(QString user, QString passwd);
-    void logout(QString SessionID);
+    Q_INVOKABLE void logout(QString SessionID);
 
     /*********************Media Settings*********************/
 
-    //channel:   非0：鱼眼模式   0：普通模式
-    //streamtype： 0：mian  1:sub
-    void getVideoEncodingOption(QString SessionID, int Channel, int StreamType);
+    typedef struct VideoEncoding {
+        int     Channel;
+        int     StreamType;
+    } VideoEncoding;
+    void getVideoEncodingOption(QString SessionID, const VideoEncoding &param);
 
-    typedef struct VideoEncodingParameter{
+    //视频相关参数获取or设置
+    typedef struct VideoEncodingParameter {
         int     Channel;
         int     StreamType;
         QString VideoCodecType;
@@ -118,12 +143,13 @@ public:
         int     FrameRate;
         QString SnapShotImageType;
         int     GovLength;
-    }VideoEncodingParameter;
-    void getVideoEncodingParameter(QString SessionID, int Channel, int StreamType);
+    } VideoEncodingParameter;
+    void getVideoEncodingParameter(QString SessionID, const VideoEncoding &param);
     void setVideoEncodingParameter(QString SessionID, const VideoEncodingParameter &param);
 
     void getAudioEncodingCapability(QString SessionID);
 
+    //音频相关参数获取or设置
     typedef struct AudioEncodingParameter{
         int     Enabled;
         QString Encoding;
@@ -133,6 +159,7 @@ public:
     void getAudioEncodingParameter(QString SessionID);
     void setAudioEncodingParameter(QString SessionID, const AudioEncodingParameter &param);
 
+    //ROI相关参数获取or设置
     typedef struct ROIParameter{
         int AreaID;
         int Enabled;
@@ -145,6 +172,7 @@ public:
     void getROIParameter(QString SessionID);
     void setROIParameter(QString SessionID, int enabled, int ROIMode, const ROIParameter &param);
 
+    //隐私区域获取or设置
     typedef struct PrivacyMaskParameter{
         int Enabled;
         int PosX;
@@ -155,6 +183,7 @@ public:
     void getPrivacyMaskParameter(QString SessionID);
     void setPrivacyMaskParameter(QString SessionID, const PrivacyMaskParameter *param);
 
+    //OSD相关参数获取or设置
     typedef struct OSDParameter{
         int     OSDType;        //0: Channel name；1: Date and time；2:Stream size and frame rate；3: Show focus
         int     Enabled;        //0: Disabled；1: Enabled
@@ -504,22 +533,31 @@ public:
     }PlayingTimeParameter;
     Q_INVOKABLE void getCurrentPlayingTime(int htmlid, QString SessionID);
 
-    Q_INVOKABLE void downloadFile(QString fileName);
+    /*********************User Management*********************/
+
+    typedef struct UserConfigInfo {
+        QString UserName;
+        QString PassWord;
+        int Privilege;
+    } UserConfigInfo;
+    void getUserConfig(QString SessionID);
+    void setUserConfig(QString SessionID, const UserConfigInfo &info);
+
+    void addUser(QString SessionID, const UserConfigInfo &info);
+    void delUser(QString SessionID, const UserConfigInfo &info);
 
 signals:
-    void signalSendData(int type, QByteArray data);
-    void signalFinished();
+    void signalReceiveData(int type, QByteArray data);
 
 public slots:
     void init();
-    void handleTimeout();
     void handlePrePare(QNetworkRequest &request, QString RequestBody);
     void handleReply(QNetworkReply *reply);
     void handleSetParameter(int type, void *param, QString SessionID);
-    void handleGetParameter(int type, int StreamType, int Channel, QString SessionID);
+    void handleGetParameter(int type, void *param, QString SessionID);
 
 private:    
-    QNetworkAccessManager *manager;
+    NetworkAccessManager *manager;
     QNetworkReply *reply;
     QString urlPrefix;
     QString targetHost;
