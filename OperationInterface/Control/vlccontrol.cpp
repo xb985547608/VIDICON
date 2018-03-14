@@ -1,6 +1,7 @@
 #include <QDebug>
 #include "vlccontrol.h"
 #include <QThread>
+#include "util.h"
 
 VlcControl *VlcControl::_instance = NULL;
 VlcControl::VlcControl(QString host, QString port, QObject *parent) : QObject(parent),
@@ -8,7 +9,6 @@ VlcControl::VlcControl(QString host, QString port, QObject *parent) : QObject(pa
     vlcMedia(NULL),
     vlcMediaPlayer(NULL),
     vlcCache(300),
-    vlcState(VLCSTOP),
     vlcVolume(50),
     dstIPAddr(host),
     dstPort(port),
@@ -28,11 +28,9 @@ void VlcControl::handleVlcControl(int type, int subtype, WId id)
                 .arg(subtype)
                 .arg(user)
                 .arg(passwd);
-        qDebug() << url;
+
         stop();
         init(url, id);
-        play();
-        qDebug() << "#VlcControl# init vlc,start play";
         break;
     }
     case VLCCONTROLPLAY: {
@@ -117,34 +115,43 @@ int VlcControl::init(QString url, WId id)
 
     vlcWId = id;
 
+    //根据url创建一个媒体对象
     vlcMedia = libvlc_media_new_location(vlcInstance, url.toStdString().data());
     if(vlcMedia == NULL) {
         qDebug("#VlcControl# init Error, libvlc_media_new_location return NULL");
         return -1;
     }
+    //创建媒体播放器
     vlcMediaPlayer = libvlc_media_player_new_from_media(vlcMedia);
     if(vlcMediaPlayer == NULL) {
         qDebug("#VlcControl# init Error, libvlc_media_player_new_from_media return NULL");
         return -1;
     }
+    //设置显示窗口
     libvlc_media_player_set_hwnd(vlcMediaPlayer, (void *)vlcWId);
+
     setVolume(vlcVolume);
     return 0;
 }
 
 int VlcControl::play()
 {
-    int ret = -1;
-    if(vlcMediaPlayer != NULL){
-        QString para = "network-caching=" + QString::number(vlcCache);
-        libvlc_media_add_option(vlcMedia, para.toStdString().data());
+    int ret = 0;
+    if (vlcMedia == NULL)
+        return -1;
 
-        ret = libvlc_media_player_play(vlcMediaPlayer);
-        if(ret == 0) {
-            vlcState = VLCPLAY;
-        }else {
-            qDebug("#VlcControl# play Error---------------------------");
+    if (libvlc_media_get_state(vlcMedia) != libvlc_Playing) {
+        if (vlcMediaPlayer != NULL) {
+            QString para = "network-caching=" + QString::number(vlcCache);
+            libvlc_media_add_option(vlcMedia, para.toStdString().data());
+
+            ret = libvlc_media_player_play(vlcMediaPlayer);
+            if(ret == -1) {
+                qDebug("#VlcControl# play Error---------------------------");
+            }
         }
+    } else {
+        qDebug() << "#VlcControl# playing.......";
     }
     return ret;
 }
@@ -156,7 +163,6 @@ int VlcControl::pause()
     }else{
         return -1;
     }
-    vlcState = VLCPAUSE;
     return 0;
 }
 
@@ -167,6 +173,5 @@ int VlcControl::stop()
     }else{
         return -1;
     }
-    vlcState = VLCSTOP;
     return 0;
 }

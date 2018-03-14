@@ -856,11 +856,15 @@ void AlarmWidget::handlePrepareData()
 
 void AlarmWidget::handleReceiveData(int type, QByteArray data)
 {    
+    bool isOK = false;
+
     switch(type) {
     case MOTION: {
         VidiconProtocol::MotionDetectionParameter param;
         param.Plans = static_cast<TimeRegionWidget *>(motionDetectionMap["region"])->getPlans();
-        if(ParseXML::getInstance()->parseMotionParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseMotionParameter(&param, data);
+        if (isOK) {
             static_cast<QCheckBox *>(motionDetectionMap["Enable"])->setChecked(param.Enabled ? true : false);
             static_cast<QCheckBox *>(motionDetectionMap["Alarm Output"])->setChecked(param.AlarmOutput ? true : false);
             static_cast<QCheckBox *>(motionDetectionMap["Record Video"])->setChecked(param.VideoOutput ? true : false);
@@ -888,16 +892,15 @@ void AlarmWidget::handleReceiveData(int type, QByteArray data)
                 }
             }
             static_cast<MotionWidget *>(regionEditMap["region"])->update();
-            qDebug() << "#TabAlarm# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else {
-            qDebug() << "#TabAlarm# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case BLIND: {
         VidiconProtocol::VideoBlindAlarmParameter param;
         param.Plans = static_cast<TimeRegionWidget *>(videoBlindMap["region"])->getPlans();
-        if(ParseXML::getInstance()->parseBlindParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseBlindParameter(&param, data);
+        if (isOK) {
             static_cast<QCheckBox *>(videoBlindMap["Enable"])->setChecked(param.Enabled ? true : false);
             static_cast<QCheckBox *>(videoBlindMap["Output"])->setChecked(param.AlarmOutput ? true : false);
             static_cast<QCheckBox *>(videoBlindMap["Record"])->setChecked(param.VideoOutput ? true : false);
@@ -914,16 +917,15 @@ void AlarmWidget::handleReceiveData(int type, QByteArray data)
                 static_cast<QTimeEdit *>(videoBlindMap[QString("Time Period %1 start").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
                 static_cast<QTimeEdit *>(videoBlindMap[QString("Time Period %1 end").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
             }
-            qDebug() << "#TabAlarm# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabAlarm# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case SENSOR: {
         VidiconProtocol::SensorAlarmParameter param;
         param.Plans = static_cast<TimeRegionWidget *>(alarmMap["region"])->getPlans();
-        if(ParseXML::getInstance()->parseSensorParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseSensorParameter(&param, data);
+        if (isOK) {
             static_cast<QCheckBox *>(alarmMap["Enable"])->setChecked(param.Enabled ? true : false);
             static_cast<QCheckBox *>(alarmMap["Output"])->setChecked(param.AlarmOutput ? true : false);
             static_cast<QCheckBox *>(alarmMap["Record"])->setChecked(param.VideoOutput ? true : false);
@@ -940,13 +942,14 @@ void AlarmWidget::handleReceiveData(int type, QByteArray data)
                 static_cast<QTimeEdit *>(alarmMap[QString("Time Period %1 start").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
                 static_cast<QTimeEdit *>(alarmMap[QString("Time Period %1 end").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
             }
-
-            qDebug() << "#TabAlarm# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabAlarm# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
     }
     default:
-        break;
+        return;
     }
+
+    if (isOK)
+        qDebug() << "#AlarmWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
+    else
+        qDebug() << "#AlarmWidget# handleReceiveData, ParameterType:" << type << "parse data error...";
 }

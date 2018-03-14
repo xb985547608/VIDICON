@@ -83,13 +83,13 @@ void LoginWidget::keyPressEvent(QKeyEvent *event)
 
 void LoginWidget::onLoginBtn()
 {
-    if (ui->trainNum->text().isNull() &&
-            ui->coachNum->text().isNull() &&
-            ui->seatNum->text().isNull()) {
-        user = "admin";
-        passwd = "123123";
-    }
-    qDebug() << user << passwd;
+#if 0
+    user = ui->trainNum->text() + ui->coachNum->text() + ui->seatNum->text();
+    passwd = ui->password->text();
+#else
+    user = "admin";
+    passwd = "admin";
+#endif
     QMetaObject::invokeMethod(VidiconProtocol::getInstance(), "login", Q_ARG(QString, user), Q_ARG(QString, passwd));
 }
 

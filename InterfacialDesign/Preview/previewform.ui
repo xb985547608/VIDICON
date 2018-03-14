@@ -50,9 +50,7 @@
       </size>
      </property>
      <property name="styleSheet">
-      <string notr="true">QWidget#toolBar{
-	background-color: #DCDCDC
-}</string>
+      <string notr="true"/>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <property name="spacing">

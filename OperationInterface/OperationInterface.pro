@@ -43,7 +43,8 @@ HEADERS += \
     operationinterface_global.h \
     parsexml.h \
     searchdevicethread.h \
-    logger.h
+    logger.h \
+    util.h
 
 INCLUDEPATH += $PWD
 

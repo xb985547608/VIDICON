@@ -1706,16 +1706,18 @@ void VidiconProtocol::handleReply(QNetworkReply *reply)
                  << "StatusCode:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
                  << "ErrorType:" << reply->error();
         emit signalReceiveData(NETWORKERROR, manager->getErrorMsg().toStdString().data());
+
+        if (currentType == PULLMESSAGE)
+            emit signalReceiveData(currentType, QByteArray());
     }else {
-        qDebug("#VidiconProtocol# hanndlerReply, response content start............");
+//        qDebug("#VidiconProtocol# hanndlerReply, response content start............");
         QByteArray bytes = reply->readAll();
-        qDebug() << bytes.toStdString().data();
+//        qDebug() << bytes.toStdString().data();
         if(currentType != -1){
             qDebug() << "#VidiconProtocol# hanndlerReply, send signal ParameterType:" << currentType;
             emit signalReceiveData(currentType, bytes);
-
         }
-        qDebug("#VidiconProtocol# hanndlerReply, response content end  ............");
+//        qDebug("#VidiconProtocol# hanndlerReply, response content end  ............");
     }
     currentState = Leisure;
     currentType = -1;

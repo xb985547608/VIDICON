@@ -52,6 +52,7 @@ void MainWindow::loginHandler(LoginWidget::LoginState state)
     Q_UNUSED(state);
     LoginWidget::getInstance()->setVisible(false);
     setVisible(true);
+    previewWidget->handleWidgetSwitch();
 }
 
 void MainWindow::logoutHandler()
@@ -98,7 +99,6 @@ void MainWindow::handleReceiveData(int type, QByteArray data)
     default:
         break;
     }
-    this->raise();
 }
 
 

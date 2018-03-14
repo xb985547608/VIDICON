@@ -836,10 +836,14 @@ void NetworkWidget::handlePrepareData()
 
 void NetworkWidget::handleReceiveData(int type, QByteArray data)
 {
+    bool isOK = false;
+
     switch (type) {
     case TCPIP: {
         VidiconProtocol::BasicParameter param;
-        if(ParseXML::getInstance()->parseBasicParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseBasicParameter(&param, data);
+        if (isOK) {
             static_cast<QLineEdit *>(tcpIpMap["Max connection"])->setText(QString::number(param.MaxLink));
             static_cast<QComboBox *>(tcpIpMap["DHCP"])->setCurrentIndex(param.DHCP);
             static_cast<QLineEdit *>(tcpIpMap["IPv4 Address"])->setText(param.ipv4.IpAddr);
@@ -852,16 +856,15 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
             static_cast<QLineEdit *>(tcpIpMap["IPv6 DNS 1"])->setText(param.ipv6.DNS1);
             static_cast<QLineEdit *>(tcpIpMap["IPv6 DNS 2"])->setText(param.ipv6.DNS2);
             static_cast<QLineEdit *>(tcpIpMap["IPv4 MacAddr"])->setText(param.MACAddress);
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case OTHER: {
         VidiconProtocol::OtherParameter param;
         VidiconProtocol::OtherBasicParameter *param1 = (VidiconProtocol::OtherBasicParameter *)(&param);
-        if(ParseXML::getInstance()->parseOtherParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseOtherParameter(&param, data);
+        if (isOK) {
             for(int i=1; i<=3; i++) {
                 if(param1->ServerType == 1) {
                     static_cast<QLineEdit *>(tcpIpMap["HTTP Port"])->setText(QString::number(param1->Port));
@@ -874,42 +877,39 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
                 }
                 param1++;
             }
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case PPPOE: {
         VidiconProtocol::PPPOEParameter param;
-        if(ParseXML::getInstance()->parsePPPOEParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parsePPPOEParameter(&param, data);
+        if (isOK) {
             static_cast<QRadioButton *>(PPPOEMap["Enable"])->setChecked(param.Enabled ? true : false);
             static_cast<QLineEdit *>(PPPOEMap["Username"])->setText(param.PPPOEName);
             static_cast<QLineEdit *>(PPPOEMap["Password"])->setText(param.PPPOEPassword);
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case DDNS: {
         VidiconProtocol::DDNSParameter param;
-        if(ParseXML::getInstance()->parseDDNSParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseDDNSParameter(&param, data);
+        if (isOK) {
             static_cast<QRadioButton *>(DDNSClientMap["Enable"])->setChecked(param.Enabled ? true : false);
             static_cast<QComboBox *>(DDNSClientMap["Provider"])->setCurrentText(param.DDNSType);
             static_cast<QLineEdit *>(DDNSClientMap["Server"])->setText(param.DDNSServerName);
             static_cast<QLineEdit *>(DDNSClientMap["Hostname"])->setText(param.DDNSName);
             static_cast<QLineEdit *>(DDNSClientMap["Username"])->setText(param.DDNSUser);
             static_cast<QLineEdit *>(DDNSClientMap["Password"])->setText(param.DDNSPassword);
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case EMAIL: {
         VidiconProtocol::EmailParameter param;
-        if(ParseXML::getInstance()->parseEmailParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseEmailParameter(&param, data);
+        if (isOK) {
             static_cast<QRadioButton *>(EmailMap["Enable"])->setChecked(param.Enabled ? true : false);
             static_cast<QLineEdit *>(EmailMap["Motion Subject"])->setText(param.MotionAlarmTitle);
             static_cast<QLineEdit *>(EmailMap["Alarm Subject"])->setText(param.SensorAlarmTitle);
@@ -921,15 +921,14 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
             static_cast<QLineEdit *>(EmailMap["Recipient Address-2"])->setText(param.Receiver_2);
             static_cast<QLineEdit *>(EmailMap["Recipient Address-3"])->setText(param.Receiver_3);
             static_cast<QLineEdit *>(EmailMap["Recipient Address-4"])->setText(param.Receiver_4);
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case FTP: {
         VidiconProtocol::FTPParameter param;
-        if(ParseXML::getInstance()->parseFTPParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseFTPParameter(&param, data);
+        if (isOK) {
             static_cast<QRadioButton *>(FTPMap["Enable"])->setChecked(param.Enabled ? true : false);
             static_cast<QLineEdit *>(FTPMap["Server"])->setText(param.FTPServer);
             static_cast<QLineEdit *>(FTPMap["Port"])->setText(QString::number(param.FTPPort));
@@ -937,26 +936,24 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
             static_cast<QLineEdit *>(FTPMap["Username"])->setText(param.FTPUser);
             static_cast<QLineEdit *>(FTPMap["Password"])->setText(param.FTPPassword);
             static_cast<QLineEdit *>(FTPMap["Upload Directory"])->setText(param.UploadDirectory);
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case BONJOUR: {
         VidiconProtocol::BonjourParameter param;
-        if(ParseXML::getInstance()->parseBonjourParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseBonjourParameter(&param, data);
+        if (isOK) {
             static_cast<QRadioButton *>(BonjourMap["Enable"])->setChecked(param.Enabled ? true : false);
             static_cast<QLineEdit *>(BonjourMap["Bonjour"])->setText(param.Name);
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case SNMP: {
         VidiconProtocol::SNMPParameter param;
-        if(ParseXML::getInstance()->parseSNMPParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseSNMPParameter(&param, data);
+        if (isOK) {
             static_cast<QCheckBox *>(SNMPMap["SNMP v1"])->setChecked(param.EnabledVer1 ? true : false);
             static_cast<QCheckBox *>(SNMPMap["SNMP v2"])->setChecked(param.EnabledVer2 ? true : false);
             static_cast<QLineEdit *>(SNMPMap["SNMP Port"])->setText(QString::number(param.SnmpPort));
@@ -964,45 +961,44 @@ void NetworkWidget::handleReceiveData(int type, QByteArray data)
             static_cast<QLineEdit *>(SNMPMap["Write Community"])->setText(param.WritePublic);
             static_cast<QLineEdit *>(SNMPMap["Trap Address"])->setText(param.TrapAddress);
             static_cast<QLineEdit *>(SNMPMap["Trap Port"])->setText(QString::number(param.TrapPort));
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case UPNP: {
         VidiconProtocol::UPNPParameter param;
-        if(ParseXML::getInstance()->parseUPNPParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseUPNPParameter(&param, data);
+        if (isOK) {
             static_cast<QComboBox *>(UPNPMap["UPNP"])->setCurrentIndex(param.Enabled);
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case HTTPS: {
         VidiconProtocol::HTTPsParameter param;
-        if(ParseXML::getInstance()->parseHTTPsParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseHTTPsParameter(&param, data);
+        if (isOK) {
             static_cast<QRadioButton *>(HTTPsMap["Enable"])->setChecked(param.Enabled ? true : false);
             static_cast<QLineEdit *>(HTTPsMap["HTTPs Port"])->setText(QString::number(param.HTTPsPort));
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case P2P: {
         VidiconProtocol::P2PParameter param;
-        if(ParseXML::getInstance()->parseP2PParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseP2PParameter(&param, data);
+        if (isOK) {
             static_cast<QRadioButton *>(P2PMap["P2P"])->setChecked(param.Enabled ? true : false);
             static_cast<QLineEdit *>(P2PMap["UUID"])->setText(param.P2PUUID);
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabNetwork# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     default:
-        break;
+        return;
     }
+
+    if (isOK)
+        qDebug() << "#NetworkWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
+    else
+        qDebug() << "#NetworkWidget# handleReceiveData, ParameterType:" << type << "parse data error...";
 }

@@ -27,11 +27,6 @@ class OPERATIONINTERFACESHARED_EXPORT VlcControl : public QObject
     Q_OBJECT
 
 public:
-    enum VlcState{
-        VLCPLAY  = 0x01,
-        VLCSTOP  = 0x02,
-        VLCPAUSE = 0x04
-    };
     static VlcControl *getInstance(QString host = "", int port = -1)
     {
         if(_instance == NULL){
@@ -59,7 +54,7 @@ public:
     int getDuration();
     int getProgress();
     void setPosition(float pos);
-    int getVlcState() const { return vlcState; }
+    libvlc_state_t getVlcState() { return libvlc_media_get_state(vlcMedia); }
 
     int init(QString url, WId id);
     int play();
@@ -79,7 +74,6 @@ private:
     libvlc_media_player_t *vlcMediaPlayer;
     int                    vlcCache;
     WId                    vlcWId;
-    int                    vlcState;
     int                    vlcVolume;
 
     QString dstIPAddr;

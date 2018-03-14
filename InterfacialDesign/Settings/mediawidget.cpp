@@ -824,10 +824,14 @@ void MediaWidget::handlePrepareData()
 
 void MediaWidget::handleReceiveData(int type, QByteArray data)
 {
+    bool isOK = false;
+
     switch(type){
     case VIDEOENCODING:{
         VidiconProtocol::VideoEncodingParameter param;
-        if(ParseXML::getInstance()->parseVideoEncodingParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseVideoEncodingParameter(&param, data);
+        if (isOK) {
             static_cast<QComboBox *>(audioVideoMap[QString("Frame Rate %1").arg(param.StreamType)])->setCurrentText(QString::number(param.FrameRate));
             static_cast<QComboBox *>(audioVideoMap[QString("Codec %1").arg(param.StreamType)])->setCurrentText(param.VideoCodecType);
             static_cast<QComboBox *>(audioVideoMap[QString("Bitrate Mode %1").arg(param.StreamType)])->setCurrentText(param.VideoQualityControlType);
@@ -835,28 +839,24 @@ void MediaWidget::handleReceiveData(int type, QByteArray data)
             static_cast<QComboBox *>(audioVideoMap[QString("Video quality %1").arg(param.StreamType)])->setCurrentIndex(param.FixedQuality - 1);
             static_cast<QLineEdit *>(audioVideoMap[QString("Video Rate %1").arg(param.StreamType)])->setText(QString::number(param.ConstantBitRate));
             static_cast<QLineEdit *>(audioVideoMap[QString("I Frame Interval %1").arg(param.StreamType)])->setText(QString::number(param.GovLength));
-            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type
-                     << "StreamType:" << param.StreamType << "parse data success...";
-        }else{
-            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type
-                     << "StreamType:" << param.StreamType << "parse data error...";
         }
         break;
     }
     case AUDIOENCODING:{
         VidiconProtocol::AudioEncodingParameter param;
-        if(ParseXML::getInstance()->parseAudioEncodingParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseAudioEncodingParameter(&param, data);
+        if (isOK) {
             static_cast<QRadioButton *>(audioVideoMap["Audio Enable"])->setChecked(param.Enabled == 0 ? Qt::Unchecked : Qt::Checked);
             static_cast<QComboBox *>(audioVideoMap["Audio Codec"])->setCurrentText(param.Encoding);
-            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case OSD:{
         VidiconProtocol::OSDParameter *param = static_cast<OSDWidget *>(OSDMap["DisplayArea"])->getOSDParameters();
-        if(ParseXML::getInstance()->parseOSDParameter(param, data)) {
+
+        isOK = ParseXML::getInstance()->parseOSDParameter(param, data);
+        if (isOK) {
             for(int i=0; i<4; i++) {
                 switch(param[i].OSDType) {
                 case 0: {
@@ -881,15 +881,14 @@ void MediaWidget::handleReceiveData(int type, QByteArray data)
                     break;
                 }
             }
-            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case IMAGE: {
         VidiconProtocol::ImageParameter param;
-        if(ParseXML::getInstance()->parseImageParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseImageParameter(&param, data);
+        if (isOK) {
             static_cast<QSlider *>(imageMap["HueLevel"])->setValue(param.HueLevel);
             static_cast<QSlider *>(imageMap["BrightnessLevel"])->setValue(param.BrightnessLevel);
             static_cast<QSlider *>(imageMap["ContrastLevel"])->setValue(param.ContrastLevel);
@@ -925,13 +924,15 @@ void MediaWidget::handleReceiveData(int type, QByteArray data)
             static_cast<QTimeEdit *>(imageMap["time1"])->setTime(QTime(param.BeginTime.left(2).toInt(), param.BeginTime.right(2).toInt()));
             static_cast<QTimeEdit *>(imageMap["time2"])->setTime(QTime(param.EndTime.left(2).toInt(), param.EndTime.right(2).toInt()));
 
-            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabMedia# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     default:
-        break;
+        return;
     }
+
+    if (isOK)
+        qDebug() << "#MediaWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
+    else
+        qDebug() << "#MediaWidget# handleReceiveData, ParameterType:" << type << "parse data error...";
 }

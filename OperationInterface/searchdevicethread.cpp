@@ -22,23 +22,29 @@ void SearchDeviceThread::handleSearchDevice()
 
 void SearchDeviceThread::run()
 {
+    qDebug() << "#SearchDeviceThread# thread start!!";
+
     udpSocket = new QUdpSocket();
 
     while(isRun) {
+        qDebug("tag1");
         while(!(udpSocket->isValid()) || udpSocket->state() != QUdpSocket::BoundState) {
             udpSocket->abort();
             udpSocket->close();
             delete udpSocket;
             udpSocket = new QUdpSocket();
 
+            //将套接字绑定在指定接口上(这里通常与之绑定的是无线网卡的地址)
             if (!udpSocket->bind(specifiedIP, UDPMULTICASTRECEIVEPORT, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint)) {
                 qDebug() << "#SearchDeviceThread# udp socket bind error!";
+                continue;
             }
             udpSocket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
             if (!udpSocket->joinMulticastGroup(QHostAddress(UDPMULTICASTADDR))) {
-                qDebug() << "#SearchDeviceThread# udp socket join group " << " fail!";
+//                qDebug() << "#SearchDeviceThread# udp socket join group " << UDPMULTICASTADDR << " fail!";
             }
-            msleep(1000);
+            msleep(100);
+            qDebug() << "#SearchDeviceThread# prepare work finished";
         }
 
         udpSocket->writeDatagram("<Discovery/>\r\n", QHostAddress(UDPMULTICASTADDR), UDPMULTICASTSENDPORT);
@@ -47,11 +53,11 @@ void SearchDeviceThread::run()
         }else {
             qDebug() << udpSocket->error();
         }
-        msleep(1000);
+        msleep(100);
     }
     udpSocket->abort();
     udpSocket->close();
-    deleteLater();
+    qDebug() << "#SearchDeviceThread# thread end!!";
 }
 
 void SearchDeviceThread::readyRead()

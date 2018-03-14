@@ -33,11 +33,11 @@ private:
     Ui::PreviewForm *ui;
     VidiconProtocol::AlarmParameter msgs[3];
     VidiconProtocol::PullMessage param;
+    //闪烁标志
     bool sensorAlarmFlicker;
     bool motionAlarmFlicker;
     bool blindAlarmFlicker;
     bool replySuccess;   //用来同步的拉取警报
-    int timeoutSec;
 };
 
 #endif // PREVIEWWIDGET_H

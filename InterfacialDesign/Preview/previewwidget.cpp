@@ -42,7 +42,7 @@ PreviewWidget::PreviewWidget(QWidget *parent) :
     connect(timer, &QTimer::timeout, this, &PreviewWidget::handleTimeout);
     timer->start(1000);
 
-    ui->mainStream->setChecked(true);
+    ui->subStream->setChecked(true);
 }
 
 PreviewWidget::~PreviewWidget()
@@ -57,6 +57,7 @@ void PreviewWidget::updateDynamicProperty(QWidget *w)
     w->update();
 }
 
+//每次导航栏切换界面时触发该函数，根据界面的可见性决定VLC的状态
 void PreviewWidget::handleWidgetSwitch()
 {
     if(isVisible()){
@@ -79,12 +80,9 @@ void PreviewWidget::handleStreamSwitch(bool checked)
 void PreviewWidget::handleTimeout()
 {
     if(isVisible()) {
-        if(replySuccess || timeoutSec > 4) {
+        if (replySuccess) {
             emit signalGetParameter(PULLMESSAGE);
             replySuccess = false;
-            timeoutSec = 0;
-        }else {
-            timeoutSec++;
         }
 
         //处理标志闪烁情况
@@ -106,20 +104,24 @@ void PreviewWidget::handleTimeout()
         updateDynamicProperty(ui->alarm);
         updateDynamicProperty(ui->motion);
         updateDynamicProperty(ui->blind);
-    }else {
-        replySuccess = true;
+
+        emit signalVlcControl(VLCCONTROLPLAY);
     }
 }
 
 void PreviewWidget::handleReceiveData(int type, QByteArray data)
 {
+    bool isOK = false;
+
     switch(type) {
     case PULLMESSAGE: {        
         replySuccess = true;
-        if(ParseXML::getInstance()->parsePullMsg(&param, data)) {
+        isOK = ParseXML::getInstance()->parsePullMsg(&param, data);
+        if (isOK) {
             motionAlarmFlicker = false;
             sensorAlarmFlicker = false;
             blindAlarmFlicker = false;
+            //根据摄像机的应答数据来确定报警是否闪烁
             for(int i=0; i<param.AlarmCount; i++) {
                 if(param.msgs[i].AlarmType.compare("MotionAlarm", Qt::CaseInsensitive) == 0) {
                     motionAlarmFlicker = true;
@@ -129,13 +131,17 @@ void PreviewWidget::handleReceiveData(int type, QByteArray data)
                     blindAlarmFlicker = true;
                 }
             }
-            qDebug() << "#PreviewWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
         }
         break;
     }
     default:
-        break;
+        return;
     }
+
+    if (isOK)
+        qDebug() << "#PreviewWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
+    else
+        qDebug() << "#PreviewWidget# handleReceiveData, ParameterType:" << type << "parse data error...";
 }
 
 void PreviewWidget::onSnapshotBtn()

@@ -35,6 +35,7 @@ public slots:
     void handleWidgetSwitch();
     void handleReceiveData(int type, QByteArray data);
     void onPlayBtnClicked();
+    void checkPlayState();
     void onSlowForwardBtnClicked();
     void onFastPlayBtnClicked();
     void onSnapshotBtnClicked();

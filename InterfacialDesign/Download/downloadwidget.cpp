@@ -21,14 +21,10 @@ DownloadWidget::DownloadWidget(QWidget *parent) :
     QHBoxLayout *hl = new QHBoxLayout(ui->listWidget);
     hl->addWidget(listView);
 
+    //开始周期500ms的巡检
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &DownloadWidget::handleTimeout);
     timer->start(500);
-
-    QString dirStr = HttpDownload::getInstance()->getDownloadDir();
-    ui->lblDir->setToolTip(dirStr);
-    dirStr = ui->lblDir->fontMetrics().elidedText(dirStr, Qt::ElideRight, ui->lblDir->width());
-    ui->lblDir->setText(dirStr);
 
     connect(HttpDownload::getInstance(), &HttpDownload::signalFileStatus, this, &DownloadWidget::handleReceiveFileStatus);
     connect(listView, &DownloadInfoView::signalCancelDownload, HttpDownload::getInstance(), &HttpDownload::handleCancelDownload);
@@ -64,10 +60,25 @@ DownloadWidget::DownloadWidget(QWidget *parent) :
         QString dirStr = QFileDialog::getExistingDirectory(this, "选择存放下载文件的目录", QDir::currentPath());
         QMetaObject::invokeMethod(HttpDownload::getInstance(), "setDownloadDir", Q_ARG(QString, dirStr));
 
-        ui->lblDir->setToolTip(dirStr);
-        dirStr = ui->lblDir->fontMetrics().elidedText(dirStr, Qt::ElideRight, ui->lblDir->width());
-        ui->lblDir->setText(dirStr);
+        refreshDownloadDirLabel(dirStr);
     });
+}
+
+void DownloadWidget::resizeEvent(QResizeEvent *event)
+{
+    Q_UNUSED(event);
+    refreshDownloadDirLabel();
+}
+
+void DownloadWidget::refreshDownloadDirLabel(QString dirStr)
+{
+    //显示省略的下载目录
+    if (dirStr.isNull())
+        dirStr = HttpDownload::getInstance()->getDownloadDir();
+    dirStr = QString("存储目录：%1").arg(dirStr);
+    ui->lblDir->setToolTip(dirStr);
+//    dirStr = ui->lblDir->fontMetrics().elidedText(dirStr, Qt::ElideRight, ui->lblDir->width());
+    ui->lblDir->setText(dirStr);
 }
 
 void DownloadWidget::handleTimeout()
@@ -75,6 +86,7 @@ void DownloadWidget::handleTimeout()
     HttpDownload *h = HttpDownload::getInstance();
     if(h->isLeisure()) {
         QAbstractItemModel *model = listView->model();
+        //如果列表中第一行的文件正在等待下载，则开始下载该文件
         if(listView->data(model->index(0, 1)).toInt() == Waiting) {
             QString file = listView->data(model->index(0, 3)).toString();
             listView->setData(model->index(0, 1), Downloading);
@@ -91,6 +103,7 @@ void DownloadWidget::handleReceiveFileStatus(const HttpDownload::FileStatus *fil
 {
     QAbstractItemModel *model = listView->model();
     ui->lblSpeed->setText(fileStatus->speed);
+    //根据文件状态的不同做不同的处理
     if(fileStatus->state == Downloading) {
         listView->setData(model->index(0, 2), fileStatus->percent);
     }else if(fileStatus->state == Finished) {
@@ -103,6 +116,8 @@ void DownloadWidget::handleReceiveFileStatus(const HttpDownload::FileStatus *fil
         ui->lblSpeed->setText("");
         StatusTip::getInstance()->showStatusTip(QString("文件下载出错：%1").arg(fileStatus->fileName));
     }
+
+    //更新文件状态
     listView->setData(model->index(0, 1), fileStatus->state);
 }
 

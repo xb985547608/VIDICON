@@ -31,7 +31,6 @@ PlaybackWidget::PlaybackWidget(QWidget *parent) :
         emit signalAddDownloadTask(files);
     });
 
-    ui->rightBar->setStyleSheet("QWidget#rightBar{background-color:darkgray}");
     dateWidget = new DateWidget(ui->rightBar);
 
     TimerShaft *view = new TimerShaft(htmlid, ui->timeslider);
@@ -84,16 +83,17 @@ void PlaybackWidget::resizeEvent(QResizeEvent *event)
 
 void PlaybackWidget::handleWidgetSwitch()
 {
-    if(!isVisible()) {
-        isPlaying = true;
-        onPlayBtnClicked();
+    if (!isVisible()) {
+        isPlaying = false;
+        checkPlayState();
         emit signalVlcControl(VLCCONTROLSTOP);
+    } else {
+        emit signalVlcControl(VLCCONTROLINIT, BACKUPSTREAMTYPE, ui->displayArea->winId());
     }
 }
 
 void PlaybackWidget::handleReceiveData(int type, QByteArray data)
 {
-    Q_UNUSED(data);
     StatusTip *s = StatusTip::getInstance();
     bool isOK = false;
 
@@ -101,16 +101,16 @@ void PlaybackWidget::handleReceiveData(int type, QByteArray data)
     case STARTPLAYING: {
         VidiconProtocol::ResponseStatus reply;
         isOK = ParseXML::getInstance()->parseResponseStatus(&reply, data);
-        if(isOK) {
+        if (isOK) {
             QString info;
             if(reply.StatusCode == 1) {
                 info = "(*^▽^*)  开始回放";
-                isPlaying = false;
-            }else {
                 isPlaying = true;
+            }else {
+                isPlaying = false;
                 info = "(╯﹏╰)  回放失败";
             }
-            onPlayBtnClicked();
+            checkPlayState();
             s->showStatusTip(info);
         }
         break;
@@ -121,8 +121,8 @@ void PlaybackWidget::handleReceiveData(int type, QByteArray data)
         if(isOK) {
             if (param.htmlid == htmlid) {
                 if (isPlaying != (param.Playend == 0)) {
-                    isPlaying = param.Playend == 0;
-                    onPlayBtnClicked();
+                    isPlaying = param.Playend != 0;
+                    checkPlayState();
                 }
             }
         }
@@ -141,11 +141,18 @@ void PlaybackWidget::handleReceiveData(int type, QByteArray data)
 void PlaybackWidget::onPlayBtnClicked()
 {
     isPlaying = !isPlaying;
+
+
+    checkPlayState();
+}
+
+void PlaybackWidget::checkPlayState()
+{
     ui->playBtn->setProperty("State", isPlaying ? "play" : "pause");
     refreshPolish(ui->playBtn);
 
     if (isPlaying) {
-        emit signalVlcControl(VLCCONTROLINIT, BACKUPSTREAMTYPE, ui->displayArea->winId());
+        emit signalVlcControl(VLCCONTROLPLAY);
     } else {
         emit signalVlcControl(VLCCONTROLSTOP);
     }

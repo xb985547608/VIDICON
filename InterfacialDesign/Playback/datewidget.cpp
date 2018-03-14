@@ -28,6 +28,7 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
 //    layout1->addWidget(typeSelect, 0, 3, 1, 4);
 
     dateEdit = new QDateEdit(this);
+//    dateEdit->setStyleSheet("background-color:#e6f1f5");
     dateEdit->setDisplayFormat("当前日期:yyyy-MM-dd");
     connect(dateEdit, &QDateEdit::dateChanged, this, [this](QDate date){
         VidiconProtocol::BackUpQueryParameter *param1 = new VidiconProtocol::BackUpQueryParameter;
@@ -139,23 +140,29 @@ void DateWidget::mousePressEvent(QMouseEvent *event)
 
 void DateWidget::handleReceiveData(int type, QByteArray data)
 {
+    bool isOK = false;
+
     switch(type) {
     case QUERYFILEMONTH: {
         VidiconProtocol::BackUpQueryParameter param;
         MonthMap.clear();
         param.Type = 6;
         param.MonthMap = &MonthMap;
-        if(ParseXML::getInstance()->parseBackUpQueryParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseBackUpQueryParameter(&param, data);
+        if (isOK) {
             handleDateChangle(dateEdit->date());
-            qDebug() << "#DateWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else {
-            qDebug() << "#DateWidget# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     default:
-        break;
+        return;
     }
+
+    if (isOK)
+        qDebug() << "#DateWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
+    else
+        qDebug() << "#DateWidget# handleReceiveData, ParameterType:" << type << "parse data error...";
 }
 
 void DateWidget::handleDateChangle(const QDate &date)

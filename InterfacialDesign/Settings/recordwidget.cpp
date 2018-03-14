@@ -743,11 +743,15 @@ void RecordWidget::handlePrepareData()
 
 void RecordWidget::handleReceiveData(int type, QByteArray data)
 {
+    bool isOK = false;
+
     switch(type) {
     case SCHEDULE: {
         VidiconProtocol::RemoteRecordingPlan param;
         param.Plans = static_cast<TimeRegionWidget *>(scheduleMap["region"])->getPlans();
-        if(ParseXML::getInstance()->parseScheduleParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseScheduleParameter(&param, data);
+        if (isOK) {
             static_cast<QCheckBox *>(scheduleMap["Enable"])->setChecked(param.Enabled ? true : false);
 
             int week = QDate::currentDate().dayOfWeek() == 7 ? 0 : QDate::currentDate().dayOfWeek();
@@ -759,16 +763,15 @@ void RecordWidget::handleReceiveData(int type, QByteArray data)
                 static_cast<QTimeEdit *>(scheduleMap[QString("Time Period %1 start").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
                 static_cast<QTimeEdit *>(scheduleMap[QString("Time Period %1 end").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
             }
-            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case SNAPSHOT: {
         VidiconProtocol::SnapshotPlanParameter param;
         param.Plans = static_cast<TimeRegionWidget *>(snapshotMap["region"])->getPlans();
-        if(ParseXML::getInstance()->parseSnapshotParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseSnapshotParameter(&param, data);
+        if (isOK) {
             static_cast<QCheckBox *>(snapshotMap["Enable"])->setChecked(param.Enabled ? true : false);
             static_cast<QLineEdit *>(snapshotMap["Interval"])->setText(QString::number(param.SnapIntervalTime));
 
@@ -781,38 +784,38 @@ void RecordWidget::handleReceiveData(int type, QByteArray data)
                 static_cast<QTimeEdit *>(snapshotMap[QString("Time Period %1 start").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
                 static_cast<QTimeEdit *>(snapshotMap[QString("Time Period %1 end").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
             }
-            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case SDCARD: {
         VidiconProtocol::SDCardStatus param;
-        if(ParseXML::getInstance()->parseSDCardStatusParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseSDCardStatusParameter(&param, data);
+        if (isOK) {
             static_cast<QLineEdit *>(SDStorageMap["Used Space"])->setText(QString::number(param.UsedKByte));
             static_cast<QLineEdit *>(SDStorageMap["Available Space"])->setText(QString::number(param.AvailableKByte));
             static_cast<QLineEdit *>(SDStorageMap["Total Space"])->setText(QString::number(param.TotoalSizeKByte));
-            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case SDSTORAGE: {
         VidiconProtocol::SDStorageParameter param;
-        if(ParseXML::getInstance()->parseSDStorageParameter(&param, data)) {
+
+        isOK = ParseXML::getInstance()->parseSDStorageParameter(&param, data);
+        if (isOK) {
             static_cast<QComboBox *>(SDStorageMap["Overwrite"])->setCurrentIndex(param.OperType);
             static_cast<QComboBox *>(SDStorageMap["Stream"])->setCurrentIndex(param.RecordSelect);
             static_cast<QComboBox *>(SDStorageMap["Record Type"])->setCurrentIndex(param.RecordSelect);
             static_cast<QLineEdit *>(SDStorageMap["Record Time"])->setText(QString::number(param.RecordTime));
-            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else{
-            qDebug() << "#TabRecord# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     default:
-        break;
+        return;
     }
+
+    if (isOK)
+        qDebug() << "#RecordWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
+    else
+        qDebug() << "#RecordWidget# handleReceiveData, ParameterType:" << type << "parse data error...";
 }

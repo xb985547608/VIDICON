@@ -29,11 +29,13 @@ int main(int argc, char *argv[])
     //启动日志记录器
     Logger::getInstance()->start();
 
+    //安装日志记录器
 //    qInstallMessageHandler(&customMessageHandler);
 
+
     SearchDeviceThread *s = new SearchDeviceThread;
+    //网卡地址选择
     {
-        //网卡地址选择
         SelectCurrentIpDialog d;
         if(d.exec()) {
             qDebug() << d.getCurrentSelectIp().toString();
@@ -42,8 +44,7 @@ int main(int argc, char *argv[])
             exit(-1);
         }
     }
-    //开始搜寻设备
-    s->start();
+
     QLabel *lbl = new QLabel("正在搜寻设备中...");
     lbl->setAlignment(Qt::AlignCenter);
     lbl->setFixedSize(200, 100);
@@ -86,8 +87,13 @@ int main(int argc, char *argv[])
         QObject::connect(animation, &QPropertyAnimation::finished, animation, &QPropertyAnimation::deleteLater);
         animation->start();
     });
+    QObject::connect(s, &SearchDeviceThread::finished, s, &SearchDeviceThread::deleteLater);
 
     qRegisterMetaType<WId>("WId");
+
+    //开始搜寻设备
+    s->start();
+
     qDebug() << "------------------start------------------";
 
     return a.exec();

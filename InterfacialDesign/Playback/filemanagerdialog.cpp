@@ -49,34 +49,38 @@ void FileManagerDialog::keyPressEvent(QKeyEvent *event)
 
 void FileManagerDialog::handleReceiveData(int type, QByteArray data)
 {
+    bool isOK = false;
+
     switch(type) {
     case QUERYVIDEONAMEDAY: {
         VidiconProtocol::BackUpQueryParameter param;
         param.Type = 1;
-        if(ParseXML::getInstance()->parseBackUpQueryParameter(&param, data)) {
+        isOK = ParseXML::getInstance()->parseBackUpQueryParameter(&param, data);
+        if (isOK) {
             videoList = param.fileList;
-            qDebug() << "#FileManagerDialog# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else {
-            qDebug() << "#FileManagerDialog# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     case QUERYPICTURENAMEDAY: {
         VidiconProtocol::BackUpQueryParameter param;
         param.Type = 1;
-        if(ParseXML::getInstance()->parseBackUpQueryParameter(&param, data)) {
+        isOK = ParseXML::getInstance()->parseBackUpQueryParameter(&param, data);
+        if (isOK) {
             pictureList = param.fileList;
             fileView->setDataSource(isVideo ? videoList : pictureList);
-            qDebug() << "#FileManagerDialog# handleReceiveData, ParameterType:" << type << "parse data success...";
             exec();
-        }else {
-            qDebug() << "#FileManagerDialog# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     default:
-        break;
+        return;
     }
+
+    if (isOK)
+        qDebug() << "#FileManagerDialog# handleReceiveData, ParameterType:" << type << "parse data success...";
+    else
+        qDebug() << "#FileManagerDialog# handleReceiveData, ParameterType:" << type << "parse data error...";
+
 }
 
 void FileManagerDialog::handleDownload()

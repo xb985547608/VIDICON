@@ -251,7 +251,7 @@ void UserInfoView::handleDelUserInfo()
 void UserInfoView::handleAddUserInfo()
 {
     static_cast<QLineEdit *>(addUserInfoMap["User"])->clear();
-    static_cast<QComboBox *>(addUserInfoMap["Group"])->clear();
+    static_cast<QComboBox *>(addUserInfoMap["Group"])->setCurrentIndex(0);
     static_cast<QLineEdit *>(addUserInfoMap["Password"])->clear();
     static_cast<QLineEdit *>(addUserInfoMap["Confirm"])->clear();
 

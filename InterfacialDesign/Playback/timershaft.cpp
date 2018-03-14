@@ -71,7 +71,7 @@ void TimerShaft::drawGroove(QPainter &p)
 
     //绘制groove
     p.setPen(QPen(Qt::NoPen));
-    p.setBrush(QBrush(Qt::gray));
+    p.setBrush(QColor("#aab3b6"));
     QRect rect(margin, (height - GROOVEHEIGHT) / 2, width, GROOVEHEIGHT);
     p.drawRect(rect);
 
@@ -241,23 +241,28 @@ void TimerShaft::drawFloatingFrame(QPainter &p)
 
 void TimerShaft::handleReceiveData(int type, QByteArray data)
 {
+    bool isOK = false;
+
     switch(type) {
     case QUERYVIDEOTIMEDAY: {
         VidiconProtocol::BackUpQueryParameter param;
         TimeParamMap.clear();
         param.Type = 0;
-        if(ParseXML::getInstance()->parseBackUpQueryParameter(&param, data)) {
+        isOK = ParseXML::getInstance()->parseBackUpQueryParameter(&param, data);
+        if (isOK) {
             TimeParamMap = param.TimeParamMap;
             update();
-            qDebug() << "#TimerShaft# handleReceiveData, ParameterType:" << type << "parse data success...";
-        }else {
-            qDebug() << "#TimerShaft# handleReceiveData, ParameterType:" << type << "parse data error...";
         }
         break;
     }
     default:
-        break;
+        return;
     }
+
+    if (isOK)
+        qDebug() << "#TimerShaft# handleReceiveData, ParameterType:" << type << "parse data success...";
+    else
+        qDebug() << "#TimerShaft# handleReceiveData, ParameterType:" << type << "parse data error...";
 }
 
 void TimerShaft::hanlderDateChange(QDate date)
@@ -272,7 +277,7 @@ void TimerShaft::paintEvent(QPaintEvent *event)
     QPainter p(this);
 //    p.setRenderHint(QPainter::Antialiasing, true);
 
-    margin = fontMetrics().width("00:00") / 2;
+    margin = fontMetrics().width("00:00") / 2 + 2;
     width = size().width() - margin * 2;
     height = size().height();
     halfHourTickInterval = (qreal)width / 48 * stretchScale;
