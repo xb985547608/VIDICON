@@ -1,20 +1,14 @@
 #include "loginwidget.h"
 #include "ui/ui_loginform.h"
-#include <QMouseEvent>
-#include <QDebug>
 #include "settings.h"
 #include <QCryptographicHash>
-#include "Protocol/vidiconprotocol.h"
-#include "Control/vlccontrol.h"
-#include "parsexml.h"
-#include <QThread>
-#include <QTimer>
-#include <QMetaObject>
+#include <QMouseEvent>
+#include <QDebug>
 
-LoginWidget *LoginWidget::_instance = NULL;
 LoginWidget::LoginWidget(QWidget *parent) :
-    QWidget(parent) ,
-    ui(new Ui::LoginForm), windowMove(false)
+    QWidget(parent),
+    ui(new Ui::LoginForm),
+    windowMove(false)
 {
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowMinimizeButtonHint);
     ui->setupUi(this);
@@ -31,9 +25,6 @@ LoginWidget::LoginWidget(QWidget *parent) :
     connect(ui->btnLogin, SIGNAL(clicked()), this, SLOT(onLoginBtn()));
     connect(ui->btnClose, SIGNAL(clicked()), this, SLOT(onCloseBtn()));
     connect(ui->btnMinimize, SIGNAL(clicked()), this, SLOT(onMinimizeBtn()));
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &LoginWidget::handleReceiveData);
-
-    show();
 }
 
 LoginWidget::~LoginWidget()
@@ -43,9 +34,6 @@ LoginWidget::~LoginWidget()
 
 void LoginWidget::clear()
 {
-    ui->trainNum->clear();
-    ui->coachNum->clear();
-    ui->seatNum->clear();
     ui->password->clear();
     ui->lblHint->clear();
 }
@@ -83,14 +71,25 @@ void LoginWidget::keyPressEvent(QKeyEvent *event)
 
 void LoginWidget::onLoginBtn()
 {
-#if 0
-    user = ui->trainNum->text() + ui->coachNum->text() + ui->seatNum->text();
+    QString passwd;
+#if 1
     passwd = ui->password->text();
 #else
-    user = "admin";
     passwd = "admin";
 #endif
-    QMetaObject::invokeMethod(VidiconProtocol::getInstance(), "login", Q_ARG(QString, user), Q_ARG(QString, passwd));
+    LoginState mode = switchButton->getState() ? FactoryLogin : NormalLogin;
+    QString level = mode == FactoryLogin ? FACTORY_USER : NORMAL_USER;
+    QCryptographicHash c(QCryptographicHash::Md5);
+    c.addData(passwd.toLocal8Bit().data());
+    if (SettingsObject::mixMD5(c.result()).toHex().toStdString().data() ==
+            SettingsObject::getInstance()->getUserMapPasswd(level)) {
+        qDebug() << "#LoginWidget# MODE:" << mode << ", Login OK";
+        emit signalLoginState(mode);
+        hide();
+//        deleteLater();
+    } else {
+        ui->lblHint->setText("密码错误");
+    }
 }
 
 void LoginWidget::onCloseBtn()
@@ -101,27 +100,4 @@ void LoginWidget::onCloseBtn()
 void LoginWidget::onMinimizeBtn()
 {
     showMinimized();
-}
-
-void LoginWidget::handleReceiveData(int type, QByteArray data)
-{
-    switch(type) {
-    case LOGIN: {
-        VidiconProtocol::ResponseStatus reply;
-        if(ParseXML::getInstance()->parseResponseStatus(&reply, data)) {
-            if(reply.StatusString.compare("OK", Qt::CaseInsensitive) == 0) {
-                VlcControl::getInstance()->setUser(user);
-                VlcControl::getInstance()->setPasswd(passwd);
-
-                emit signalLoginState(switchButton->getState() ? LoginWidget::FactoryLogin : LoginWidget::NormalLogin);
-                clear();
-            }else {
-                ui->lblHint->setText("密码错误");
-            }
-        }
-        break;
-    }
-    default:
-        break;
-    }
 }

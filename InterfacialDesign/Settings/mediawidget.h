@@ -3,11 +3,11 @@
 
 #include <QWidget>
 #include <QMap>
-#include <QStackedWidget>
+#include "stackedwidget.h"
 
 #define TABMEDIANUM 5
 
-class MediaWidget : public QStackedWidget
+class MediaWidget : public StackedWidget
 {
     Q_OBJECT
 public:
@@ -20,32 +20,26 @@ public:
     void initROIWidget();
     void initOSDWidget();
 
-    void refreshParameter();
-
-signals:
-    void signalSetParameter(int type, void *param = NULL, QString SessionID = "R00001");
-    void signalGetParameter(int type, void *param = NULL, QString SessionID = "R00001");
-
 public slots:
-    void handleSwitchTab(const QModelIndex &index);
-    void handlePrepareData();
-    void handleReceiveData(int type, QByteArray data);
+    void setCurrentIndex(const QModelIndex &index) override;
+    void handlePrepareData() override;
+    void handleReceiveData(VidiconProtocol::Type type, QByteArray data) override;
 
 private:
-    QWidget *audioVideoWidget;
-    QMap<QString, QWidget *> audioVideoMap;
+    QWidget *m_audioVideoWidget;
+    QMap<QString, QWidget *> m_audioVideoMap;
 
-    QWidget *privacyWidget;
-    QMap<QString, QWidget *> privacyMap;
+    QWidget *m_privacyWidget;
+    QMap<QString, QWidget *> m_privacyMap;
 
-    QWidget *imageWidget;
-    QMap<QString, QWidget *> imageMap;
+    QWidget *m_imageWidget;
+    QMap<QString, QWidget *> m_imageMap;
 
-    QWidget *roiWidget;
-    QMap<QString, QWidget *> ROIMap;
+    QWidget *m_roiWidget;
+    QMap<QString, QWidget *> m_ROIMap;
 
-    QWidget *osdWidget;
-    QMap<QString, QWidget *> OSDMap;
+    QWidget *m_osdWidget;
+    QMap<QString, QWidget *> m_OSDMap;
 };
 
 #endif // TABMEDIA_H

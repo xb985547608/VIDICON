@@ -7,7 +7,6 @@
         <file>images/system.png</file>
         <file>images/loader.gif</file>
         <file>images/refresh.png</file>
-        <file>images/bgActive.png</file>
-        <file>images/bgNormal.png</file>
+        <file>images/st_background.png</file>
     </qresource>
 </RCC>

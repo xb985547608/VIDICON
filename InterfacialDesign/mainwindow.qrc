@@ -9,5 +9,6 @@
         <file>error.wav</file>
         <file>snapshot.wav</file>
         <file>success.wav</file>
+        <file>logger.configure</file>
     </qresource>
 </RCC>

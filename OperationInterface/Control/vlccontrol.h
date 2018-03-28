@@ -27,34 +27,34 @@ class OPERATIONINTERFACESHARED_EXPORT VlcControl : public QObject
     Q_OBJECT
 
 public:
-    static VlcControl *getInstance(QString host = "", int port = -1)
+    static VlcControl *getInstance()
     {
-        if(_instance == NULL){
-            _instance = new VlcControl(host, QString::number(port));
+        if(s_instance == NULL){
+            s_instance = new VlcControl();
         }
-        return _instance;
+        return s_instance;
     }
 
     ~VlcControl();
 
-    void setHost(QString host) { dstIPAddr = host; }
-    void setPort(QString port) { dstPort = port; }
-    void setUser(QString u) { user = u; }
-    void setPasswd(QString p) { passwd = p; }
+    void setHost(QString host) { m_host = host; }
+    void setPort(QString port) { m_port = port; }
+    void setUser(QString u) { m_user = u; }
+    void setPasswd(QString p) { m_passwd = p; }
 
-    void setCache(int cache) { vlcCache = cache; }
-    int  getCache() const { return vlcCache; }
+    void setCache(int cache) { m_vlcCache = cache; }
+    int  getCache() const { return m_vlcCache; }
 
-    void setWinId(WId id) { vlcWId = id; }
-    WId  getWinId() const{ return vlcWId; }
+    void setWinId(WId id) { m_vlcWId = id; }
+    WId  getWinId() const{ return m_vlcWId; }
 
     void setVolume(int volume);
-    int  getVolume() const { return vlcVolume; }
+    int  getVolume() const { return m_vlcVolume; }
 
     int getDuration();
     int getProgress();
     void setPosition(float pos);
-    libvlc_state_t getVlcState() { return libvlc_media_get_state(vlcMedia); }
+    libvlc_state_t getVlcState() { return libvlc_media_get_state(m_vlcMedia); }
 
     int init(QString url, WId id);
     int play();
@@ -62,24 +62,24 @@ public:
     int stop();
 
 private:
-    VlcControl(QString host, QString port, QObject *parent = Q_NULLPTR);
+    VlcControl(QObject *parent = Q_NULLPTR);
 
 public slots:
     void handleVlcControl(int type, int subtype, WId id);
 
 private:
-    static VlcControl     *_instance;
-    libvlc_instance_t     *vlcInstance;
-    libvlc_media_t        *vlcMedia;
-    libvlc_media_player_t *vlcMediaPlayer;
-    int                    vlcCache;
-    WId                    vlcWId;
-    int                    vlcVolume;
+    static VlcControl     *s_instance;
+    libvlc_instance_t     *m_vlcInstance;
+    libvlc_media_t        *m_vlcMedia;
+    libvlc_media_player_t *m_vlcMediaPlayer;
+    int                    m_vlcCache;
+    WId                    m_vlcWId;
+    int                    m_vlcVolume;
 
-    QString dstIPAddr;
-    QString dstPort;
-    QString user;
-    QString passwd;
+    QString m_host;
+    QString m_port;
+    QString m_user;
+    QString m_passwd;
 };
 
 #endif // VLCCONTROL_H

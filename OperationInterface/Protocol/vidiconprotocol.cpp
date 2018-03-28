@@ -11,7 +11,7 @@ QNetworkReply *NetworkAccessManager::post(const QNetworkRequest &request, const 
     //超时控制
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
     connect(timeout, &ReplyTimeout::timeout, this, [this](){
-        errorMsg = tr("网络超时");
+        m_errorMsg = tr("网络超时");
     });
 
     return reply;
@@ -24,24 +24,29 @@ QNetworkReply *NetworkAccessManager::put(const QNetworkRequest &request, const Q
     //超时控制
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
     connect(timeout, &ReplyTimeout::timeout, this, [this](){
-        errorMsg = tr("网络超时");
+        m_errorMsg = tr("网络超时");
     });
 
     return reply;
 }
 
-VidiconProtocol *VidiconProtocol::_instance = NULL;
-VidiconProtocol::VidiconProtocol(QString host, QString port, QObject *parent) : QObject(parent) ,
-    reply(NULL), targetHost(host), targetPort(port), currentState(Leisure), currentType(-1)
+VidiconProtocol *VidiconProtocol::s_instance = NULL;
+VidiconProtocol::VidiconProtocol(QObject *parent) :
+    QObject(parent),
+    m_reply(NULL),
+    m_host("192.168.0.66"),
+    m_port("80"),
+    m_currentType(NONE),
+    m_isBusy(false)
 {
 }
 
 void VidiconProtocol::init()
 {
-    manager = new NetworkAccessManager(this);
-    urlPrefix = QString("http://%1:%2").arg(targetHost, targetPort);
+    m_manager = new NetworkAccessManager(this);
+    m_urlPrefix = QString("http://%1:%2").arg(m_host, m_port);
 
-    connect(manager, SIGNAL(finished(QNetworkReply *)), this, SLOT(handleReply(QNetworkReply *)));
+    connect(m_manager, SIGNAL(finished(QNetworkReply *)), this, SLOT(handleReply(QNetworkReply *)));
 }
 
 VidiconProtocol::~VidiconProtocol()
@@ -53,20 +58,20 @@ void VidiconProtocol::getDeviceInfomation(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/DeviceInfo?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = GETDEVICEINFO;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = GETDEVICEINFO;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::login(QString user, QString passwd)
 {
     QString urlSuffix = QString("/ISAPI/Security/Login");
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -76,15 +81,17 @@ void VidiconProtocol::login(QString user, QString passwd)
                                 "</UserCheck>").arg(user).arg(passwd));
 
     handlePrePare(request, requestBody);
-    reply = manager->post(request, requestBody.toLatin1());
-    currentType = LOGIN;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
+    m_currentType = LOGIN;
+    if (m_reply->isOpen())
+        m_replyMap.insert(m_reply, m_currentType);
 }
 
 void VidiconProtocol::logout(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Security/Logout?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -93,14 +100,17 @@ void VidiconProtocol::logout(QString SessionID)
                                 "</UserCheck>").arg(SessionID));
 
     handlePrePare(request, requestBody);
-    reply = manager->post(request, requestBody.toLatin1());
+    m_reply = m_manager->post(request, requestBody.toLatin1());
+    m_currentType = LOGOUT;
+    if (m_reply->isOpen())
+        m_replyMap.insert(m_reply, m_currentType);
 }
 
-void VidiconProtocol::getVideoEncodingOption(QString SessionID, const VideoEncoding &param)
+void VidiconProtocol::getVideoEncodingOption(QString SessionID, const VideoBasic &param)
 {
     QString urlSuffix = QString("/ISAPI/VideoInfo/VideoEncodeOptions?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -112,14 +122,14 @@ void VidiconProtocol::getVideoEncodingOption(QString SessionID, const VideoEncod
                        .arg(param.StreamType));
 
     handlePrePare(request, requestBody);
-    reply = manager->post(request, requestBody.toLatin1());
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
-void VidiconProtocol::getVideoEncodingParameter(QString SessionID, const VideoEncoding &param)
+void VidiconProtocol::getVideoEncodingParameter(QString SessionID, const VideoBasic &param)
 {
     QString urlSuffix = QString("/ISAPI/VideoInfo/VideoConfig?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -131,15 +141,15 @@ void VidiconProtocol::getVideoEncodingParameter(QString SessionID, const VideoEn
                        .arg(param.StreamType));
 
     handlePrePare(request, requestBody);
-    currentType = VIDEOENCODING;
-    reply = manager->post(request, requestBody.toStdString().data());
+    m_currentType = VIDEOENCODING;
+    m_reply = m_manager->post(request, requestBody.toStdString().data());
 }
 
 void VidiconProtocol::setVideoEncodingParameter(QString SessionID, const VideoEncodingParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/VideoInfo/VideoConfig?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -170,39 +180,39 @@ void VidiconProtocol::setVideoEncodingParameter(QString SessionID, const VideoEn
 
     handlePrePare(request, requestBody);
 //    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getAudioEncodingCapability(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/AudioInfo/AudioEncodeOptions?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    reply = manager->post(request, requestBody.toLatin1());
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getAudioEncodingParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/AudioInfo/AudioConfig?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = AUDIOENCODING;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = AUDIOENCODING;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setAudioEncodingParameter(QString SessionID, const AudioEncodingParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/AudioInfo/AudioConfig?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -217,27 +227,27 @@ void VidiconProtocol::setAudioEncodingParameter(QString SessionID, const AudioEn
                                                 .arg(param.SampleRate));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getROIParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/ROI/ROIInfo?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    reply = manager->post(request, requestBody.toLatin1());
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setROIParameter(QString SessionID, int enabled, int ROIMode, const ROIParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/ROI/ROIInfo?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -262,27 +272,27 @@ void VidiconProtocol::setROIParameter(QString SessionID, int enabled, int ROIMod
                                             .arg(param.Height));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getPrivacyMaskParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/PrivacyMask?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    reply = manager->post(request, requestBody.toLatin1());
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setPrivacyMaskParameter(QString SessionID, const PrivacyMaskParameter *param)
 {
     QString urlSuffix = QString("/ISAPI/PrivacyMask?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
@@ -305,37 +315,32 @@ void VidiconProtocol::setPrivacyMaskParameter(QString SessionID, const PrivacyMa
 
     requestBody.append("</PrivacyMask>");
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getOSDParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/OSD/OSDInfo?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = OSD;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = OSD;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
-void VidiconProtocol::setOSDParameter(QString SessionID,
-                                      const OSDParameter &param1,
-                                      const OSDParameter &param2,
-                                      const OSDParameter &param3,
-                                      const OSDParameter &param4)
+void VidiconProtocol::setOSDParameter(QString SessionID, const OSDParameter *param)
 {
     QString urlSuffix = QString("/ISAPI/OSD/OSDInfo?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?><OSDInfo>"));
 
-    const OSDParameter param[4] = {param1, param2, param3, param4};
     for(int i=0; i<4; i++){
         requestBody.append(QString("<OSDParam_%1>"
                                         "<OSDType>%2</OSDType>"
@@ -360,28 +365,28 @@ void VidiconProtocol::setOSDParameter(QString SessionID,
 
     requestBody.append(QString("</OSDInfo>"));
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getBasicParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Network/NetworkConfig?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = TCPIP;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = TCPIP;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setBasicParameter(QString SessionID, const BasicParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Network/NetworkConfig?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -422,28 +427,28 @@ void VidiconProtocol::setBasicParameter(QString SessionID, const BasicParameter 
                                                  .arg(param.MACAddress));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getEmailParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Network/Email?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = EMAIL;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = EMAIL;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setEmailParameter(QString SessionID, const EmailParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Network/Email?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -478,28 +483,28 @@ void VidiconProtocol::setEmailParameter(QString SessionID, const EmailParameter 
                                                 .arg(param.SmtpPort));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getFTPParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Network/FTP?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = FTP;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = FTP;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setFTPParameter(QString SessionID, const FTPParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Network/FTP?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -520,28 +525,28 @@ void VidiconProtocol::setFTPParameter(QString SessionID, const FTPParameter &par
                                               .arg(param.FTPPort));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getDDNSParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Network/DDNS?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = DDNS;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = DDNS;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setDDNSParameter(QString SessionID, const DDNSParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Network/DDNS?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -560,28 +565,28 @@ void VidiconProtocol::setDDNSParameter(QString SessionID, const DDNSParameter &p
                                                .arg(param.DDNSPassword));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getPPPOEParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Network/PPPOE?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = PPPOE;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = PPPOE;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setPPPOEParameter(QString SessionID, const PPPOEParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Network/PPPOE?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -594,28 +599,28 @@ void VidiconProtocol::setPPPOEParameter(QString SessionID, const PPPOEParameter 
                                                 .arg(param.PPPOEPassword));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getSNMPParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Network/SNMP?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = SNMP;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = SNMP;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setSNMPParameter(QString SessionID, const SNMPParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Network/SNMP?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -638,28 +643,28 @@ void VidiconProtocol::setSNMPParameter(QString SessionID, const SNMPParameter &p
                                                .arg(param.TrapPort));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getP2PParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Network/P2P?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = P2P;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = P2P;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setP2PParameter(QString SessionID, const P2PParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Network/P2P?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -669,28 +674,28 @@ void VidiconProtocol::setP2PParameter(QString SessionID, const P2PParameter &par
                                 "</P2PStatus>").arg(param.Enabled));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getBonjourParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Network/Bonjour?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = BONJOUR;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = BONJOUR;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setBonjourParameter(QString SessionID, const BonjourParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Network/Bonjour?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -701,28 +706,28 @@ void VidiconProtocol::setBonjourParameter(QString SessionID, const BonjourParame
                                                   .arg(param.Name));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getHTTPsParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Network/HTTPs?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = HTTPS;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = HTTPS;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setHTTPsParameter(QString SessionID, const HTTPsParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Network/HTTPs?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -733,28 +738,28 @@ void VidiconProtocol::setHTTPsParameter(QString SessionID, const HTTPsParameter 
                                                 .arg(param.HTTPsPort));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getUPNPParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Network/UPNP?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = UPNP;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = UPNP;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setUPNPParameter(QString SessionID, const UPNPParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Network/UPNP?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -763,28 +768,28 @@ void VidiconProtocol::setUPNPParameter(QString SessionID, const UPNPParameter &p
                                 "</UPNPStatus>").arg(param.Enabled));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getOtherParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Network/ExtServerParam?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = OTHER;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = OTHER;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setOtherParameter(QString SessionID, const OtherParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Network/ExtServerParam?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -804,28 +809,28 @@ void VidiconProtocol::setOtherParameter(QString SessionID, const OtherParameter 
 
     requestBody.append("</ExtServer>");
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getRemoteRecordingPlan(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/RecFile/VideoPlan?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = SCHEDULE;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = SCHEDULE;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setRemoteRecordingPlan(QString SessionID, const RemoteRecordingPlan &param)
 {
     QString urlSuffix = QString("/ISAPI/RecFile/VideoPlan?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -852,28 +857,28 @@ void VidiconProtocol::setRemoteRecordingPlan(QString SessionID, const RemoteReco
     requestBody.append("</RemoteVideoPlan>");
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getSDCardStatusQuery(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Sdcard/QuerySDCardStat?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = SDCARD;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = SDCARD;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setSDCardOperation(QString SessionID, int OperType)
 {
     QString urlSuffix = QString("/ISAPI/Sdcard/SDOperation?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -882,28 +887,28 @@ void VidiconProtocol::setSDCardOperation(QString SessionID, int OperType)
                                 "</SDOperation>").arg(OperType));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getSDStorageParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Sdcard/SDStorage?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = SDSTORAGE;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = SDSTORAGE;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setSDStorageParameter(QString SessionID, const SDStorageParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Sdcard/SDStorage?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -918,28 +923,28 @@ void VidiconProtocol::setSDStorageParameter(QString SessionID, const SDStoragePa
                                               .arg(param.RecordTime));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getSnapshotPlanParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Snapshot?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = SNAPSHOT;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = SNAPSHOT;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setSnapshotPlanParameter(QString SessionID, const SnapshotPlanParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Snapshot?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -969,28 +974,28 @@ void VidiconProtocol::setSnapshotPlanParameter(QString SessionID, const Snapshot
     requestBody.append(QString("</SnapshotChannel>"));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getMotionDetectionParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Event/MotionDetectionParam?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = MOTION;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = MOTION;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setMotionDetectionParameter(QString SessionID, const MotionDetectionParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Event/MotionDetectionParam?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1032,28 +1037,28 @@ void VidiconProtocol::setMotionDetectionParameter(QString SessionID, const Motio
                                 </MotionDetectionParam>").arg(param.AreaMask));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getSensorAlarmParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Event/SensorAlarmParam?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = SENSOR;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = SENSOR;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setSensorAlarmParameter(QString SessionID, const SensorAlarmParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Event/SensorAlarmParam?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1089,28 +1094,28 @@ void VidiconProtocol::setSensorAlarmParameter(QString SessionID, const SensorAla
     requestBody.append(QString("</SensorList>"));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getVideoBlindAlarmParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Event/VideoBlindAlarmParam?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = BLIND;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = BLIND;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setVideoBlindAlarmParameter(QString SessionID, const VideoBlindAlarmParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Event/VideoBlindAlarmParam?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1146,15 +1151,15 @@ void VidiconProtocol::setVideoBlindAlarmParameter(QString SessionID, const Video
     requestBody.append(QString("</VideoBlindAlarmParam>"));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getPullAlarmRequest(QString SessionID, int channel)
 {
     QString urlSuffix = QString("/ISAPI/Alarm/PullMsg?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1164,15 +1169,15 @@ void VidiconProtocol::getPullAlarmRequest(QString SessionID, int channel)
                        .arg(channel));
 
     handlePrePare(request, requestBody);
-    currentType = PULLMESSAGE;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = PULLMESSAGE;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getMotionDetectionChanged(QString SessionID, int MotionArea)
 {
     QString urlSuffix = QString("/ISAPI/Event/MotionChange?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1182,27 +1187,27 @@ void VidiconProtocol::getMotionDetectionChanged(QString SessionID, int MotionAre
                        .arg(MotionArea));
 
     handlePrePare(request, requestBody);
-    reply = manager->post(request, requestBody.toLatin1());
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getImageParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Preview/ImageConfig?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = IMAGE;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = IMAGE;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setImageParameter(QString SessionID, const ImageParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Preview/ImageConfig?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1272,28 +1277,28 @@ void VidiconProtocol::setImageParameter(QString SessionID, const ImageParameter 
                        .arg(param.Sharpness));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getNTP(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/System/NTP?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = NTP;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = NTP;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setNTP(QString SessionID, const NTPParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/System/NTP?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1313,15 +1318,15 @@ void VidiconProtocol::setNTP(QString SessionID, const NTPParameter &param)
                        .arg(param.NTPServer));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setRestoreDefaultParameter(QString SessionID, int Enabled)
 {
     QString urlSuffix = QString("/ISAPI/System/RestoreDefault?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1331,14 +1336,14 @@ void VidiconProtocol::setRestoreDefaultParameter(QString SessionID, int Enabled)
                        .arg(Enabled));
 
     handlePrePare(request, requestBody);
-    reply = manager->put(request, requestBody.toLatin1());
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setDeviceReboot(QString SessionID, int Enabled)
 {
     QString urlSuffix = QString("/ISAPI/System/Reboot?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1348,15 +1353,15 @@ void VidiconProtocol::setDeviceReboot(QString SessionID, int Enabled)
                        .arg(Enabled));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setFormat(QString SessionID, int param)
 {
     QString urlSuffix = QString("/ISAPI/System/Format?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1366,15 +1371,15 @@ void VidiconProtocol::setFormat(QString SessionID, int param)
                        .arg(param));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::PTZControl(QString SessionID, int Zoom, int Focus)
 {
     QString urlSuffix = QString("/ISAPI/PTZ/PtzMotorsCtr?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1386,38 +1391,38 @@ void VidiconProtocol::PTZControl(QString SessionID, int Zoom, int Focus)
                        .arg(Focus));
 
     handlePrePare(request, requestBody);
-    reply = manager->put(request, requestBody.toLatin1());
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getLPRSystemVersion(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/LPR/LPRVersion?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    reply = manager->post(request, requestBody.toLatin1());
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getLPRParameter(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/LPR/LPRParam?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    reply = manager->post(request, requestBody.toLatin1());
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
-void VidiconProtocol::setLPRParameter(QString SessionID, const VidiconProtocol::LPRParameter &param1, const VidiconProtocol::AreaPoint &param2)
+void VidiconProtocol::setLPRParameter(QString SessionID, const LPRParameter &param1, const AreaPoint &param2)
 {
     QString urlSuffix = QString("/ISAPI/LPR/LPRParam?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1470,14 +1475,14 @@ void VidiconProtocol::setLPRParameter(QString SessionID, const VidiconProtocol::
     requestBody.append(QString("</LPRParam>"));
 
     handlePrePare(request, requestBody);
-    reply = manager->put(request, requestBody.toLatin1());
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::resetLPRParameter(QString SessionID, int Enabled)
 {
     QString urlSuffix = QString("/ISAPI/LPR/LPRResetParam?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1487,14 +1492,14 @@ void VidiconProtocol::resetLPRParameter(QString SessionID, int Enabled)
                        .arg(Enabled));
 
     handlePrePare(request, requestBody);
-    reply = manager->put(request, requestBody.toLatin1());
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
-void VidiconProtocol::getInformationOfLatestRecognizedPlates(QString SessionID)
+void VidiconProtocol::getInformation(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/LPR/LPROutput?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1504,14 +1509,14 @@ void VidiconProtocol::getInformationOfLatestRecognizedPlates(QString SessionID)
                        .arg(""));
 
     handlePrePare(request, requestBody);
-    reply = manager->post(request, requestBody.toLatin1());
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
-void VidiconProtocol::backUpQuery(QString SessionID, const VidiconProtocol::BackUpQueryParameter &param)
+void VidiconProtocol::backUpQuery(QString SessionID, const BackUpQueryParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Record/BackUp?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1525,30 +1530,30 @@ void VidiconProtocol::backUpQuery(QString SessionID, const VidiconProtocol::Back
     handlePrePare(request, requestBody);
     switch(param.Type) {
     case 0: {
-        currentType = QUERYVIDEOTIMEDAY;
+        m_currentType = QUERYVIDEOTIMEDAY;
         break;
     }
     case 1: {
-        currentType = QUERYVIDEONAMEDAY;
+        m_currentType = QUERYVIDEONAMEDAY;
         break;
     }
     case 2: {
-        currentType = QUERYPICTURENAMEDAY;
+        m_currentType = QUERYPICTURENAMEDAY;
         break;
     }
     case 6: {
-        currentType = QUERYFILEMONTH;
+        m_currentType = QUERYFILEMONTH;
         break;
     }
     }
-    reply = manager->put(request, requestBody.toLatin1());
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
-void VidiconProtocol::setRecordStartPlayingTime(QString SessionID, const VidiconProtocol::StartPlayingParameter &param)
+void VidiconProtocol::setRecordStartPlayingTime(QString SessionID, const StartPlayingParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Record/TimePos?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1562,15 +1567,15 @@ void VidiconProtocol::setRecordStartPlayingTime(QString SessionID, const Vidicon
                        .arg(param.Time.toString("yyyy-MM-ddTHH:mm:ss")));
 
     handlePrePare(request, requestBody);
-    currentType = STARTPLAYING;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = STARTPLAYING;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
-void VidiconProtocol::setFastOrSlowPlayState(QString SessionID, const VidiconProtocol::PlayStateParameter &param)
+void VidiconProtocol::setFastOrSlowPlayState(QString SessionID, const PlayStateParameter &param)
 {
     QString urlSuffix = QString("/ISAPI/Record/RecordRunState?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1582,15 +1587,15 @@ void VidiconProtocol::setFastOrSlowPlayState(QString SessionID, const VidiconPro
                        .arg(param.StateValue));
 
     handlePrePare(request, requestBody);
-    currentType = PLAYSTATE;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = PLAYSTATE;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getCurrentPlayingTime(int htmlid, QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/Record/GetPosTime?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1600,28 +1605,28 @@ void VidiconProtocol::getCurrentPlayingTime(int htmlid, QString SessionID)
                        .arg(htmlid));
 
     handlePrePare(request, requestBody);
-    currentType = CURRENTPLAYINGTIME;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = CURRENTPLAYINGTIME;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::getUserConfig(QString SessionID)
 {
     QString urlSuffix = QString("/ISAPI/UserManagement/UsrConfig?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
 
     handlePrePare(request, requestBody);
-    currentType = USERCONFIG;
-    reply = manager->post(request, requestBody.toLatin1());
+    m_currentType = USERCONFIG;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::setUserConfig(QString SessionID, const UserConfigInfo &info)
 {
     QString urlSuffix = QString("/ISAPI/UserManagement/UsrConfig?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1635,37 +1640,37 @@ void VidiconProtocol::setUserConfig(QString SessionID, const UserConfigInfo &inf
                        .arg(info.Privilege));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
-void VidiconProtocol::addUser(QString SessionID, const VidiconProtocol::UserConfigInfo &info)
+void VidiconProtocol::addUser(QString SessionID, const UserConfigInfo &info)
 {
-    QString urlSuffix = QString("/ISAPI/UserManagement/AddUsr?ID=%1").arg(SessionID);
+    QString urlSuffix = QString("/ISAPI/UserManagement/UsrConfig?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
-                               "<AddUsr>"
+                               "<UserManagment>"
                                    "<UserName>%1</UserName>"
                                    "<PassWord>%2</PassWord>"
                                    "<Privilege>%3</Privilege>"
-                               "</AddUsr>")
+                               "</UserManagment>")
                        .arg(info.UserName)
                        .arg(info.PassWord)
                        .arg(info.Privilege));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
-void VidiconProtocol::delUser(QString SessionID, const VidiconProtocol::UserConfigInfo &info)
+void VidiconProtocol::delUser(QString SessionID, const UserConfigInfo &info)
 {
     QString urlSuffix = QString("/ISAPI/UserManagement/DelUsr?ID=%1").arg(SessionID);
     QNetworkRequest request;
-    request.setUrl(QUrl(urlPrefix + urlSuffix));
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
 
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
@@ -1675,315 +1680,317 @@ void VidiconProtocol::delUser(QString SessionID, const VidiconProtocol::UserConf
                        .arg(info.UserName));
 
     handlePrePare(request, requestBody);
-    currentType = RESPONSESTATUS;
-    reply = manager->put(request, requestBody.toLatin1());
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
 void VidiconProtocol::handlePrePare(QNetworkRequest &request, QString RequestBody)
 {
+    //定制请求头
     request.setRawHeader(QByteArray("Accept"),           QByteArray("text/plain, */*; q=0.01"));
     request.setRawHeader(QByteArray("X-Requested-With"), QByteArray("XMLHttpRequest"));
-    request.setRawHeader(QByteArray("Referer"),          QByteArray(QString("http://%1/BaseInforPage.html").arg(targetHost).toLatin1()));
+    request.setRawHeader(QByteArray("Referer"),          QByteArray(QString("http://%1/BaseInforPage.html").arg(m_host).toLatin1()));
     request.setRawHeader(QByteArray("Accept-Language"),  QByteArray("zh-CN"));
     request.setRawHeader(QByteArray("Accept-Encoding"),  QByteArray("gzip, deflate"));
     request.setRawHeader(QByteArray("User-Agent"),       QByteArray("Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko"));
-    request.setRawHeader(QByteArray("Host"),             QByteArray(targetHost.toLatin1()));
+    request.setRawHeader(QByteArray("Host"),             QByteArray(m_host.toLatin1()));
     request.setRawHeader(QByteArray("Content-Length"),   QByteArray(QString::number(RequestBody.length()).toLatin1()));
     request.setRawHeader(QByteArray("Connection"),       QByteArray("Keep-Alive"));
     request.setRawHeader(QByteArray("Cache-Control"),    QByteArray("no-cache"));
     request.setRawHeader(QByteArray("Content-Type"),     QByteArray("application/xml"));
-
-    while(currentState == Busy) {
-        qApp->processEvents();
-    }
-    currentState = Busy;
 }
 
 void VidiconProtocol::handleReply(QNetworkReply *reply)
 {
-    if(reply->error() != QNetworkReply::NoError) {
+    if (reply->error() != QNetworkReply::NoError) {
         qDebug() << "#VidiconProtocol# hanndlerReply,"
                  << "StatusCode:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
                  << "ErrorType:" << reply->error();
-        emit signalReceiveData(NETWORKERROR, manager->getErrorMsg().toStdString().data());
+        emit signalReceiveData(NETWORKERROR, m_manager->errorMsg().toStdString().data());
 
-        if (currentType == PULLMESSAGE)
-            emit signalReceiveData(currentType, QByteArray());
-    }else {
-//        qDebug("#VidiconProtocol# hanndlerReply, response content start............");
+        if (m_replyMap.value(reply) == PULLMESSAGE)
+            emit signalReceiveData(m_currentType, QByteArray());
+    } else {
         QByteArray bytes = reply->readAll();
-//        qDebug() << bytes.toStdString().data();
-        if(currentType != -1){
-            qDebug() << "#VidiconProtocol# hanndlerReply, send signal ParameterType:" << currentType;
-            emit signalReceiveData(currentType, bytes);
+        if (m_replyMap.value(reply) != NONE) {
+            qDebug() << "#VidiconProtocol# hanndlerReply, send signal ParameterType:" << m_replyMap.value(reply);
+            emit signalReceiveData(m_replyMap.value(reply), bytes);
         }
-//        qDebug("#VidiconProtocol# hanndlerReply, response content end  ............");
+#if 0
+        qDebug("#VidiconProtocol# hanndlerReply, response content start............");
+        qDebug() << bytes.toStdString().data();
+        qDebug("#VidiconProtocol# hanndlerReply, response content end  ............");
+#endif
     }
-    currentState = Leisure;
-    currentType = -1;
-    manager->resetErrorMsg();
+    m_replyMap.remove(reply);
+    m_currentType = NONE;
+    m_manager->resetErrorMsg();
 }
 
 
-void VidiconProtocol::handleSetParameter(int type, void *param, QString SessionID)
+void VidiconProtocol::handleSetParameter(Type type, void *param, QString SessionID)
 {
     qDebug() << "#VidiconProtocol# handleSetParameter type:" << type;
     switch (type) {
-    case VIDEOENCODING: {
-        VideoEncodingParameter *temp = static_cast<VideoEncodingParameter *>(param);
-        setVideoEncodingParameter(SessionID, *temp);
-        delete temp;
-        break;
+        case VIDEOENCODING: {
+            VideoEncodingParameter *temp = static_cast<VideoEncodingParameter *>(param);
+            setVideoEncodingParameter(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case AUDIOENCODING: {
+            AudioEncodingParameter *temp = static_cast<AudioEncodingParameter *>(param);
+            setAudioEncodingParameter(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case OSD: {
+            OSDParameter *temp = static_cast<OSDParameter *>(param);
+            setOSDParameter(SessionID, temp);
+            delete []temp;
+            break;
+        }
+        case NTP: {
+            NTPParameter *temp = static_cast<NTPParameter *>(param);
+            setNTP(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case PRIVACY: {
+            PrivacyMaskParameter *temp = static_cast<PrivacyMaskParameter *>(param);
+            setPrivacyMaskParameter(SessionID, temp);
+            delete []temp;
+            break;
+        }
+        case IMAGE: {
+            ImageParameter *temp = static_cast<ImageParameter *>(param);
+            setImageParameter(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case TCPIP: {
+            BasicParameter *temp = static_cast<BasicParameter *>(param);
+            setBasicParameter(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case OTHER: {
+            OtherParameter *temp = static_cast<OtherParameter *>(param);
+            setOtherParameter(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case MOTION: {
+            MotionDetectionParameter *temp = static_cast<MotionDetectionParameter *>(param);
+            setMotionDetectionParameter(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case BLIND: {
+            VideoBlindAlarmParameter *temp = static_cast<VideoBlindAlarmParameter *>(param);
+            setVideoBlindAlarmParameter(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case SENSOR: {
+            SensorAlarmParameter *temp = static_cast<SensorAlarmParameter *>(param);
+            setSensorAlarmParameter(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case SCHEDULE: {
+            RemoteRecordingPlan *temp = static_cast<RemoteRecordingPlan *>(param);
+            setRemoteRecordingPlan(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case SDSTORAGE: {
+            SDStorageParameter *temp = static_cast<SDStorageParameter *>(param);
+            setSDStorageParameter(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case SNAPSHOT: {
+            SnapshotPlanParameter *temp = static_cast<SnapshotPlanParameter *>(param);
+            setSnapshotPlanParameter(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case FORMATSDCARD: {
+            setSDCardOperation(SessionID, 1);
+            break;
+        }
+        case REBOOT: {
+            setDeviceReboot(SessionID, 1);
+            break;
+        }
+        case RECOVEDEFAULT: {
+            setRestoreDefaultParameter(SessionID, 1);
+            break;
+        }
+        case BACKQUERY: {
+            BackUpQueryParameter *temp = static_cast<BackUpQueryParameter *>(param);
+            backUpQuery(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case STARTPLAYING: {
+            StartPlayingParameter *temp = static_cast<StartPlayingParameter *>(param);
+            setRecordStartPlayingTime(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case PLAYSTATE: {
+            PlayStateParameter *temp = static_cast<PlayStateParameter *>(param);
+            setFastOrSlowPlayState(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case USERCONFIG: {
+            UserConfigInfo *temp = static_cast<UserConfigInfo *>(param);
+            setUserConfig(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case ADDUSER: {
+            UserConfigInfo *temp = static_cast<UserConfigInfo *>(param);
+            addUser(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case DELETEUSER: {
+            UserConfigInfo *temp = static_cast<UserConfigInfo *>(param);
+            delUser(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        default:
+            qDebug() << "#VidiconProtocol# handleSetParameter ignore signal, type:" << type;
+            break;
     }
-    case AUDIOENCODING: {
-        AudioEncodingParameter *temp = static_cast<AudioEncodingParameter *>(param);
-        setAudioEncodingParameter(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case OSD: {
-        OSDParameter *temp = static_cast<OSDParameter *>(param);
-        setOSDParameter(SessionID, temp[0], temp[1], temp[2], temp[3]);
-        delete []temp;
-        break;
-    }
-    case NTP: {
-        NTPParameter *temp = static_cast<NTPParameter *>(param);
-        setNTP(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case PRIVACY: {
-        PrivacyMaskParameter *temp = static_cast<PrivacyMaskParameter *>(param);
-        setPrivacyMaskParameter(SessionID, temp);
-        delete []temp;
-        break;
-    }
-    case IMAGE: {
-        ImageParameter *temp = static_cast<ImageParameter *>(param);
-        setImageParameter(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case TCPIP: {
-        BasicParameter *temp = static_cast<BasicParameter *>(param);
-        setBasicParameter(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case OTHER: {
-        OtherParameter *temp = static_cast<OtherParameter *>(param);
-        setOtherParameter(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case MOTION: {
-        MotionDetectionParameter *temp = static_cast<MotionDetectionParameter *>(param);
-        setMotionDetectionParameter(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case BLIND: {
-        VideoBlindAlarmParameter *temp = static_cast<VideoBlindAlarmParameter *>(param);
-        setVideoBlindAlarmParameter(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case SENSOR: {
-        SensorAlarmParameter *temp = static_cast<SensorAlarmParameter *>(param);
-        setSensorAlarmParameter(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case SCHEDULE: {
-        RemoteRecordingPlan *temp = static_cast<RemoteRecordingPlan *>(param);
-        setRemoteRecordingPlan(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case SDSTORAGE: {
-        SDStorageParameter *temp = static_cast<SDStorageParameter *>(param);
-        setSDStorageParameter(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case SNAPSHOT: {
-        SnapshotPlanParameter *temp = static_cast<SnapshotPlanParameter *>(param);
-        setSnapshotPlanParameter(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case FORMATSDCARD: {
-        setSDCardOperation(SessionID, 1);
-        break;
-    }
-    case REBOOT: {
-        setDeviceReboot(SessionID, 1);
-        break;
-    }
-    case RECOVEDEFAULT: {
-        setRestoreDefaultParameter(SessionID, 1);
-        break;
-    }
-    case BACKQUERY: {
-        BackUpQueryParameter *temp = static_cast<BackUpQueryParameter *>(param);
-        backUpQuery(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case STARTPLAYING: {
-        StartPlayingParameter *temp = static_cast<StartPlayingParameter *>(param);
-        setRecordStartPlayingTime(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case PLAYSTATE: {
-        PlayStateParameter *temp = static_cast<PlayStateParameter *>(param);
-        setFastOrSlowPlayState(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case USERCONFIG: {
-        UserConfigInfo *temp = static_cast<UserConfigInfo *>(param);
-        setUserConfig(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case ADDUSER: {
-        UserConfigInfo *temp = static_cast<UserConfigInfo *>(param);
-        addUser(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    case DELETEUSER: {
-        UserConfigInfo *temp = static_cast<UserConfigInfo *>(param);
-        delUser(SessionID, *temp);
-        delete temp;
-        break;
-    }
-    default:
-        qDebug() << "#VidiconProtocol# handleSetParameter ignore signal, type:" << type;
-        break;
-    }
+    if (m_reply->isOpen())
+        m_replyMap.insert(m_reply, m_currentType);
 }
 
-void VidiconProtocol::handleGetParameter(int type, void *param, QString SessionID)
+void VidiconProtocol::handleGetParameter(Type type, void *param, QString SessionID)
 {
     qDebug() << "#VidiconProtocol# handleGetParameter type:" << type;
-
     switch (type) {
-    case VIDEOENCODING: {
-        VideoEncoding *temp = static_cast<VideoEncoding *>(param);
-        getVideoEncodingParameter(SessionID, *temp);
-        delete temp;
-        break;
+        case VIDEOENCODING: {
+            VideoBasic *temp = static_cast<VideoBasic *>(param);
+            getVideoEncodingParameter(SessionID, *temp);
+            delete temp;
+            break;
+        }
+        case AUDIOENCODING: {
+            getAudioEncodingParameter(SessionID);
+            break;
+        }
+        case IMAGE: {
+            getImageParameter(SessionID);
+            break;
+        }
+        case OSD: {
+            getOSDParameter(SessionID);
+            break;
+        }
+        case TCPIP: {
+            getBasicParameter(SessionID);
+            break;
+        }
+        case OTHER: {
+            getOtherParameter(SessionID);
+            break;
+        }
+        case PPPOE: {
+            getPPPOEParameter(SessionID);
+            break;
+        }
+        case DDNS: {
+            getDDNSParameter(SessionID);
+            break;
+        }
+        case EMAIL: {
+            getEmailParameter(SessionID);
+            break;
+        }
+        case FTP: {
+            getFTPParameter(SessionID);
+            break;
+        }
+        case BONJOUR: {
+            getBonjourParameter(SessionID);
+            break;
+        }
+        case SNMP: {
+            getSNMPParameter(SessionID);
+            break;
+        }
+        case UPNP: {
+            getUPNPParameter(SessionID);
+            break;
+        }
+        case HTTPS: {
+            getHTTPsParameter(SessionID);
+            break;
+        }
+        case P2P: {
+            getP2PParameter(SessionID);
+            break;
+        }
+        case RTSP: {
+            getOtherParameter(SessionID);
+            break;
+        }
+        case MOTION: {
+            getMotionDetectionParameter(SessionID);
+            break;
+        }
+        case SENSOR: {
+            getSensorAlarmParameter(SessionID);
+            break;
+        }
+        case BLIND: {
+            getVideoBlindAlarmParameter(SessionID);
+            break;
+        }
+        case SCHEDULE: {
+            getRemoteRecordingPlan(SessionID);
+            break;
+        }
+        case SDSTORAGE: {
+            getSDStorageParameter(SessionID);
+            break;
+        }
+        case SDCARD: {
+            getSDCardStatusQuery(SessionID);
+            break;
+        }
+        case SNAPSHOT: {
+            getSnapshotPlanParameter(SessionID);
+            break;
+        }
+        case NTP: {
+            getNTP(SessionID);
+            break;
+        }
+        case GETDEVICEINFO: {
+            getDeviceInfomation(SessionID);
+            break;
+        }
+        case PULLMESSAGE: {
+            getPullAlarmRequest(SessionID, 0);
+            break;
+        }
+        case USERCONFIG: {
+            getUserConfig(SessionID);
+        }
+        default:
+            break;
     }
-    case AUDIOENCODING: {
-        getAudioEncodingParameter(SessionID);
-        break;
-    }
-    case IMAGE: {
-        getImageParameter(SessionID);
-        break;
-    }
-    case OSD: {
-        getOSDParameter(SessionID);
-        break;
-    }
-    case TCPIP: {
-        getBasicParameter(SessionID);
-        break;
-    }
-    case OTHER: {
-        getOtherParameter(SessionID);
-        break;
-    }
-    case PPPOE: {
-        getPPPOEParameter(SessionID);
-        break;
-    }
-    case DDNS: {
-        getDDNSParameter(SessionID);
-        break;
-    }
-    case EMAIL: {
-        getEmailParameter(SessionID);
-        break;
-    }
-    case FTP: {
-        getFTPParameter(SessionID);
-        break;
-    }
-    case BONJOUR: {
-        getBonjourParameter(SessionID);
-        break;
-    }
-    case SNMP: {
-        getSNMPParameter(SessionID);
-        break;
-    }
-    case UPNP: {
-        getUPNPParameter(SessionID);
-        break;
-    }
-    case HTTPS: {
-        getHTTPsParameter(SessionID);
-        break;
-    }
-    case P2P: {
-        getP2PParameter(SessionID);
-        break;
-    }
-    case RTSP: {
-        getOtherParameter(SessionID);
-        break;
-    }
-    case MOTION: {
-        getMotionDetectionParameter(SessionID);
-        break;
-    }
-    case SENSOR: {
-        getSensorAlarmParameter(SessionID);
-        break;
-    }
-    case BLIND: {
-        getVideoBlindAlarmParameter(SessionID);
-        break;
-    }
-    case SCHEDULE: {
-        getRemoteRecordingPlan(SessionID);
-        break;
-    }
-    case SDSTORAGE: {
-        getSDStorageParameter(SessionID);
-        break;
-    }
-    case SDCARD: {
-        getSDCardStatusQuery(SessionID);
-        break;
-    }
-    case SNAPSHOT: {
-        getSnapshotPlanParameter(SessionID);
-        break;
-    }
-    case NTP: {
-        getNTP(SessionID);
-        break;
-    }
-    case GETDEVICEINFO: {
-        getDeviceInfomation(SessionID);
-        break;
-    }
-    case PULLMESSAGE: {
-        getPullAlarmRequest(SessionID, 0);
-        break;
-    }
-    case USERCONFIG: {
-        getUserConfig(SessionID);
-    }
-    default:
-        break;
-    }
+
+    if (m_reply->isOpen())
+        m_replyMap.insert(m_reply, m_currentType);
 }
 
 

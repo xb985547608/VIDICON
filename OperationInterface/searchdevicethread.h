@@ -11,35 +11,37 @@
 #define UDPMULTICASTRECEIVEPORT 3704
 #define UDPMULTICASTSENDPORT 3704
 
+struct WholeDeviceInfo{
+    QString DeviceName;
+    QString DeviceModel;
+    QString SerialNumber;
+    QString SoftwareVersion;
+    QString P2P_UID;
+    QString IPAddr;
+    QString MacAddr;
+    QString SubnetMask;
+    QString Gateway;
+    QString DNSIpAddr1;
+    QString DNSIpAddr2;
+    int     HTTPPort;
+    int     ONVIFPort;
+    int     RTSPPort;
+    int     DHCPEnabled;
+    QString Format;
+};
+Q_DECLARE_METATYPE(WholeDeviceInfo)
+
 class OPERATIONINTERFACESHARED_EXPORT SearchDeviceThread : public QThread
 {
     Q_OBJECT
 public:
-    typedef struct DeviceInfo{
-        QString DeviceName;
-        QString DeviceModel;
-        QString SerialNumber;
-        QString SoftwareVersion;
-        QString P2P_UID;
-        QString IPAddr;
-        QString MacAddr;
-        QString SubnetMask;
-        QString Gateway;
-        QString DNSIpAddr1;
-        QString DNSIpAddr2;
-        int     HTTPPort;
-        int     ONVIFPort;
-        int     RTSPPort;
-        int     DHCPEnabled;
-        QString Format;
-    }DeviceInfo;
-
     explicit SearchDeviceThread(QObject *parent = nullptr);
 
     void setSpecifiedIP(const QHostAddress &ip);
 
 signals:
-    void signalDeviceInfo(DeviceInfo *info);
+    void signalDeviceInfo(WholeDeviceInfo info);
+
 public slots:
     void handleSearchDevice();
 

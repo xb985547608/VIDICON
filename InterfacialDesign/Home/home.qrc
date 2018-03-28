@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/h_offline.png</file>
+        <file>images/h_online.png</file>
+        <file>images/h_logout.png</file>
+        <file>images/h_login.png</file>
+    </qresource>
+</RCC>

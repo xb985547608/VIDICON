@@ -1,10 +1,10 @@
 #ifndef TABSYATEM_H
 #define TABSYATEM_H
 
-#include <QStackedWidget>
 #include <QMap>
+#include "stackedwidget.h"
 
-class SystemWidget : public QStackedWidget
+class SystemWidget : public StackedWidget
 {
     Q_OBJECT
 public:
@@ -16,27 +16,23 @@ public:
     void initSetTimeWidget();
     void initUserConfigWidget();
 
-signals:
-    void signalSetParameter(int type, void *param = NULL, QString SessionID = "R00001");
-    void signalGetParameter(int type, void *param = NULL, QString SessionID = "R00001");
-
 public slots:
-    void handleSwitchTab(const QModelIndex &index);
-    void handlePrepareData();
-    void handleReceiveData(int type, QByteArray data);
+    void setCurrentIndex(const QModelIndex &index) override;
+    void handlePrepareData() override;
+    void handleReceiveData(VidiconProtocol::Type type, QByteArray data) override;
 
 private:
-    QWidget *maintenanceWidget;
-    QMap<QString, QWidget *> maintenanceMap;
+    QWidget *m_maintenanceWidget;
+    QMap<QString, QWidget *> m_maintenanceMap;
 
-    QWidget *deviceInfoWidget;
-    QMap<QString, QWidget *> deviceInfoMap;
+    QWidget *m_deviceInfoWidget;
+    QMap<QString, QWidget *> m_deviceInfoMap;
 
-    QWidget *setTimeWidget;
-    QMap<QString, QWidget *> setTimeMap;
+    QWidget *m_setTimeWidget;
+    QMap<QString, QWidget *> m_setTimeMap;
 
-    QWidget *userConfigWidget;
-    QMap<QString, QWidget *> userConfigMap;
+    QWidget *m_userConfigWidget;
+    QMap<QString, QWidget *> m_userConfigMap;
 };
 
 #endif // TABSYATEM_H

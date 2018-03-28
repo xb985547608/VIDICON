@@ -18,8 +18,8 @@ class TimeRegionWidget : public QWidget
 public:
     explicit TimeRegionWidget(QWidget *parent = nullptr);
 
-    VidiconProtocol::Plan **getPlans() { return plans; }
-    QMap<int, int> getWeeksState() { return weekStateMap; }
+    PlanBasic **getPlans() { return m_plans; }
+    QMap<int, int> getWeeksState() { return m_weekStateMap; }
 
     void insertTimeRegion(int index, const QTime &startTime, const QTime &endTime);
 
@@ -34,9 +34,9 @@ public slots:
     void handleWeekSelectState(int state);
     void handleTimeSelectState(int state);
 private:
-    QMap<int, int> weekStateMap;
-    VidiconProtocol::Plan **plans;
-    QStringList wordList;
+    QMap<int, int> m_weekStateMap;
+    PlanBasic **m_plans;
+    QStringList m_wordList;
 
 };
 

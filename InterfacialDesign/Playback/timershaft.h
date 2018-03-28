@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QPainter>
 #include "Protocol/vidiconprotocol.h"
+#include "basicwidget.h"
 
 #define GROOVEHEIGHT  10
 #define TICKMAXHEIGHT    15
@@ -15,15 +16,13 @@
 #define ONEDAYSEC    86399
 #define DIFFVALUE      5
 
-class TimerShaft : public QWidget
+class TimerShaft : public BasicWidget
 {
     Q_OBJECT
 public:
-    explicit TimerShaft(int htmlid, QWidget *parent = nullptr);
+    explicit TimerShaft(int m_htmlid, QWidget *parent = nullptr);
 
 signals:
-    void signalSetParameter(int type, void *param = NULL, QString SessionID = "R00001");
-    void signalGetParameter(int type, void *param = NULL, QString SessionID = "R00001");
 
 public slots:
     void drawTick(QPainter &p);
@@ -33,8 +32,8 @@ public slots:
     void drawCurTimeTag(QPainter &p);
     void drawInfo(QPainter &p);
     void drawFloatingFrame(QPainter &p);
-    void handleReceiveData(int type, QByteArray data);
-    void hanlderDateChange(QDate date);
+    void handleReceiveData(VidiconProtocol::Type type, QByteArray data);
+    void hanlderDateChange(QDate m_date);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -48,23 +47,23 @@ private:
     void checkStartPlayTime(QPoint pos);
 
 private:
-    qreal  stretchScale;    //缩放比例
-    QPoint movePos;         //鼠标移动的位置
-    bool   isPress;
-    bool   isMoving;        //鼠标移动的标志
-    qreal  currentPlayPos;  //播放位置的百分比
-    bool   isDragPlayPos;   //拖拽时间点标志
-    qreal  leftPos;         //时间轴左边框位置
+    qreal  m_stretchScale;    //缩放比例
+    QPoint m_movePos;         //鼠标移动的位置
+    bool   m_isPress;
+    bool   m_isMoving;        //显示浮动时间点的标志
+    qreal  m_currentPlayPos;  //播放位置的百分比
+    bool   m_isDragPlayPos;   //拖拽时间点标志
+    qreal  m_leftPos;         //时间线左上角的x值
 
-    int margin;                     //左右外边距间隙
-    int width;                      //时间轴可视宽度
-    int height;                     //时间轴高度
-    qreal halfHourTickInterval;     //时间轴中30min所占宽度
+    int m_margin;                     //时间线左右外边距间隙==>时间线的水平偏移量
+    int m_width;                      //时间线可见部分的宽度
+    int m_height;                     //时间线可见部分的高度
+    qreal m_halfHourTickInterval;     //时间线中30min所占宽度
 
-    QMap<int, VidiconProtocol::TimeParameter> TimeParamMap;
-    QDate date;
-    int htmlid;
-    bool isPlaying;
+    QMap<int, TimeParameter> m_timeParamMap;
+    QDate m_date;
+    int m_htmlid;
+    bool m_isPlaying;
 };
 
 #endif // TIMERSHAFT_H

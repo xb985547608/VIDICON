@@ -17,149 +17,142 @@
 #include "parsexml.h"
 #include <QMessageBox>
 
-RecordWidget::RecordWidget(QWidget *parent) : QStackedWidget(parent)
+RecordWidget::RecordWidget(QWidget *parent) :
+    StackedWidget(parent)
 {
     initScheduleWidget();
     initSDStorageWidget();
     initSnapshotWidget();
 //    initDestinationWidget();
 //    initNASWidget();
-
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &RecordWidget::handleReceiveData);
-    connect(this, &RecordWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
-    connect(this, &RecordWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
-
-//    emit signalGetParameter(SCHEDULEPARAMETER);
-//    emit signalGetParameter(SNAPSHOTPARAMETER);
 }
 
 RecordWidget::~RecordWidget()
 {
-    qDebug("delete TabRecord");
 }
 
 void RecordWidget::initScheduleWidget()
 {
     QStringList list;
-    scheduleWidget = new QWidget(this);
+    m_scheduleWidget = new QWidget(this);
 
-    QCheckBox *cb1 = new QCheckBox("启用录像计划", scheduleWidget);
-    scheduleMap.insert("Enable", cb1);
+    QCheckBox *cb1 = new QCheckBox("启用录像计划", m_scheduleWidget);
+    m_scheduleMap.insert("Enable", cb1);
 
-    TimeRegionWidget *region = new TimeRegionWidget(scheduleWidget);
-    scheduleMap.insert("region", region);
+    TimeRegionWidget *region = new TimeRegionWidget(m_scheduleWidget);
+    m_scheduleMap.insert("region", region);
 
-    QCheckBox *cb2 = new QCheckBox("时间段1", scheduleWidget);
+    QCheckBox *cb2 = new QCheckBox("时间段1", m_scheduleWidget);
     cb2->setObjectName("Time Period 0");
     connect(cb2, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
     connect(cb2, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
-    scheduleMap.insert("Time Period 0", cb2);
-    QTimeEdit *time1 = new QTimeEdit(scheduleWidget);
+    m_scheduleMap.insert("Time Period 0", cb2);
+    QTimeEdit *time1 = new QTimeEdit(m_scheduleWidget);
     time1->setEnabled(false);
     time1->setObjectName("Time Period 0 start");
     connect(time1, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    scheduleMap.insert("Time Period 0 start", time1);
-    QLabel *lbl1 = new QLabel("-", scheduleWidget);
-    QTimeEdit *time2 = new QTimeEdit(scheduleWidget);
+    m_scheduleMap.insert("Time Period 0 start", time1);
+    QLabel *lbl1 = new QLabel("-", m_scheduleWidget);
+    QTimeEdit *time2 = new QTimeEdit(m_scheduleWidget);
     time2->setTime(QTime(23, 59, 59));
     time2->setEnabled(false);
     time2->setObjectName("Time Period 0 end");
     connect(time2, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    scheduleMap.insert("Time Period 0 end", time2);
+    m_scheduleMap.insert("Time Period 0 end", time2);
 
-    QCheckBox *cb3 = new QCheckBox("时间段2", scheduleWidget);
+    QCheckBox *cb3 = new QCheckBox("时间段2", m_scheduleWidget);
     cb3->setObjectName("Time Period 1");
     connect(cb3, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
     connect(cb3, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
-    scheduleMap.insert("Time Period 1", cb3);
-    QTimeEdit *time3 = new QTimeEdit(scheduleWidget);
+    m_scheduleMap.insert("Time Period 1", cb3);
+    QTimeEdit *time3 = new QTimeEdit(m_scheduleWidget);
     time3->setEnabled(false);
     time3->setObjectName("Time Period 1 start");
     connect(time3, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    scheduleMap.insert("Time Period 1 start", time3);
-    QLabel *lbl2 = new QLabel("-", scheduleWidget);
-    QTimeEdit *time4 = new QTimeEdit(scheduleWidget);
+    m_scheduleMap.insert("Time Period 1 start", time3);
+    QLabel *lbl2 = new QLabel("-", m_scheduleWidget);
+    QTimeEdit *time4 = new QTimeEdit(m_scheduleWidget);
     time4->setTime(QTime(23, 59, 59));
     time4->setEnabled(false);
     time4->setObjectName("Time Period 1 end");
     connect(time4, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    scheduleMap.insert("Time Period 1 end", time4);
+    m_scheduleMap.insert("Time Period 1 end", time4);
 
-    QCheckBox *cb4 = new QCheckBox("时间段3", scheduleWidget);
+    QCheckBox *cb4 = new QCheckBox("时间段3", m_scheduleWidget);
     cb4->setObjectName("Time Period 2");
     connect(cb4, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
     connect(cb4, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
-    scheduleMap.insert("Time Period 2", cb4);
-    QTimeEdit *time5 = new QTimeEdit(scheduleWidget);
+    m_scheduleMap.insert("Time Period 2", cb4);
+    QTimeEdit *time5 = new QTimeEdit(m_scheduleWidget);
     time5->setEnabled(false);
     time5->setObjectName("Time Period 2 start");
     connect(time5, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    scheduleMap.insert("Time Period 2 start", time5);
-    QLabel *lbl3 = new QLabel("-", scheduleWidget);
-    QTimeEdit *time6 = new QTimeEdit(scheduleWidget);
+    m_scheduleMap.insert("Time Period 2 start", time5);
+    QLabel *lbl3 = new QLabel("-", m_scheduleWidget);
+    QTimeEdit *time6 = new QTimeEdit(m_scheduleWidget);
     time6->setTime(QTime(23, 59, 59));
     time6->setEnabled(false);
     time6->setObjectName("Time Period 2 end");
     connect(time6, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    scheduleMap.insert("Time Period 2 end", time6);
+    m_scheduleMap.insert("Time Period 2 end", time6);
 
-    QCheckBox *cb5 = new QCheckBox("时间段4", scheduleWidget);
+    QCheckBox *cb5 = new QCheckBox("时间段4", m_scheduleWidget);
     cb5->setObjectName("Time Period 3");
     connect(cb5, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
     connect(cb5, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
-    scheduleMap.insert("Time Period 3", cb5);
-    QTimeEdit *time7 = new QTimeEdit(scheduleWidget);
+    m_scheduleMap.insert("Time Period 3", cb5);
+    QTimeEdit *time7 = new QTimeEdit(m_scheduleWidget);
     time7->setEnabled(false);
     time7->setObjectName("Time Period 3 start");
     connect(time7, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    scheduleMap.insert("Time Period 3 start", time7);
-    QLabel *lbl4 = new QLabel("-", scheduleWidget);
-    QTimeEdit *time8 = new QTimeEdit(scheduleWidget);
+    m_scheduleMap.insert("Time Period 3 start", time7);
+    QLabel *lbl4 = new QLabel("-", m_scheduleWidget);
+    QTimeEdit *time8 = new QTimeEdit(m_scheduleWidget);
     time8->setTime(QTime(23, 59, 59));
     time8->setEnabled(false);
     time8->setObjectName("Time Period 3 end");
     connect(time8, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    scheduleMap.insert("Time Period 3 end", time8);
+    m_scheduleMap.insert("Time Period 3 end", time8);
 
-    QPushButton *btn1 = new QPushButton("全选", scheduleWidget);
+    QPushButton *btn1 = new QPushButton("全选", m_scheduleWidget);
     connect(btn1, &QPushButton::clicked, this, &RecordWidget::handleSelectAllWeek);
 
-    QCheckBox *cb6 = new QCheckBox("周天", scheduleWidget);
+    QCheckBox *cb6 = new QCheckBox("周天", m_scheduleWidget);
     cb6->setObjectName("week 0");
     connect(cb6, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
-    scheduleMap.insert("week 0", cb6);
+    m_scheduleMap.insert("week 0", cb6);
 
-    QCheckBox *cb7 = new QCheckBox("周一", scheduleWidget);
+    QCheckBox *cb7 = new QCheckBox("周一", m_scheduleWidget);
     cb7->setObjectName("week 1");
     connect(cb7, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
-    scheduleMap.insert("week 1", cb7);
+    m_scheduleMap.insert("week 1", cb7);
 
-    QCheckBox *cb8 = new QCheckBox("周二", scheduleWidget);
+    QCheckBox *cb8 = new QCheckBox("周二", m_scheduleWidget);
     cb8->setObjectName("week 2");
     connect(cb8, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
-    scheduleMap.insert("week 2", cb8);
+    m_scheduleMap.insert("week 2", cb8);
 
-    QCheckBox *cb9 = new QCheckBox("周三", scheduleWidget);
+    QCheckBox *cb9 = new QCheckBox("周三", m_scheduleWidget);
     cb9->setObjectName("week 3");
     connect(cb9, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
-    scheduleMap.insert("week 3", cb9);
+    m_scheduleMap.insert("week 3", cb9);
 
-    QCheckBox *cb10 = new QCheckBox("周四", scheduleWidget);
+    QCheckBox *cb10 = new QCheckBox("周四", m_scheduleWidget);
     cb10->setObjectName("week 4");
     connect(cb10, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
-    scheduleMap.insert("week 4", cb10);
+    m_scheduleMap.insert("week 4", cb10);
 
-    QCheckBox *cb11 = new QCheckBox("周五", scheduleWidget);
+    QCheckBox *cb11 = new QCheckBox("周五", m_scheduleWidget);
     cb11->setObjectName("week 5");
     connect(cb11, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
-    scheduleMap.insert("week 5", cb11);
+    m_scheduleMap.insert("week 5", cb11);
 
-    QCheckBox *cb12 = new QCheckBox("周六", scheduleWidget);
+    QCheckBox *cb12 = new QCheckBox("周六", m_scheduleWidget);
     cb12->setObjectName("week 6");
     connect(cb12, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
-    scheduleMap.insert("week 6", cb12);
+    m_scheduleMap.insert("week 6", cb12);
 
-    QPushButton *btn2 = new QPushButton("保存", scheduleWidget);
+    QPushButton *btn2 = new QPushButton("保存", m_scheduleWidget);
     connect(btn2, &QPushButton::clicked, this, &RecordWidget::handlePrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -210,78 +203,78 @@ void RecordWidget::initScheduleWidget()
     layout2->addLayout(layout1);
     layout2->addStretch();
 
-    QHBoxLayout *layout3 = new QHBoxLayout(scheduleWidget);
+    QHBoxLayout *layout3 = new QHBoxLayout(m_scheduleWidget);
     layout3->addStretch(1);
     layout3->addLayout(layout2, 4);
     layout3->addStretch(1);
 
-    addWidget(scheduleWidget);
+    addWidget(m_scheduleWidget);
 }
 
 void RecordWidget::initSDStorageWidget()
 {
     QStringList list;
-    SDStorageWidget = new QWidget(this);
+    m_SDStorageWidget = new QWidget(this);
 
-    QRadioButton *rBtn1 = new QRadioButton("掉线自动录像", SDStorageWidget);
-    SDStorageMap.insert("Offline Record", rBtn1);
-    QRadioButton *rBtn2 = new QRadioButton("自动续传", SDStorageWidget);
-    SDStorageMap.insert("Auto Upload", rBtn2);
+    QRadioButton *rBtn1 = new QRadioButton("掉线自动录像", m_SDStorageWidget);
+    m_SDStorageMap.insert("Offline Record", rBtn1);
+    QRadioButton *rBtn2 = new QRadioButton("自动续传", m_SDStorageWidget);
+    m_SDStorageMap.insert("Auto Upload", rBtn2);
 
     rBtn1->setVisible(false);
     rBtn2->setVisible(false);
 
-    QLabel *lbl1 = new QLabel("SD总大小：", SDStorageWidget);
-    QLineEdit *lineEdit1 = new QLineEdit(SDStorageWidget);
+    QLabel *lbl1 = new QLabel("SD总大小：", m_SDStorageWidget);
+    LineEdit *lineEdit1 = new LineEdit(m_SDStorageWidget);
     lineEdit1->setReadOnly(true);
-    SDStorageMap.insert("Total Space", lineEdit1);
+    m_SDStorageMap.insert("Total Space", lineEdit1);
 
-    QLabel *lbl2 = new QLabel("SD已使用大小：", SDStorageWidget);
-    QLineEdit *lineEdit2 = new QLineEdit(SDStorageWidget);
+    QLabel *lbl2 = new QLabel("SD已使用大小：", m_SDStorageWidget);
+    LineEdit *lineEdit2 = new LineEdit(m_SDStorageWidget);
     lineEdit2->setReadOnly(true);
-    SDStorageMap.insert("Used Space", lineEdit2);
+    m_SDStorageMap.insert("Used Space", lineEdit2);
 
-    QLabel *lbl3 = new QLabel("SD未使用大小：", SDStorageWidget);
-    QLineEdit *lineEdit3 = new QLineEdit(SDStorageWidget);
+    QLabel *lbl3 = new QLabel("SD未使用大小：", m_SDStorageWidget);
+    LineEdit *lineEdit3 = new LineEdit(m_SDStorageWidget);
     lineEdit3->setReadOnly(true);
-    SDStorageMap.insert("Available Space", lineEdit3);
+    m_SDStorageMap.insert("Available Space", lineEdit3);
 
-    QPushButton *btn1 = new QPushButton("刷新", SDStorageWidget);
-    connect(btn1, &QPushButton::clicked, this, [this](){ emit signalGetParameter(SDCARD); });
-    QPushButton *btn2 = new QPushButton("格式化", SDStorageWidget);
+    QPushButton *btn1 = new QPushButton("刷新", m_SDStorageWidget);
+    connect(btn1, &QPushButton::clicked, this, [this](){ emit signalGetParameter(VidiconProtocol::SDCARD); });
+    QPushButton *btn2 = new QPushButton("格式化", m_SDStorageWidget);
     connect(btn2, &QPushButton::clicked, this, [this](){
         if(QMessageBox::question(this, "警告", "是否格式化SD卡") == QMessageBox::Yes) {
-            emit signalSetParameter(FORMATSDCARD, NULL);
+            emit signalSetParameter(VidiconProtocol::FORMATSDCARD, NULL);
         }
     });
 
-    QLabel *lbl4 = new QLabel("SD内存已满时：", SDStorageWidget);
-    QComboBox *comboBox1 = new QComboBox(SDStorageWidget);
+    QLabel *lbl4 = new QLabel("SD内存已满时：", m_SDStorageWidget);
+    QComboBox *comboBox1 = new QComboBox(m_SDStorageWidget);
     list << "循环录像" << "停止录像";
     comboBox1->addItems(list);
     list.clear();
-    SDStorageMap.insert("Overwrite", comboBox1);
+    m_SDStorageMap.insert("Overwrite", comboBox1);
 
-    QLabel *lbl5 = new QLabel("录像码流：", SDStorageWidget);
-    QComboBox *comboBox2 = new QComboBox(SDStorageWidget);
+    QLabel *lbl5 = new QLabel("录像码流：", m_SDStorageWidget);
+    QComboBox *comboBox2 = new QComboBox(m_SDStorageWidget);
     list << "主码流" << "子码流";
     comboBox2->addItems(list);
     list.clear();
-    SDStorageMap.insert("Stream", comboBox2);
+    m_SDStorageMap.insert("Stream", comboBox2);
 
-    QLabel *lbl6 = new QLabel("录像类型：", SDStorageWidget);
-    QComboBox *comboBox3 = new QComboBox(SDStorageWidget);
+    QLabel *lbl6 = new QLabel("录像类型：", m_SDStorageWidget);
+    QComboBox *comboBox3 = new QComboBox(m_SDStorageWidget);
     list << "ivd" << "mp4";
     comboBox3->addItems(list);
     list.clear();
-    SDStorageMap.insert("Record Type", comboBox1);
+    m_SDStorageMap.insert("Record Type", comboBox1);
 
-    QLabel *lbl7 = new QLabel("录像时间(100-600秒)：", SDStorageWidget);
-    QLineEdit *lineEdit4 = new QLineEdit(SDStorageWidget);
-    lineEdit4->setValidator(new QIntValidator(100, 600, SDStorageWidget));
-    SDStorageMap.insert("Record Time", lineEdit4);
+    QLabel *lbl7 = new QLabel("录像时间(100-600秒)：", m_SDStorageWidget);
+    LineEdit *lineEdit4 = new LineEdit(m_SDStorageWidget);
+    lineEdit4->setValidator(new QIntValidator(100, 600, m_SDStorageWidget));
+    m_SDStorageMap.insert("Record Time", lineEdit4);
 
-    QPushButton *btn3 = new QPushButton("保存", SDStorageWidget);
+    QPushButton *btn3 = new QPushButton("保存", m_SDStorageWidget);
     connect(btn3, &QPushButton::clicked, this, &RecordWidget::handlePrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -318,140 +311,140 @@ void RecordWidget::initSDStorageWidget()
     layout2->addLayout(layout1);
     layout2->addStretch();
 
-    QHBoxLayout *layout3 = new QHBoxLayout(SDStorageWidget);
+    QHBoxLayout *layout3 = new QHBoxLayout(m_SDStorageWidget);
     layout3->addStretch(1);
     layout3->addLayout(layout2, 4);
     layout3->addStretch(1);
 
-    addWidget(SDStorageWidget);
+    addWidget(m_SDStorageWidget);
 }
 
 void RecordWidget::initSnapshotWidget()
 {
-    snapshotWidget = new QWidget(this);
+    m_snapshotWidget = new QWidget(this);
 
-    QCheckBox *cb1 = new QCheckBox("启用抓拍设置", snapshotWidget);
-    snapshotMap.insert("Enable", cb1);
+    QCheckBox *cb1 = new QCheckBox("启用抓拍设置", m_snapshotWidget);
+    m_snapshotMap.insert("Enable", cb1);
 
-    QLabel *lbl1 = new QLabel("抓拍时间间隔(秒)(1-600):", snapshotWidget);
-    QLineEdit *lineEdit1 = new QLineEdit(snapshotWidget);
-    lineEdit1->setValidator(new QIntValidator(1, 600, snapshotWidget));
-    snapshotMap.insert("Interval", lineEdit1);
+    QLabel *lbl1 = new QLabel("抓拍时间间隔(秒)(1-600):", m_snapshotWidget);
+    LineEdit *lineEdit1 = new LineEdit(m_snapshotWidget);
+    lineEdit1->setValidator(new QIntValidator(1, 600, m_snapshotWidget));
+    m_snapshotMap.insert("Interval", lineEdit1);
 
-    TimeRegionWidget *region = new TimeRegionWidget(snapshotWidget);
-    snapshotMap.insert("region", region);
+    TimeRegionWidget *region = new TimeRegionWidget(m_snapshotWidget);
+    m_snapshotMap.insert("region", region);
 
-    QCheckBox *cb2 = new QCheckBox("时间段1", snapshotWidget);
+    QCheckBox *cb2 = new QCheckBox("时间段1", m_snapshotWidget);
     cb2->setObjectName("Time Period 0");
     connect(cb2, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
     connect(cb2, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
-    snapshotMap.insert("Time Period 0", cb2);
-    QTimeEdit *time1 = new QTimeEdit(snapshotWidget);
+    m_snapshotMap.insert("Time Period 0", cb2);
+    QTimeEdit *time1 = new QTimeEdit(m_snapshotWidget);
     time1->setEnabled(false);
     time1->setObjectName("Time Period 0 start");
     connect(time1, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    snapshotMap.insert("Time Period 0 start", time1);
-    QLabel *lbl2 = new QLabel("-", snapshotWidget);
-    QTimeEdit *time2 = new QTimeEdit(snapshotWidget);
+    m_snapshotMap.insert("Time Period 0 start", time1);
+    QLabel *lbl2 = new QLabel("-", m_snapshotWidget);
+    QTimeEdit *time2 = new QTimeEdit(m_snapshotWidget);
     time2->setTime(QTime(23, 59, 59));
     time2->setEnabled(false);
     time2->setObjectName("Time Period 0 end");
     connect(time2, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    snapshotMap.insert("Time Period 0 end", time2);
+    m_snapshotMap.insert("Time Period 0 end", time2);
 
-    QCheckBox *cb3 = new QCheckBox("时间段2", snapshotWidget);
+    QCheckBox *cb3 = new QCheckBox("时间段2", m_snapshotWidget);
     cb3->setObjectName("Time Period 1");
     connect(cb3, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
     connect(cb3, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
-    snapshotMap.insert("Time Period 1", cb3);
-    QTimeEdit *time3 = new QTimeEdit(snapshotWidget);
+    m_snapshotMap.insert("Time Period 1", cb3);
+    QTimeEdit *time3 = new QTimeEdit(m_snapshotWidget);
     time3->setEnabled(false);
     time3->setObjectName("Time Period 1 start");
     connect(time3, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    snapshotMap.insert("Time Period 1 start", time3);
-    QLabel *lbl3 = new QLabel("-", snapshotWidget);
-    QTimeEdit *time4 = new QTimeEdit(snapshotWidget);
+    m_snapshotMap.insert("Time Period 1 start", time3);
+    QLabel *lbl3 = new QLabel("-", m_snapshotWidget);
+    QTimeEdit *time4 = new QTimeEdit(m_snapshotWidget);
     time4->setTime(QTime(23, 59, 59));
     time4->setEnabled(false);
     time4->setObjectName("Time Period 1 end");
     connect(time4, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    snapshotMap.insert("Time Period 1 end", time4);
+    m_snapshotMap.insert("Time Period 1 end", time4);
 
-    QCheckBox *cb4 = new QCheckBox("时间段3", snapshotWidget);
+    QCheckBox *cb4 = new QCheckBox("时间段3", m_snapshotWidget);
     cb4->setObjectName("Time Period 2");
     connect(cb4, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
     connect(cb4, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
-    snapshotMap.insert("Time Period 2", cb4);
-    QTimeEdit *time5 = new QTimeEdit(snapshotWidget);
+    m_snapshotMap.insert("Time Period 2", cb4);
+    QTimeEdit *time5 = new QTimeEdit(m_snapshotWidget);
     time5->setEnabled(false);
     time5->setObjectName("Time Period 2 start");
     connect(time5, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    snapshotMap.insert("Time Period 2 start", time5);
-    QLabel *lbl4 = new QLabel("-", snapshotWidget);
-    QTimeEdit *time6 = new QTimeEdit(snapshotWidget);
+    m_snapshotMap.insert("Time Period 2 start", time5);
+    QLabel *lbl4 = new QLabel("-", m_snapshotWidget);
+    QTimeEdit *time6 = new QTimeEdit(m_snapshotWidget);
     time6->setTime(QTime(23, 59, 59));
     time6->setEnabled(false);
     time6->setObjectName("Time Period 2 end");
     connect(time6, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    snapshotMap.insert("Time Period 2 end", time6);
+    m_snapshotMap.insert("Time Period 2 end", time6);
 
-    QCheckBox *cb5 = new QCheckBox("时间段4", snapshotWidget);
+    QCheckBox *cb5 = new QCheckBox("时间段4", m_snapshotWidget);
     cb5->setObjectName("Time Period 3");
     connect(cb5, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleTimeSelectState);
     connect(cb5, &QCheckBox::stateChanged, this, &RecordWidget::handleTimeSelect);
-    snapshotMap.insert("Time Period 3", cb5);
-    QTimeEdit *time7 = new QTimeEdit(snapshotWidget);
+    m_snapshotMap.insert("Time Period 3", cb5);
+    QTimeEdit *time7 = new QTimeEdit(m_snapshotWidget);
     time7->setEnabled(false);
     time7->setObjectName("Time Period 3 start");
     connect(time7, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    snapshotMap.insert("Time Period 3 start", time7);
-    QLabel *lbl5 = new QLabel("-", snapshotWidget);
-    QTimeEdit *time8 = new QTimeEdit(snapshotWidget);
+    m_snapshotMap.insert("Time Period 3 start", time7);
+    QLabel *lbl5 = new QLabel("-", m_snapshotWidget);
+    QTimeEdit *time8 = new QTimeEdit(m_snapshotWidget);
     time8->setTime(QTime(23, 59, 59));
     time8->setEnabled(false);
     time8->setObjectName("Time Period 3 end");
     connect(time8, &QTimeEdit::timeChanged, region, &TimeRegionWidget::handleTimeChange);
-    snapshotMap.insert("Time Period 3 end", time8);
+    m_snapshotMap.insert("Time Period 3 end", time8);
 
-    QPushButton *btn1 = new QPushButton("全选", snapshotWidget);
+    QPushButton *btn1 = new QPushButton("全选", m_snapshotWidget);
     connect(btn1, &QPushButton::clicked, this, &RecordWidget::handleSelectAllWeek);
 
-    QCheckBox *cb6 = new QCheckBox("周天", snapshotWidget);
+    QCheckBox *cb6 = new QCheckBox("周天", m_snapshotWidget);
     cb6->setObjectName("week 0");
     connect(cb6, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
-    snapshotMap.insert("week 0", cb6);
+    m_snapshotMap.insert("week 0", cb6);
 
-    QCheckBox *cb7 = new QCheckBox("周一", snapshotWidget);
+    QCheckBox *cb7 = new QCheckBox("周一", m_snapshotWidget);
     cb7->setObjectName("week 1");
     connect(cb7, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
-    snapshotMap.insert("week 1", cb7);
+    m_snapshotMap.insert("week 1", cb7);
 
-    QCheckBox *cb8 = new QCheckBox("周二", snapshotWidget);
+    QCheckBox *cb8 = new QCheckBox("周二", m_snapshotWidget);
     cb8->setObjectName("week 2");
     connect(cb8, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
-    snapshotMap.insert("week 2", cb8);
+    m_snapshotMap.insert("week 2", cb8);
 
-    QCheckBox *cb9 = new QCheckBox("周三", snapshotWidget);
+    QCheckBox *cb9 = new QCheckBox("周三", m_snapshotWidget);
     cb9->setObjectName("week 3");
     connect(cb9, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
-    snapshotMap.insert("week 3", cb9);
+    m_snapshotMap.insert("week 3", cb9);
 
-    QCheckBox *cb10 = new QCheckBox("周四", snapshotWidget);
+    QCheckBox *cb10 = new QCheckBox("周四", m_snapshotWidget);
     cb10->setObjectName("week 4");
     connect(cb10, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
-    snapshotMap.insert("week 4", cb10);
+    m_snapshotMap.insert("week 4", cb10);
 
-    QCheckBox *cb11 = new QCheckBox("周五", snapshotWidget);
+    QCheckBox *cb11 = new QCheckBox("周五", m_snapshotWidget);
     cb11->setObjectName("week 5");
     connect(cb11, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
-    snapshotMap.insert("week 5", cb11);
+    m_snapshotMap.insert("week 5", cb11);
 
-    QCheckBox *cb12 = new QCheckBox("周六", snapshotWidget);
+    QCheckBox *cb12 = new QCheckBox("周六", m_snapshotWidget);
     cb12->setObjectName("week 6");
     connect(cb12, &QCheckBox::stateChanged, region, &TimeRegionWidget::handleWeekSelectState);
-    snapshotMap.insert("week 6", cb12);
+    m_snapshotMap.insert("week 6", cb12);
 
-    QPushButton *btn2 = new QPushButton("保存", snapshotWidget);
+    QPushButton *btn2 = new QPushButton("保存", m_snapshotWidget);
     connect(btn2, &QPushButton::clicked, this, &RecordWidget::handlePrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -505,48 +498,48 @@ void RecordWidget::initSnapshotWidget()
     layout2->addLayout(layout1);
     layout2->addStretch();
 
-    QHBoxLayout *layout3 = new QHBoxLayout(snapshotWidget);
+    QHBoxLayout *layout3 = new QHBoxLayout(m_snapshotWidget);
     layout3->addStretch(1);
     layout3->addLayout(layout2, 4);
     layout3->addStretch(1);
 
-    addWidget(snapshotWidget);
+    addWidget(m_snapshotWidget);
 }
 
 void RecordWidget::initDestinationWidget()
 {
-    destinationWidget = new QWidget(this);
+    m_destinationWidget = new QWidget(this);
 
-    QLabel *lbl1 = new QLabel("EventType", destinationWidget);
-    QLabel *lbl2 = new QLabel("Scheduled", destinationWidget);
-    QLabel *lbl3 = new QLabel("Motion", destinationWidget);
-    QLabel *lbl4 = new QLabel("Alarm", destinationWidget);
+    QLabel *lbl1 = new QLabel("EventType", m_destinationWidget);
+    QLabel *lbl2 = new QLabel("Scheduled", m_destinationWidget);
+    QLabel *lbl3 = new QLabel("Motion", m_destinationWidget);
+    QLabel *lbl4 = new QLabel("Alarm", m_destinationWidget);
 
-    QLabel *lbl5 = new QLabel("SDCard", destinationWidget);
-    QCheckBox *cb1 = new QCheckBox(destinationWidget);
-    destinationMap.insert("SDCard Scheduled", cb1);
-    QCheckBox *cb2 = new QCheckBox(destinationWidget);
-    destinationMap.insert("SDCard Motion", cb2);
-    QCheckBox *cb3 = new QCheckBox(destinationWidget);
-    destinationMap.insert("SDCard Alarm", cb3);
+    QLabel *lbl5 = new QLabel("SDCard", m_destinationWidget);
+    QCheckBox *cb1 = new QCheckBox(m_destinationWidget);
+    m_destinationMap.insert("SDCard Scheduled", cb1);
+    QCheckBox *cb2 = new QCheckBox(m_destinationWidget);
+    m_destinationMap.insert("SDCard Motion", cb2);
+    QCheckBox *cb3 = new QCheckBox(m_destinationWidget);
+    m_destinationMap.insert("SDCard Alarm", cb3);
 
-    QLabel *lbl6 = new QLabel("FTP", destinationWidget);
-    QCheckBox *cb4 = new QCheckBox(destinationWidget);
-    destinationMap.insert("FTP Scheduled", cb4);
-    QCheckBox *cb5 = new QCheckBox(destinationWidget);
-    destinationMap.insert("FTP Motion", cb5);
-    QCheckBox *cb6 = new QCheckBox(destinationWidget);
-    destinationMap.insert("FTP Alarm", cb6);
+    QLabel *lbl6 = new QLabel("FTP", m_destinationWidget);
+    QCheckBox *cb4 = new QCheckBox(m_destinationWidget);
+    m_destinationMap.insert("FTP Scheduled", cb4);
+    QCheckBox *cb5 = new QCheckBox(m_destinationWidget);
+    m_destinationMap.insert("FTP Motion", cb5);
+    QCheckBox *cb6 = new QCheckBox(m_destinationWidget);
+    m_destinationMap.insert("FTP Alarm", cb6);
 
-    QLabel *lbl7 = new QLabel("NAS", destinationWidget);
-    QCheckBox *cb7 = new QCheckBox(destinationWidget);
-    destinationMap.insert("NAS Scheduled", cb7);
-    QCheckBox *cb8 = new QCheckBox(destinationWidget);
-    destinationMap.insert("NAS Motion", cb8);
-    QCheckBox *cb9 = new QCheckBox(destinationWidget);
-    destinationMap.insert("NAS Alarm", cb9);
+    QLabel *lbl7 = new QLabel("NAS", m_destinationWidget);
+    QCheckBox *cb7 = new QCheckBox(m_destinationWidget);
+    m_destinationMap.insert("NAS Scheduled", cb7);
+    QCheckBox *cb8 = new QCheckBox(m_destinationWidget);
+    m_destinationMap.insert("NAS Motion", cb8);
+    QCheckBox *cb9 = new QCheckBox(m_destinationWidget);
+    m_destinationMap.insert("NAS Alarm", cb9);
 
-    QPushButton *btn1 = new QPushButton("Save", destinationWidget);
+    QPushButton *btn1 = new QPushButton("Save", m_destinationWidget);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(lbl1,     0, 0, 1, 1, Qt::AlignCenter);
@@ -575,30 +568,30 @@ void RecordWidget::initDestinationWidget()
     layout2->addLayout(layout1);
     layout2->addStretch();
 
-    QHBoxLayout *layout3 = new QHBoxLayout(destinationWidget);
+    QHBoxLayout *layout3 = new QHBoxLayout(m_destinationWidget);
     layout3->addStretch(1);
     layout3->addLayout(layout2, 4);
     layout3->addStretch(1);
 
-    addWidget(destinationWidget);
+    addWidget(m_destinationWidget);
 }
 
 void RecordWidget::initNASWidget()
 {
-    NASWidget = new QWidget(this);
+    m_NASWidget = new QWidget(this);
 
-    QRadioButton *rBtn1 = new QRadioButton("Enable", NASWidget);
-    NASMap.insert("Enable", rBtn1);
+    QRadioButton *rBtn1 = new QRadioButton("Enable", m_NASWidget);
+    m_NASMap.insert("Enable", rBtn1);
 
-    QLabel *lbl1 = new QLabel("Server Address:", NASWidget);
-    QLineEdit *lineEdit1 = new QLineEdit(NASWidget);
-    NASMap.insert("Server Address", lineEdit1);
+    QLabel *lbl1 = new QLabel("Server Address:", m_NASWidget);
+    LineEdit *lineEdit1 = new LineEdit(m_NASWidget);
+    m_NASMap.insert("Server Address", lineEdit1);
 
-    QLabel *lbl2 = new QLabel("Remote Directory", NASWidget);
-    QLineEdit *lineEdit2 = new QLineEdit(NASWidget);
-    NASMap.insert("Remote Directory", lineEdit2);
+    QLabel *lbl2 = new QLabel("Remote Directory", m_NASWidget);
+    LineEdit *lineEdit2 = new LineEdit(m_NASWidget);
+    m_NASMap.insert("Remote Directory", lineEdit2);
 
-    QPushButton *btn1 = new QPushButton("Save", NASWidget);
+    QPushButton *btn1 = new QPushButton("Save", m_NASWidget);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(rBtn1,     0, 0, 1, 2);
@@ -615,46 +608,161 @@ void RecordWidget::initNASWidget()
     layout2->addLayout(layout1);
     layout2->addStretch();
 
-    QHBoxLayout *layout3 = new QHBoxLayout(NASWidget);
+    QHBoxLayout *layout3 = new QHBoxLayout(m_NASWidget);
     layout3->addStretch(1);
     layout3->addLayout(layout2, 4);
     layout3->addStretch(1);
 
-    addWidget(NASWidget);
+    addWidget(m_NASWidget);
 }
 
-void RecordWidget::handleSwitchTab(const QModelIndex &index)
+void RecordWidget::setCurrentIndex(const QModelIndex &index)
 {
     if (!index.isValid())
         return;
 
     switch(index.row()){
     case 0: {
-        emit signalGetParameter(SCHEDULE);
+        emit signalGetParameter(VidiconProtocol::SCHEDULE);
         break;
     }
     case 1: {
-        emit signalGetParameter(SDCARD);
-        emit signalGetParameter(SDSTORAGE);
+        emit signalGetParameter(VidiconProtocol::SDCARD);
+        emit signalGetParameter(VidiconProtocol::SDSTORAGE);
         break;
     }
     case 2: {
-        emit signalGetParameter(SNAPSHOT);
+        emit signalGetParameter(VidiconProtocol::SNAPSHOT);
         break;
     }
     case 3: {
-        emit signalGetParameter(DESTINATION);
+        emit signalGetParameter(VidiconProtocol::DESTINATION);
         break;
     }
     case 4: {
-        emit signalGetParameter(NAS);
+        emit signalGetParameter(VidiconProtocol::NAS);
         break;
     }
     default:
         break;
     }
 
-    setCurrentIndex(index.row());
+    StackedWidget::setCurrentIndex(index.row());
+}
+
+void RecordWidget::handlePrepareData()
+{
+    switch(currentIndex()) {
+    case 0: {
+        RemoteRecordingPlan *param = new RemoteRecordingPlan;
+        param->Enabled = static_cast<QCheckBox *>(m_scheduleMap["Enable"])->checkState() ? 1 : 0;
+        param->weeksStateMap = static_cast<TimeRegionWidget *>(m_scheduleMap["region"])->getWeeksState();
+        param->Plans = static_cast<TimeRegionWidget *>(m_scheduleMap["region"])->getPlans();
+
+        emit signalSetParameter(VidiconProtocol::SCHEDULE, param);
+        break;
+    }
+    case 1: {
+        SDStorageParameter *param = new SDStorageParameter;
+        param->OperType = static_cast<QComboBox *>(m_SDStorageMap["Overwrite"])->currentIndex();
+        param->RecordSelect = static_cast<QComboBox *>(m_SDStorageMap["Stream"])->currentIndex();
+        param->RecordMode = static_cast<QComboBox *>(m_SDStorageMap["Record Type"])->currentIndex();
+        param->RecordTime = static_cast<LineEdit *>(m_SDStorageMap["Record Time"])->text().toInt();
+
+        emit signalSetParameter(VidiconProtocol::SDSTORAGE, param);
+        break;
+    }
+    case 2: {
+        SnapshotPlanParameter *param = new SnapshotPlanParameter;
+        param->Enabled = static_cast<QCheckBox *>(m_snapshotMap["Enable"])->checkState() ? 1 : 0;
+        param->SnapIntervalTime = static_cast<LineEdit *>(m_snapshotMap["Interval"])->text().toInt();
+        param->weeksStateMap = static_cast<TimeRegionWidget *>(m_snapshotMap["region"])->getWeeksState();
+        param->Plans = static_cast<TimeRegionWidget *>(m_snapshotMap["region"])->getPlans();
+
+        emit signalSetParameter(VidiconProtocol::SNAPSHOT, param);
+    }
+    default:
+        break;
+    }
+}
+
+void RecordWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray data)
+{
+    bool isOK = false;
+
+    switch(type) {
+    case VidiconProtocol::SCHEDULE: {
+        RemoteRecordingPlan param;
+        param.Plans = static_cast<TimeRegionWidget *>(m_scheduleMap["region"])->getPlans();
+
+        isOK = ParseXML::getInstance()->parseScheduleParameter(&param, data);
+        if (isOK) {
+            static_cast<QCheckBox *>(m_scheduleMap["Enable"])->setChecked(param.Enabled ? true : false);
+
+            int week = QDate::currentDate().dayOfWeek() == 7 ? 0 : QDate::currentDate().dayOfWeek();
+            static_cast<QCheckBox *>(m_scheduleMap[QString("week %1").arg(week)])->setCheckState(Qt::Checked);
+            for(int i=0;i <4; i++) {
+                static_cast<QCheckBox *>(m_scheduleMap[QString("Time Period %1").arg(i)])->setChecked(param.Plans[week][i].PlanTimeEnabled ? true : false);
+                static_cast<QTimeEdit *>(m_scheduleMap[QString("Time Period %1 start").arg(i)])->setTime(param.Plans[week][i].BeginTime);
+                static_cast<QTimeEdit *>(m_scheduleMap[QString("Time Period %1 end").arg(i)])->setTime(param.Plans[week][i].EndTime);
+                static_cast<QTimeEdit *>(m_scheduleMap[QString("Time Period %1 start").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
+                static_cast<QTimeEdit *>(m_scheduleMap[QString("Time Period %1 end").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
+            }
+        }
+        break;
+    }
+    case VidiconProtocol::SNAPSHOT: {
+        SnapshotPlanParameter param;
+        param.Plans = static_cast<TimeRegionWidget *>(m_snapshotMap["region"])->getPlans();
+
+        isOK = ParseXML::getInstance()->parseSnapshotParameter(&param, data);
+        if (isOK) {
+            static_cast<QCheckBox *>(m_snapshotMap["Enable"])->setChecked(param.Enabled ? true : false);
+            static_cast<LineEdit *>(m_snapshotMap["Interval"])->setText(QString::number(param.SnapIntervalTime));
+
+            int week = QDate::currentDate().dayOfWeek() == 7 ? 0 : QDate::currentDate().dayOfWeek();
+            static_cast<QCheckBox *>(m_snapshotMap[QString("week %1").arg(week)])->setCheckState(Qt::Checked);
+            for(int i=0;i <4; i++) {
+                static_cast<QCheckBox *>(m_snapshotMap[QString("Time Period %1").arg(i)])->setChecked(param.Plans[week][i].PlanTimeEnabled ? true : false);
+                static_cast<QTimeEdit *>(m_snapshotMap[QString("Time Period %1 start").arg(i)])->setTime(param.Plans[week][i].BeginTime);
+                static_cast<QTimeEdit *>(m_snapshotMap[QString("Time Period %1 end").arg(i)])->setTime(param.Plans[week][i].EndTime);
+                static_cast<QTimeEdit *>(m_snapshotMap[QString("Time Period %1 start").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
+                static_cast<QTimeEdit *>(m_snapshotMap[QString("Time Period %1 end").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
+            }
+        }
+        break;
+    }
+    case VidiconProtocol::SDCARD: {
+        SDCardStatus param;
+
+        isOK = ParseXML::getInstance()->parseSDCardStatusParameter(&param, data);
+        if (isOK) {
+            static_cast<LineEdit *>(m_SDStorageMap["Used Space"])->setText(QString::number(param.UsedKByte));
+            static_cast<LineEdit *>(m_SDStorageMap["Available Space"])->setText(QString::number(param.AvailableKByte));
+            static_cast<LineEdit *>(m_SDStorageMap["Total Space"])->setText(QString::number(param.TotoalSizeKByte));
+        }
+        break;
+    }
+    case VidiconProtocol::SDSTORAGE: {
+        SDStorageParameter param;
+
+        isOK = ParseXML::getInstance()->parseSDStorageParameter(&param, data);
+        if (isOK) {
+            static_cast<QComboBox *>(m_SDStorageMap["Overwrite"])->setCurrentIndex(param.OperType);
+            static_cast<QComboBox *>(m_SDStorageMap["Stream"])->setCurrentIndex(param.RecordSelect);
+            static_cast<QComboBox *>(m_SDStorageMap["Record Type"])->setCurrentIndex(param.RecordSelect);
+            static_cast<LineEdit *>(m_SDStorageMap["Record Time"])->setText(QString::number(param.RecordTime));
+        }
+        break;
+    }
+    default:
+        return;
+    }
+
+    if (isOK)
+        qDebug() << "#RecordWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
+    else
+        qDebug() << "#RecordWidget# handleReceiveData, ParameterType:" << type << "parse data error...";
 }
 
 void RecordWidget::handleTimeSelect(int state)
@@ -663,12 +771,12 @@ void RecordWidget::handleTimeSelect(int state)
     QMap<QString, QWidget *> map;
     switch (currentIndex()) {
     case 0:
-        region = static_cast<TimeRegionWidget *>(scheduleMap.value("region"));
-        map = scheduleMap;
+        region = static_cast<TimeRegionWidget *>(m_scheduleMap.value("region"));
+        map = m_scheduleMap;
         break;
     case 2:
-        region = static_cast<TimeRegionWidget *>(snapshotMap.value("region"));
-        map = snapshotMap;
+        region = static_cast<TimeRegionWidget *>(m_snapshotMap.value("region"));
+        map = m_snapshotMap;
         break;
     default:
         return;
@@ -691,10 +799,10 @@ void RecordWidget::handleSelectAllWeek()
     QMap<QString, QWidget *> map;
     switch (currentIndex()) {
     case 0:
-        map = scheduleMap;
+        map = m_scheduleMap;
         break;
     case 2:
-        map = snapshotMap;
+        map = m_snapshotMap;
         break;
     default:
         return;
@@ -703,119 +811,4 @@ void RecordWidget::handleSelectAllWeek()
         QCheckBox *cb = static_cast<QCheckBox *>(map.value(QString("week %1").arg(i)));
         cb->setCheckState(Qt::Checked);
     }
-}
-
-void RecordWidget::handlePrepareData()
-{
-    switch(currentIndex()) {
-    case 0: {
-        VidiconProtocol::RemoteRecordingPlan *param = new VidiconProtocol::RemoteRecordingPlan;
-        param->Enabled = static_cast<QCheckBox *>(scheduleMap["Enable"])->checkState() ? 1 : 0;
-        param->weeksStateMap = static_cast<TimeRegionWidget *>(scheduleMap["region"])->getWeeksState();
-        param->Plans = static_cast<TimeRegionWidget *>(scheduleMap["region"])->getPlans();
-
-        emit signalSetParameter(SCHEDULE, param);
-        break;
-    }
-    case 1: {
-        VidiconProtocol::SDStorageParameter *param = new VidiconProtocol::SDStorageParameter;
-        param->OperType = static_cast<QComboBox *>(SDStorageMap["Overwrite"])->currentIndex();
-        param->RecordSelect = static_cast<QComboBox *>(SDStorageMap["Stream"])->currentIndex();
-        param->RecordMode = static_cast<QComboBox *>(SDStorageMap["Record Type"])->currentIndex();
-        param->RecordTime = static_cast<QLineEdit *>(SDStorageMap["Record Time"])->text().toInt();
-
-        emit signalSetParameter(SDSTORAGE, param);
-        break;
-    }
-    case 2: {
-        VidiconProtocol::SnapshotPlanParameter *param = new VidiconProtocol::SnapshotPlanParameter;
-        param->Enabled = static_cast<QCheckBox *>(snapshotMap["Enable"])->checkState() ? 1 : 0;
-        param->SnapIntervalTime = static_cast<QLineEdit *>(snapshotMap["Interval"])->text().toInt();
-        param->weeksStateMap = static_cast<TimeRegionWidget *>(snapshotMap["region"])->getWeeksState();
-        param->Plans = static_cast<TimeRegionWidget *>(snapshotMap["region"])->getPlans();
-
-        emit signalSetParameter(SNAPSHOT, param);
-    }
-    default:
-        break;
-    }
-}
-
-void RecordWidget::handleReceiveData(int type, QByteArray data)
-{
-    bool isOK = false;
-
-    switch(type) {
-    case SCHEDULE: {
-        VidiconProtocol::RemoteRecordingPlan param;
-        param.Plans = static_cast<TimeRegionWidget *>(scheduleMap["region"])->getPlans();
-
-        isOK = ParseXML::getInstance()->parseScheduleParameter(&param, data);
-        if (isOK) {
-            static_cast<QCheckBox *>(scheduleMap["Enable"])->setChecked(param.Enabled ? true : false);
-
-            int week = QDate::currentDate().dayOfWeek() == 7 ? 0 : QDate::currentDate().dayOfWeek();
-            static_cast<QCheckBox *>(scheduleMap[QString("week %1").arg(week)])->setCheckState(Qt::Checked);
-            for(int i=0;i <4; i++) {
-                static_cast<QCheckBox *>(scheduleMap[QString("Time Period %1").arg(i)])->setChecked(param.Plans[week][i].PlanTimeEnabled ? true : false);
-                static_cast<QTimeEdit *>(scheduleMap[QString("Time Period %1 start").arg(i)])->setTime(param.Plans[week][i].BeginTime);
-                static_cast<QTimeEdit *>(scheduleMap[QString("Time Period %1 end").arg(i)])->setTime(param.Plans[week][i].EndTime);
-                static_cast<QTimeEdit *>(scheduleMap[QString("Time Period %1 start").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
-                static_cast<QTimeEdit *>(scheduleMap[QString("Time Period %1 end").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
-            }
-        }
-        break;
-    }
-    case SNAPSHOT: {
-        VidiconProtocol::SnapshotPlanParameter param;
-        param.Plans = static_cast<TimeRegionWidget *>(snapshotMap["region"])->getPlans();
-
-        isOK = ParseXML::getInstance()->parseSnapshotParameter(&param, data);
-        if (isOK) {
-            static_cast<QCheckBox *>(snapshotMap["Enable"])->setChecked(param.Enabled ? true : false);
-            static_cast<QLineEdit *>(snapshotMap["Interval"])->setText(QString::number(param.SnapIntervalTime));
-
-            int week = QDate::currentDate().dayOfWeek() == 7 ? 0 : QDate::currentDate().dayOfWeek();
-            static_cast<QCheckBox *>(snapshotMap[QString("week %1").arg(week)])->setCheckState(Qt::Checked);
-            for(int i=0;i <4; i++) {
-                static_cast<QCheckBox *>(snapshotMap[QString("Time Period %1").arg(i)])->setChecked(param.Plans[week][i].PlanTimeEnabled ? true : false);
-                static_cast<QTimeEdit *>(snapshotMap[QString("Time Period %1 start").arg(i)])->setTime(param.Plans[week][i].BeginTime);
-                static_cast<QTimeEdit *>(snapshotMap[QString("Time Period %1 end").arg(i)])->setTime(param.Plans[week][i].EndTime);
-                static_cast<QTimeEdit *>(snapshotMap[QString("Time Period %1 start").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
-                static_cast<QTimeEdit *>(snapshotMap[QString("Time Period %1 end").arg(i)])->setEnabled(param.Plans[week][i].PlanTimeEnabled ? true : false);
-            }
-        }
-        break;
-    }
-    case SDCARD: {
-        VidiconProtocol::SDCardStatus param;
-
-        isOK = ParseXML::getInstance()->parseSDCardStatusParameter(&param, data);
-        if (isOK) {
-            static_cast<QLineEdit *>(SDStorageMap["Used Space"])->setText(QString::number(param.UsedKByte));
-            static_cast<QLineEdit *>(SDStorageMap["Available Space"])->setText(QString::number(param.AvailableKByte));
-            static_cast<QLineEdit *>(SDStorageMap["Total Space"])->setText(QString::number(param.TotoalSizeKByte));
-        }
-        break;
-    }
-    case SDSTORAGE: {
-        VidiconProtocol::SDStorageParameter param;
-
-        isOK = ParseXML::getInstance()->parseSDStorageParameter(&param, data);
-        if (isOK) {
-            static_cast<QComboBox *>(SDStorageMap["Overwrite"])->setCurrentIndex(param.OperType);
-            static_cast<QComboBox *>(SDStorageMap["Stream"])->setCurrentIndex(param.RecordSelect);
-            static_cast<QComboBox *>(SDStorageMap["Record Type"])->setCurrentIndex(param.RecordSelect);
-            static_cast<QLineEdit *>(SDStorageMap["Record Time"])->setText(QString::number(param.RecordTime));
-        }
-        break;
-    }
-    default:
-        return;
-    }
-
-    if (isOK)
-        qDebug() << "#RecordWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
-    else
-        qDebug() << "#RecordWidget# handleReceiveData, ParameterType:" << type << "parse data error...";
 }

@@ -11,6 +11,8 @@ TEMPLATE = lib
 
 DEFINES += OPERATIONINTERFACE_LIBRARY
 
+CONFIG += c++11
+
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -36,14 +38,12 @@ SOURCES += \
     settings.cpp \
     parsexml.cpp \
     searchdevicethread.cpp \
-    logger.cpp
 
 HEADERS += \
     settings.h \
     operationinterface_global.h \
     parsexml.h \
     searchdevicethread.h \
-    logger.h \
     util.h
 
 INCLUDEPATH += $PWD
@@ -56,4 +56,4 @@ unix {
 include($$PWD/Protocol/Protocol.pri)
 include($$PWD/Control/Control.pri)
 include($$PWD/Network/Network.pri)
-
+#include($$PWD/Logger/Logger.pri)

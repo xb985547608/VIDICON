@@ -6,7 +6,7 @@
 #include "soundeffect.h"
 
 PreviewWidget::PreviewWidget(QWidget *parent) :
-    QWidget(parent),
+    BasicWidget(parent),
     ui(new Ui::PreviewForm)
 {
     ui->setupUi(this);
@@ -30,13 +30,11 @@ PreviewWidget::PreviewWidget(QWidget *parent) :
     ui->mainStream->setToolTip("主码流");
     ui->subStream->setToolTip("子码流");
 
-    connect(ui->mainStream, &QRadioButton::toggled, this, &PreviewWidget::handleWidgetSwitch);
-    connect(ui->refresh, &QPushButton::clicked, this, &PreviewWidget::handleWidgetSwitch);
+    connect(ui->mainStream, &QRadioButton::toggled, this, &PreviewWidget::refresh);
+    connect(ui->refresh, &QPushButton::clicked, this, &PreviewWidget::refresh);
     connect(ui->snapshot, &QPushButton::clicked, this, &PreviewWidget::onSnapshotBtn);
 
     connect(this, &PreviewWidget::signalVlcControl, VlcControl::getInstance(), &VlcControl::handleVlcControl);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &PreviewWidget::handleReceiveData);
-    connect(this, &PreviewWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &PreviewWidget::handleTimeout);
@@ -58,7 +56,7 @@ void PreviewWidget::updateDynamicProperty(QWidget *w)
 }
 
 //每次导航栏切换界面时触发该函数，根据界面的可见性决定VLC的状态
-void PreviewWidget::handleWidgetSwitch()
+void PreviewWidget::refresh()
 {
     if(isVisible()){
         handleStreamSwitch(ui->mainStream->isChecked());
@@ -81,7 +79,7 @@ void PreviewWidget::handleTimeout()
 {
     if(isVisible()) {
         if (replySuccess) {
-            emit signalGetParameter(PULLMESSAGE);
+            emit signalGetParameter(VidiconProtocol::PULLMESSAGE);
             replySuccess = false;
         }
 
@@ -109,12 +107,12 @@ void PreviewWidget::handleTimeout()
     }
 }
 
-void PreviewWidget::handleReceiveData(int type, QByteArray data)
+void PreviewWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray data)
 {
     bool isOK = false;
 
     switch(type) {
-    case PULLMESSAGE: {        
+    case VidiconProtocol::PULLMESSAGE: {
         replySuccess = true;
         isOK = ParseXML::getInstance()->parsePullMsg(&param, data);
         if (isOK) {

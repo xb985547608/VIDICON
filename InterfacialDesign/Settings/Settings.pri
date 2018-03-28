@@ -11,7 +11,8 @@ HEADERS += \
     $$PWD/recordwidget.h \
     $$PWD/systemwidget.h \
     $$PWD/userinfoview.h \
-    $$PWD/boxview.h
+    $$PWD/boxview.h \
+    $$PWD/waitingshade.h
 
 SOURCES += \
     $$PWD/settingswidget.cpp \
@@ -21,7 +22,8 @@ SOURCES += \
     $$PWD/recordwidget.cpp \
     $$PWD/systemwidget.cpp \
     $$PWD/userinfoview.cpp \
-    $$PWD/boxview.cpp
+    $$PWD/boxview.cpp \
+    $$PWD/waitingshade.cpp
 
 RESOURCES += \
     $$PWD/settings.qrc

@@ -2,109 +2,85 @@
 #include <QHeaderView>
 #include <QMouseEvent>
 
-BoxView::BoxView(QWidget *parent) : QTableView(parent),
-    model(new BoxModel(this))
+ListView::ListView(QWidget *parent) :
+    QListView(parent)
 {
+    setModel(new ListModel(this));
     //设置单行选中
     setSelectionBehavior(QAbstractItemView::SelectRows);
-    //隐藏列头
-    verticalHeader()->setVisible(false);
-    //隐藏行头
-    horizontalHeader()->setVisible(false);
-    horizontalHeader()->setStretchLastSection(true);
-    //列表网格显示
-    setShowGrid(false);
-    //设置列表网格风格
-    setGridStyle(Qt::NoPen);
     //表格边框风格
     setFrameShape(QFrame::NoFrame);
     //设置鼠标跟踪
     setMouseTracking(true);
     //行交替颜色
     setAlternatingRowColors(true);    
-    setStyleSheet("QTableView::item:selected{  \
-                    background-color: #3399FF;    /*选中行颜色*/  \
-                   }");
-
+    setStyleSheet("QListView::item:selected{  "
+                    "background-color: #3399FF;    /*选中行颜色*/  "
+                   "}");
 }
 
-BoxView::~BoxView()
+ListView::~ListView()
 {
-    qDebug("delete BoxView");
 }
 
-void BoxView::mousePressEvent(QMouseEvent *event)
+void ListView::addItems(const QStringList &items)
+{
+    foreach (QString item, items) {
+        int count = model()->rowCount();
+        model()->insertRow(count);
+        model()->setData(model()->index(count, 0), item);
+    }
+}
+
+void ListView::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton){
         QModelIndex index = indexAt(event->pos());
         if(index.isValid()){
-            QTableView::mousePressEvent(event);
+            QListView::mousePressEvent(event);
         }
     }
 }
 
-void BoxView::setData(const QStringList &list)
-{
-    model->setDataSource(list);
-    setModel(model);
-}
-
-void BoxView::hanlderSwitchRow(int row)
-{
-    setCurrentIndex(model->index(row, 0));
-}
-
-BoxModel::BoxModel(QObject *parent) : QAbstractTableModel(parent),
-    column(1)
+ListModel::ListModel(QObject *parent) :
+    QAbstractListModel(parent)
 {
 }
 
-BoxModel::~BoxModel()
+ListModel::~ListModel()
 {
-
 }
 
-int BoxModel::rowCount(const QModelIndex &parent) const
+int ListModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return list.size();
+    return m_items.length();
 }
 
-int BoxModel::columnCount(const QModelIndex &parent) const
+int ListModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return column;
+    return 1;
 }
 
-QVariant BoxModel::data(const QModelIndex &index, int role) const
+QVariant ListModel::data(const QModelIndex &index, int role) const
 {
     if(!index.isValid()){
         return QVariant();
     }
 
-    switch(role){
+    switch(role) {
         //提示信息显示的数据
         case Qt::ToolTipRole:
         //编辑时显示的数据
         case Qt::EditRole:
         //正常时显示的数据
         case Qt::DisplayRole:
-            if(index.row() < list.size()){
-                if(0 == index.column())
-                    return list.at(index.row());
-
-                if(1 == index.column())
-                    return list.at(index.row());
-
-                if(2 == index.column())
-                    return list.at(index.row());
-            }
-            break;
+            return m_items.at(index.row());
         //显示的字体样式
-        case Qt::FontRole:
-            {
+        case Qt::FontRole: {
                 QFont font;
-                font.setPixelSize(12);
+                font.setPixelSize(14);
                 return font;
             }
         //文本对齐方式
@@ -116,6 +92,8 @@ QVariant BoxModel::data(const QModelIndex &index, int role) const
 //        //背景色
 //        case Qt::BackgroundRole:
 //            return QBrush(QColor(255, 255, 255));
+        case Qt::SizeHintRole:
+            return QSize(1, 30);
         default:
             break;
     }
@@ -123,8 +101,35 @@ QVariant BoxModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-void BoxModel::setDataSource(const QStringList &l)
+bool ListModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    list = l;
+    if(!index.isValid()){
+        return false;
+    }
+
+    switch(role){
+        //提示信息显示的数据
+        case Qt::ToolTipRole:
+        //编辑时显示的数据
+        case Qt::EditRole:
+        //正常时显示的数据
+        case Qt::DisplayRole: {
+            m_items.replace(index.row(), value.toString());
+            emit dataChanged(index, index);
+            return true;
+        }
+        default:
+            break;
+    }
+    return false;
 }
 
+bool ListModel::insertRows(int row, int count, const QModelIndex &parent)
+{
+    for (int i=0; i<count; i++) {
+        m_items.insert(row + 0, "");
+    }
+    beginInsertRows(parent, row, row + count);
+    endInsertRows();
+    return true;
+}

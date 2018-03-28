@@ -29,9 +29,9 @@ signals:
 public slots:
     void showStatusTip(QString text);
 private:
-    int tipHeight;
-    QPropertyAnimation *animation;
-    QGraphicsOpacityEffect *effect;
+    int m_tipHeight;
+    QPropertyAnimation *m_animation;
+    QGraphicsOpacityEffect *m_effect;
 };
 
 #endif // STATUSTIP_H

@@ -99,55 +99,55 @@ void DownloadInfoView::setData(QString fileName, int state, int progress)
 //创建菜单和菜单项
 void DownloadInfoView::createActions()
 {
-    popMenu = new QMenu(this);
+    m_popMenu = new QMenu(this);
 
-    pauseAction = new QAction(popMenu);
-    pauseAction->setText("暂停下载");
-    pauseAction->setIcon(QIcon(":/images/pause.png"));
-    connect(pauseAction, &QAction::triggered, this, [this](){
-        QModelIndex index = model()->index(pointToRow, 1);
+    m_pauseAction = new QAction(m_popMenu);
+    m_pauseAction->setText("暂停下载");
+    m_pauseAction->setIcon(QIcon(":/images/pause.png"));
+    connect(m_pauseAction, &QAction::triggered, this, [this](){
+        QModelIndex index = model()->index(m_pointToRow, 1);
         if(data(index).toInt() == Downloading || data(index).toInt() == Waiting) {
-            QString file = data(model()->index(pointToRow, 3)).toString();
+            QString file = data(model()->index(m_pointToRow, 3)).toString();
             emit signalCancelDownload(file);
-            setData(model()->index(pointToRow, 1), Pause);
+            setData(model()->index(m_pointToRow, 1), Pause);
         }
     });
 
-    cancelDownloadAction = new QAction(popMenu);
-    cancelDownloadAction->setText("取消下载");
-    cancelDownloadAction->setIcon(QIcon(":/images/cancel.png"));
-    connect(cancelDownloadAction, &QAction::triggered, this, [this](){
-        QModelIndex index = model()->index(pointToRow, 1);
+    m_cancelDownloadAction = new QAction(m_popMenu);
+    m_cancelDownloadAction->setText("取消下载");
+    m_cancelDownloadAction->setIcon(QIcon(":/images/cancel.png"));
+    connect(m_cancelDownloadAction, &QAction::triggered, this, [this](){
+        QModelIndex index = model()->index(m_pointToRow, 1);
         if(data(index).toInt() == Downloading) {
-            QString file = data(model()->index(pointToRow, 3)).toString();
+            QString file = data(model()->index(m_pointToRow, 3)).toString();
             emit signalCancelDownload(file);
         }
     });
 
-    redownloadAction = new QAction(popMenu);
-    redownloadAction->setText("重新下载");
-    redownloadAction->setIcon(QIcon(":/images/download.png"));
-    connect(redownloadAction, &QAction::triggered, this, [this](){
-        QModelIndex index = model()->index(pointToRow, 1);
+    m_redownloadAction = new QAction(m_popMenu);
+    m_redownloadAction->setText("重新下载");
+    m_redownloadAction->setIcon(QIcon(":/images/download.png"));
+    connect(m_redownloadAction, &QAction::triggered, this, [this](){
+        QModelIndex index = model()->index(m_pointToRow, 1);
         if(data(index).toInt() != Downloading) {
             setData(index, Waiting);
         }
     });
 
-    deleteAction = new QAction(popMenu);
-    deleteAction->setText("删除");
-    deleteAction->setIcon(QIcon(":/images/delete.png"));
-    connect(deleteAction, &QAction::triggered, this, [this](){
-        QModelIndex index = model()->index(pointToRow, 1);
+    m_deleteAction = new QAction(m_popMenu);
+    m_deleteAction->setText("删除");
+    m_deleteAction->setIcon(QIcon(":/images/delete.png"));
+    connect(m_deleteAction, &QAction::triggered, this, [this](){
+        QModelIndex index = model()->index(m_pointToRow, 1);
         if(QMessageBox::warning(this, "警告", "是否删除该下载任务", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
             model()->removeRow(index.row());
         }
     });
 
-    popMenu->addAction(pauseAction);
-    popMenu->addAction(cancelDownloadAction);
-    popMenu->addAction(redownloadAction);
-    popMenu->addAction(deleteAction);
+    m_popMenu->addAction(m_pauseAction);
+    m_popMenu->addAction(m_cancelDownloadAction);
+    m_popMenu->addAction(m_redownloadAction);
+    m_popMenu->addAction(m_deleteAction);
 }
 
 void DownloadInfoView::contextMenuEvent(QContextMenuEvent *event)
@@ -157,17 +157,17 @@ void DownloadInfoView::contextMenuEvent(QContextMenuEvent *event)
 
     QModelIndex index = indexAt(pos);
     if(index.isValid()) {
-        pointToRow = index.row();
-        index = model()->index(pointToRow, 1);
+        m_pointToRow = index.row();
+        index = model()->index(m_pointToRow, 1);
         if(data(index).toInt() == Downloading || data(index).toInt() == Waiting) {
-            pauseAction->setEnabled(true);
-            cancelDownloadAction->setEnabled(true);
-            pauseAction->setEnabled(pointToRow != 0);
+            m_pauseAction->setEnabled(true);
+            m_cancelDownloadAction->setEnabled(true);
+            m_pauseAction->setEnabled(m_pointToRow != 0);
         }else {
-            pauseAction->setEnabled(false);
-            cancelDownloadAction->setEnabled(false);
+            m_pauseAction->setEnabled(false);
+            m_cancelDownloadAction->setEnabled(false);
         }
-        popMenu->exec(QCursor::pos());
+        m_popMenu->exec(QCursor::pos());
         event->accept();
     }
 }
@@ -175,11 +175,11 @@ void DownloadInfoView::contextMenuEvent(QContextMenuEvent *event)
 DownloadInfoDelegate::DownloadInfoDelegate(QObject *parent) :
     QStyledItemDelegate(parent)
 {
-    downloadingPixmap = QPixmap(":/images/downloading.png");
-    waitingPixmap = QPixmap(":/images/waiting.png");
-    pausePixmap = QPixmap(":/images/pause.png");
-    errorPixmap = QPixmap(":/images/error.png");
-    finishedPixmap = QPixmap(":/images/finished.png");
+    m_downloadingPixmap = QPixmap(":/images/downloading.png");
+    m_waitingPixmap = QPixmap(":/images/waiting.png");
+    m_pausePixmap = QPixmap(":/images/pause.png");
+    m_errorPixmap = QPixmap(":/images/error.png");
+    m_finishedPixmap = QPixmap(":/images/finished.png");
 }
 
 void DownloadInfoDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
@@ -200,15 +200,15 @@ void DownloadInfoDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         painter->setRenderHint(QPainter::SmoothPixmapTransform);
 
         if(status == Downloading) {
-            painter->drawPixmap(rect, downloadingPixmap);
+            painter->drawPixmap(rect, m_downloadingPixmap);
         }else if(status == Waiting) {
-            painter->drawPixmap(rect, waitingPixmap);
+            painter->drawPixmap(rect, m_waitingPixmap);
         }else if(status == Pause) {
-            painter->drawPixmap(rect, pausePixmap);
+            painter->drawPixmap(rect, m_pausePixmap);
         }else if(status == Error) {
-            painter->drawPixmap(rect, errorPixmap);
+            painter->drawPixmap(rect, m_errorPixmap);
         }else if(status == Finished) {
-            painter->drawPixmap(rect, finishedPixmap);
+            painter->drawPixmap(rect, m_finishedPixmap);
         }
     //绘制进度条
     }else if(index.column() == 2) {
@@ -268,11 +268,11 @@ void DownloadInfoDelegate::drawBackground(QPainter *painter, const QStyleOptionV
 
 DownloadInfoModel::DownloadInfoModel(QSortFilterProxyModel *proxy, QObject *parent) :
     QAbstractTableModel(parent),
-    column(4),
-    proxy(proxy)
+    m_column(4),
+    m_proxy(proxy)
 {
-    infoList.clear();
-    headList << "序号" << "状态" << "进度" << "文件名";
+    m_items.clear();
+    m_headItems << "序号" << "状态" << "进度" << "文件名";
 }
 
 DownloadInfoModel::~DownloadInfoModel()
@@ -286,7 +286,7 @@ void DownloadInfoModel::addData(QString fileName, int state, int progress)
     info.state = state;
     info.progress = progress;
     info.fileName = fileName;
-    infoList.append(info);
+    m_items.append(info);
 
     int row = rowCount() - 1;
     beginInsertRows(QModelIndex(), row, row);
@@ -298,13 +298,13 @@ void DownloadInfoModel::addData(QString fileName, int state, int progress)
 int DownloadInfoModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return infoList.length();
+    return m_items.length();
 }
 
 int DownloadInfoModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return column;
+    return m_column;
 }
 
 QVariant DownloadInfoModel::data(const QModelIndex &index, int role) const
@@ -317,7 +317,7 @@ QVariant DownloadInfoModel::data(const QModelIndex &index, int role) const
     //提示信息显示的数据
     case Qt::ToolTipRole: {
         if(1 == index.column()) {
-            switch(infoList.at(index.row()).state) {
+            switch(m_items.at(index.row()).state) {
             case Downloading:
                 return "正在下载";
             case Waiting:
@@ -337,13 +337,13 @@ QVariant DownloadInfoModel::data(const QModelIndex &index, int role) const
     //正常时显示的数据
     case Qt::DisplayRole: {
         if(0 == index.column())
-            return proxy->mapFromSource(index).row()+1;
+            return m_proxy->mapFromSource(index).row()+1;
         else if(1 == index.column())
-            return infoList.at(index.row()).state;
+            return m_items.at(index.row()).state;
         else if(2 == index.column())
-            return infoList.at(index.row()).progress;
+            return m_items.at(index.row()).progress;
         else if(3 == index.column())
-            return infoList.at(index.row()).fileName;
+            return m_items.at(index.row()).fileName;
         break;
     }
     //显示的字体样式
@@ -372,14 +372,14 @@ bool DownloadInfoModel::setData(const QModelIndex &index, const QVariant &value,
     case Qt::DisplayRole: {
         if(index.row() >= rowCount()) {
             DownloadInfo d;
-            infoList.append(d);
+            m_items.append(d);
         }
         if(1 == index.column())
-            infoList[index.row()].state = value.toInt();
+            m_items[index.row()].state = value.toInt();
         else if(2 == index.column())
-            infoList[index.row()].progress = value.toInt();
+            m_items[index.row()].progress = value.toInt();
         else if(3 == index.column())
-            infoList[index.row()].fileName = value.toString();
+            m_items[index.row()].fileName = value.toString();
         emit dataChanged(index, index);
         return true;
     }
@@ -395,8 +395,8 @@ QVariant DownloadInfoModel::headerData(int section, Qt::Orientation orientation,
     //显示的数据
     case Qt::DisplayRole:{
         if(Qt::Horizontal == orientation){
-            if(0 <= section && section < headList.size()){
-                return headList.at(section);
+            if(0 <= section && section < m_headItems.size()){
+                return m_headItems.at(section);
             }
         }
         break;
@@ -431,7 +431,7 @@ Qt::ItemFlags DownloadInfoModel::flags(const QModelIndex &index) const
 bool DownloadInfoModel::removeRows(int row, int count, const QModelIndex &parent)
 {
     for(int i=row; i<row+count; i++) {
-        infoList.removeAt(row);
+        m_items.removeAt(row);
     }
     beginRemoveRows(parent, row, row+count-1);
     endRemoveRows();

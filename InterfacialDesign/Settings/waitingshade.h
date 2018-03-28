@@ -8,10 +8,10 @@ class WaitingShade : public QWidget
     Q_OBJECT
 public:
     static WaitingShade *getInstance(QWidget *parent = nullptr) {
-        if(_instance == NULL) {
-            _instance = new WaitingShade(true, parent);
+        if(s_instance == NULL) {
+            s_instance = new WaitingShade(true, parent);
         }
-        return _instance;
+        return s_instance;
     }
 
 protected:
@@ -30,9 +30,9 @@ signals:
 public slots:
 
 private:
-    QPixmap parentWidgetPixmap;
-    bool isUpdateSelf;
-    static WaitingShade *_instance;
+    QPixmap m_parentWidgetPixmap;
+    bool m_isUpdateSelf;
+    static WaitingShade *s_instance;
 };
 
 #endif // WAITINGSHADE_H

@@ -15,7 +15,7 @@ public:
     explicit OSDWidget(QWidget *parent = nullptr);
     ~OSDWidget();
 
-    VidiconProtocol::OSDParameter *getOSDParameters() {return parameters;}
+    OSDParameter *getOSDParameters() {return m_parameters;}
 
 protected:
     virtual void paintEvent(QPaintEvent *event);
@@ -30,12 +30,12 @@ public slots:
     void handleTimeout();
 
 private:
-    VidiconProtocol::OSDParameter *parameters;
-    QPixmap backgroundPixmap;
+    OSDParameter *m_parameters;
+    QPixmap m_backgroundPixmap;
 
-    bool validPress;
-    QPoint diffValue;
-    int currentMoveIndex;
+    bool m_validPress;
+    QPoint m_diffValue;
+    int m_currentMoveIndex;
 };
 
 #endif // DRAWOSDREGION_H

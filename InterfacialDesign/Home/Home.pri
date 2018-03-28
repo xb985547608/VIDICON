@@ -6,3 +6,6 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/homewidget.cpp
+
+RESOURCES += \
+    $$PWD/home.qrc

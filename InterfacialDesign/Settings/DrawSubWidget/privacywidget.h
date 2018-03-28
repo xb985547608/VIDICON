@@ -11,7 +11,7 @@ public:
     ~PrivacyWidget();
 
     void reset();
-    const QRect *getRects() { return rects; }
+    const QRect *getRects() { return m_rects; }
 
 protected:
     virtual void paintEvent(QPaintEvent *event);
@@ -26,12 +26,12 @@ public slots:
     void handleTimeout();
 
 private:
-    QPixmap backgroundPixmap;
-    QRect *rects;
-    QPoint startPos;
-    QPoint endPos;
+    QPixmap m_backgroundPixmap;
+    QRect *m_rects;
+    QPoint m_startPos;
+    QPoint m_endPos;
 
-    int currentIndex;
+    int m_currentIndex;
 };
 
 #endif // PRIVACYWIDGET_H

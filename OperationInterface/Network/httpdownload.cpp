@@ -6,8 +6,8 @@
 #include "util.h"
 
 HttpDownload *HttpDownload::_instance = NULL;
-HttpDownload::HttpDownload(QString host, QString port, QObject *parent) : QObject(parent),
-    host(host), port(port), currentCmd(-1)
+HttpDownload::HttpDownload(QObject *parent) : QObject(parent),
+    host("192.168.0.66"), port("80"), currentCmd(-1)
 {
 
 }
@@ -16,13 +16,15 @@ void HttpDownload::init()
 {
     manager = new QNetworkAccessManager(this);
     connect(manager, &QNetworkAccessManager::finished, this, &HttpDownload::finished);
-    downloadDir = QString("%1/%2").arg(qApp->applicationDirPath()).arg(DOWNLOADDIR);
+
     //确保download目录的存在
+    downloadDir = QString("%1/%2").arg(qApp->applicationDirPath()).arg(DOWNLOADDIR);
     QDir dir(downloadDir);
     if(!dir.exists()) {
         dir.cdUp();
         dir.mkdir(DOWNLOADDIR);
     }
+
     //清除临时文件
     dir.cd(DOWNLOADDIR);
     QStringList filter;
@@ -70,6 +72,10 @@ void HttpDownload::downloadFile(QString fileName)
     QStringList list = fileName.split('/');
     fileStatus.fileName = list.at(list.length() - 1);
     fileStatus.state = Downloading;
+    fileStatus.bytesReceived = 0;
+    fileStatus.bytesTotal = 0;
+    fileStatus.percent = 0;
+    fileStatus.speed = speed(0);
 
     QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss-zzz");
     tempFileName = QString("%1/%2.tmp").arg(downloadDir).arg(date);
@@ -79,10 +85,13 @@ void HttpDownload::downloadFile(QString fileName)
                                               .arg(host)
                                               .arg(port)
                                               .arg(fileName))));
+
+
     //测试链接
-    //reply = manager->get(QNetworkRequest(QUrl("http://sw.bos.baidu.com/sw-search-sp/software/06da2b30f1c74/BaiduNetdisk_5.7.3.1.exe")));
+//    reply = manager->get(QNetworkRequest(QUrl("http://sw.bos.baidu.com/sw-search-sp/software/06da2b30f1c74/BaiduNetdisk_5.7.3.1.exe")));
     connect(reply, &QNetworkReply::readyRead, this, &HttpDownload::readyRead);
     connect(reply, &QNetworkReply::downloadProgress, this, &HttpDownload::downloadProgress);
+    connect(reply, static_cast<void (QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error), this, &HttpDownload::handleError);
 
     downloadTime.start();
     timer->start(1000);
@@ -90,50 +99,35 @@ void HttpDownload::downloadFile(QString fileName)
 
 void HttpDownload::finished(QNetworkReply */*reply*/)
 {
-    if(reply->error() != QNetworkReply::NoError) {
-        qDebug() << "#HttpDownload# finished,"
-                 << "StatusCode:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
-                 << "ErrorType:" << reply->error();
-        if(currentCmd == CMD_DOWNLOAD) {
-            fileStatus.state = Error;
-            emit signalFileStatus(&fileStatus);
-        }
-    }else {
+    if (reply != NULL) {
         switch (currentCmd) {
-        case CMD_GETIMAGE: {
-            QPixmap *pixmap = new QPixmap;
-            if(pixmap->loadFromData(reply->readAll())) {
-                emit signalImage(pixmap);
-            }
-            break;
-        }
-        case CMD_DOWNLOAD: {
-            QFileInfo fileInfo(tempFileName);
-            QFileInfo newFileInfo = fileInfo.absolutePath() + "/" + fileStatus.fileName;
-            QDir dir;
-            if(dir.exists(fileInfo.absolutePath())) {
-                if(newFileInfo.exists()) {
-                    newFileInfo.dir().remove(newFileInfo.fileName());
+            case CMD_GETIMAGE: {
+                QPixmap *pixmap = new QPixmap;
+                if(pixmap->loadFromData(reply->readAll())) {
+                    emit signalImage(pixmap);
                 }
-                QFile::rename(tempFileName, newFileInfo.absoluteFilePath());
-                qDebug() << "#HttpDownload# finished(), Download file" << newFileInfo.fileName() << "Success !!";
-                fileStatus.state = Finished;
-                emit signalFileStatus(&fileStatus);
+                break;
             }
-            break;
+            case CMD_DOWNLOAD: {
+                QFileInfo fileInfo(tempFileName);
+                QFileInfo newFileInfo = fileInfo.absolutePath() + "/" + fileStatus.fileName;
+                QDir dir;
+                if(dir.exists(fileInfo.absolutePath())) {
+                    if(newFileInfo.exists()) {
+                        newFileInfo.dir().remove(newFileInfo.fileName());
+                    }
+                    QFile::rename(tempFileName, newFileInfo.absoluteFilePath());
+                    qDebug() << "#HttpDownload# finished(), Download file" << newFileInfo.fileName() << "Success !!";
+                    fileStatus.state = Finished;
+                    emit signalFileStatus(&fileStatus);
+                }
+                break;
+            }
+            default:
+                break;
         }
-        default:
-            break;
-        }
+        reset();
     }
-    if(currentCmd == CMD_DOWNLOAD) {
-        lastReceiveBytes = 0;
-        if(timer->isActive()) {
-            timer->stop();
-        }
-    }
-    currentCmd = -1;
-    reply = NULL;
 }
 
 void HttpDownload::readyRead()
@@ -169,6 +163,18 @@ void HttpDownload::handleTimeout()
     emit signalFileStatus(&fileStatus);
 }
 
+void HttpDownload::handleError(QNetworkReply::NetworkError error)
+{
+    qDebug() << "#HttpDownload# finished,"
+             << "StatusCode:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
+             << "ErrorType:" << error;
+    if (currentCmd == CMD_DOWNLOAD) {
+        fileStatus.state = Error;
+        emit signalFileStatus(&fileStatus);
+    }
+    reset();
+}
+
 void HttpDownload::handleCancelDownload(QString file)
 {
     if(file.isNull())
@@ -178,4 +184,16 @@ void HttpDownload::handleCancelDownload(QString file)
     if(fileStatus.fileName == list.at(list.length() - 1)) {
         reply->abort();
     }
+}
+
+void HttpDownload::reset()
+{
+    if(currentCmd == CMD_DOWNLOAD) {
+        lastReceiveBytes = 0;
+        if(timer->isActive()) {
+            timer->stop();
+        }
+    }
+    currentCmd = -1;
+    reply = NULL;
 }

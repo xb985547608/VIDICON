@@ -3,9 +3,12 @@
 
 #include <QDialog>
 #include <QMap>
+#include <QPointer>
+#include <QEventLoop>
 #include "filemanagerview.h"
+#include "basicwidget.h"
 
-class FileManagerDialog : public QDialog
+class FileManagerDialog : public BasicWidget
 {
     Q_OBJECT
 public:
@@ -14,23 +17,25 @@ public:
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
+    void closeEvent(QCloseEvent *event) override;
 
 signals:
-    void signalSetParameter(int type, void *param = NULL, QString SessionID = "R00001");
-    void signalGetParameter(int type, void *param = NULL, QString SessionID = "R00001");
     void signalAddDownloadTask(QStringList files);
 
 public slots:
-    void handleReceiveData(int type, QByteArray data);
+    void handleReceiveData(VidiconProtocol::Type type, QByteArray data);
     void handleDownload();
+    int exec();
 
 private:
-    QStringList fileList;
-    FileView *fileView;
+    QStringList m_items;
+    FileView *m_fileView;
 
-    QStringList videoList;
-    QStringList pictureList;
-    bool isVideo;
+    QStringList m_videoItems;
+    QStringList m_pictureItems;
+    bool m_isVideo;
+
+    QPointer<QEventLoop> m_eventLoop;
 };
 
 #endif // FILEMANAGERDIALOG_H

@@ -11,6 +11,7 @@
 #include <QLineEdit>
 #include <QGridLayout>
 #include <QMessageBox>
+#include "lineedit.h"
 
 UserInfoView::UserInfoView(QWidget *parent) : QTableView(parent)
 {
@@ -39,6 +40,9 @@ UserInfoView::UserInfoView(QWidget *parent) : QTableView(parent)
     //合并第3、4列
     setSpan(0, 3, 1, 2);
 
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
     setColumnWidth(0, 120);
     setColumnWidth(1, 120);
     setColumnWidth(2, 120);
@@ -54,15 +58,14 @@ UserInfoView::UserInfoView(QWidget *parent) : QTableView(parent)
 
 UserInfoView::~UserInfoView()
 {
-    qDebug("delete Tableview");
 }
 
-void UserInfoView::setDataSource(const QList<VidiconProtocol::UserConfigInfo> &l)
+void UserInfoView::setItems(const QList<UserConfigInfo> &l)
 {
-    static_cast<UserInfoModel *>(model())->setDataSource(l);
+    static_cast<UserInfoModel *>(model())->setItems(l);
 
     for (int i=0; i<l.size(); i++) {
-        VidiconProtocol::UserConfigInfo info = l.at(i);
+        UserConfigInfo info = l.at(i);
 
         QPushButton *btn1 = new QPushButton("Modify", this);
         btn1->setObjectName(QString::number(i + 1));
@@ -80,42 +83,42 @@ void UserInfoView::initModifyInfoWidget()
 {
     QStringList list;
 
-    modifyInfoWidget = new QDialog(this);
-    modifyInfoWidget->setFixedSize(400, 150);
+    m_modifyInfoWidget = new QDialog(this);
+    m_modifyInfoWidget->setFixedSize(400, 150);
 
-    QLabel *lbl1 = new QLabel("用户名：", modifyInfoWidget);
-    QLineEdit *lineEdit1 = new QLineEdit(modifyInfoWidget);
+    QLabel *lbl1 = new QLabel("用户名：", m_modifyInfoWidget);
+    LineEdit *lineEdit1 = new LineEdit(m_modifyInfoWidget);
     lineEdit1->setReadOnly(true);
-    modifyInfoMap.insert("User", lineEdit1);
+    m_modifyInfoMap.insert("User", lineEdit1);
 
-    QLabel *lbl2 = new QLabel("权限：", modifyInfoWidget);
-    QComboBox *comboBox1 = new QComboBox(modifyInfoWidget);
+    QLabel *lbl2 = new QLabel("权限：", m_modifyInfoWidget);
+    QComboBox *comboBox1 = new QComboBox(m_modifyInfoWidget);
     list << "管理权限" << "维护权限" << "一般权限";
     comboBox1->addItems(list);
-    modifyInfoMap.insert("Group", comboBox1);
+    m_modifyInfoMap.insert("Group", comboBox1);
 
-    QLabel *lbl3 = new QLabel("输入密码：", modifyInfoWidget);
-    QLineEdit *lineEdit2 = new QLineEdit(modifyInfoWidget);
+    QLabel *lbl3 = new QLabel("输入密码：", m_modifyInfoWidget);
+    LineEdit *lineEdit2 = new LineEdit(m_modifyInfoWidget);
     lineEdit2->setMaxLength(15);
-    modifyInfoMap.insert("Password", lineEdit2);
+    m_modifyInfoMap.insert("Password", lineEdit2);
 
-    QLabel *lbl4 = new QLabel("确认密码：", modifyInfoWidget);
-    QLineEdit *lineEdit3 = new QLineEdit(modifyInfoWidget);
+    QLabel *lbl4 = new QLabel("确认密码：", m_modifyInfoWidget);
+    LineEdit *lineEdit3 = new LineEdit(m_modifyInfoWidget);
     lineEdit3->setMaxLength(15);
-    modifyInfoMap.insert("Confirm", lineEdit3);
+    m_modifyInfoMap.insert("Confirm", lineEdit3);
 
-    QPushButton *btn = new QPushButton("Save", modifyInfoWidget);
+    QPushButton *btn = new QPushButton("Save", m_modifyInfoWidget);
     btn->setFixedWidth(50);
     connect(btn, &QPushButton::clicked, this, [this](){
-        QString passwd1 = static_cast<QLineEdit *>(modifyInfoMap["Password"])->text();
-        QString passwd2 = static_cast<QLineEdit *>(modifyInfoMap["Confirm"])->text();
+        QString passwd1 = static_cast<LineEdit *>(m_modifyInfoMap["Password"])->text();
+        QString passwd2 = static_cast<LineEdit *>(m_modifyInfoMap["Confirm"])->text();
 
         if (passwd1 == passwd2) {
-            VidiconProtocol::UserConfigInfo *info = new VidiconProtocol::UserConfigInfo;
-            info->UserName = static_cast<QLineEdit *>(modifyInfoMap["User"])->text();
+            UserConfigInfo *info = new UserConfigInfo;
+            info->UserName = static_cast<LineEdit *>(m_modifyInfoMap["User"])->text();
             info->PassWord = passwd1;
-            info->Privilege = static_cast<QComboBox *>(modifyInfoMap["Group"])->currentIndex();
-            emit signalSetParameter(USERCONFIG, info);
+            info->Privilege = static_cast<QComboBox *>(m_modifyInfoMap["Group"])->currentIndex();
+            emit signalSetParameter(VidiconProtocol::USERCONFIG, info);
         }
     });
 
@@ -138,7 +141,7 @@ void UserInfoView::initModifyInfoWidget()
     layout2->addLayout(layout1);
     layout2->addStretch();
 
-    QHBoxLayout *layout3 = new QHBoxLayout(modifyInfoWidget);
+    QHBoxLayout *layout3 = new QHBoxLayout(m_modifyInfoWidget);
     layout3->addStretch(1);
     layout3->addLayout(layout2, 4);
     layout3->addStretch(1);
@@ -148,42 +151,64 @@ void UserInfoView::initAddUserInfoWidget()
 {
     QStringList list;
 
-    addUserInfoWidget = new QDialog(this);
-    addUserInfoWidget->setFixedSize(400, 150);
+    m_addUserInfoWidget = new QDialog(this);
+    m_addUserInfoWidget->setFixedSize(400, 220);
 
-    QLabel *lbl1 = new QLabel("用户名：", addUserInfoWidget);
-    QLineEdit *lineEdit1 = new QLineEdit(addUserInfoWidget);
+    QLabel *lbl1 = new QLabel("车号：", m_addUserInfoWidget);
+    LineEdit *lineEdit1 = new LineEdit(m_addUserInfoWidget);
     lineEdit1->setReadOnly(false);
-    addUserInfoMap.insert("User", lineEdit1);
+    lineEdit1->setMaxLength(6);
+    m_addUserInfoMap.insert("train", lineEdit1);
 
-    QLabel *lbl2 = new QLabel("权限：", addUserInfoWidget);
-    QComboBox *comboBox1 = new QComboBox(addUserInfoWidget);
+    QLabel *lbl5 = new QLabel("车厢号：", m_addUserInfoWidget);
+    LineEdit *lineEdit4 = new LineEdit(m_addUserInfoWidget);
+    lineEdit4->setReadOnly(false);
+    lineEdit4->setMaxLength(2);
+    m_addUserInfoMap.insert("coach", lineEdit4);
+
+    QLabel *lbl6 = new QLabel("车位号：", m_addUserInfoWidget);
+    LineEdit *lineEdit5 = new LineEdit(m_addUserInfoWidget);
+    lineEdit5->setReadOnly(false);
+    lineEdit5->setMaxLength(2);
+    m_addUserInfoMap.insert("seat", lineEdit5);
+
+    QLabel *lbl2 = new QLabel("权限：", m_addUserInfoWidget);
+    QComboBox *comboBox1 = new QComboBox(m_addUserInfoWidget);
     list << "管理权限" << "维护权限" << "一般权限";
     comboBox1->addItems(list);
-    addUserInfoMap.insert("Group", comboBox1);
+    m_addUserInfoMap.insert("Group", comboBox1);
 
-    QLabel *lbl3 = new QLabel("输入密码：", addUserInfoWidget);
-    QLineEdit *lineEdit2 = new QLineEdit(addUserInfoWidget);
+    QLabel *lbl3 = new QLabel("输入密码：", m_addUserInfoWidget);
+    LineEdit *lineEdit2 = new LineEdit(m_addUserInfoWidget);
     lineEdit2->setMaxLength(15);
-    addUserInfoMap.insert("Password", lineEdit2);
+    m_addUserInfoMap.insert("Password", lineEdit2);
 
-    QLabel *lbl4 = new QLabel("确认密码：", addUserInfoWidget);
-    QLineEdit *lineEdit3 = new QLineEdit(addUserInfoWidget);
+    QLabel *lbl4 = new QLabel("确认密码：", m_addUserInfoWidget);
+    LineEdit *lineEdit3 = new LineEdit(m_addUserInfoWidget);
     lineEdit3->setMaxLength(15);
-    addUserInfoMap.insert("Confirm", lineEdit3);
+    m_addUserInfoMap.insert("Confirm", lineEdit3);
 
-    QPushButton *btn = new QPushButton("Save", addUserInfoWidget);
+    QPushButton *btn = new QPushButton("Save", m_addUserInfoWidget);
     btn->setFixedWidth(50);
     connect(btn, &QPushButton::clicked, this, [this](){
-        QString passwd1 = static_cast<QLineEdit *>(addUserInfoMap["Password"])->text();
-        QString passwd2 = static_cast<QLineEdit *>(addUserInfoMap["Confirm"])->text();
+        QString train = static_cast<LineEdit *>(m_addUserInfoMap["train"])->text();
+        QString coach = static_cast<LineEdit *>(m_addUserInfoMap["coach"])->text();
+        QString seat = static_cast<LineEdit *>(m_addUserInfoMap["seat"])->text();
+        QString user = QString("CRH_%1_%2_%3")
+                .arg(train)
+                .arg(coach)
+                .arg(seat);
+        user = user.mid(0, 15);
+
+        QString passwd1 = static_cast<LineEdit *>(m_addUserInfoMap["Password"])->text();
+        QString passwd2 = static_cast<LineEdit *>(m_addUserInfoMap["Confirm"])->text();
 
         if (passwd1 == passwd2) {
-            VidiconProtocol::UserConfigInfo *info = new VidiconProtocol::UserConfigInfo;
-            info->UserName = static_cast<QLineEdit *>(addUserInfoMap["User"])->text();
+            UserConfigInfo *info = new UserConfigInfo;
+            info->UserName = user;
             info->PassWord = passwd1;
-            info->Privilege = static_cast<QComboBox *>(addUserInfoMap["Group"])->currentIndex();
-            emit signalSetParameter(ADDUSER, info);
+            info->Privilege = static_cast<QComboBox *>(m_addUserInfoMap["Group"])->currentIndex();
+            emit signalSetParameter(VidiconProtocol::ADDUSER, info);
         }
     });
 
@@ -191,22 +216,28 @@ void UserInfoView::initAddUserInfoWidget()
     layout1->addWidget(lbl1,      0, 0, 1, 1);
     layout1->addWidget(lineEdit1, 0, 1, 1, 2);
 
-    layout1->addWidget(lbl2,      1, 0, 1, 1);
-    layout1->addWidget(comboBox1, 1, 1, 1, 2);
+    layout1->addWidget(lbl5,      1, 0, 1, 1);
+    layout1->addWidget(lineEdit4, 1, 1, 1, 2);
 
-    layout1->addWidget(lbl3,      2, 0, 1, 1);
-    layout1->addWidget(lineEdit2, 2, 1, 1, 2);
+    layout1->addWidget(lbl6,      2, 0, 1, 1);
+    layout1->addWidget(lineEdit5, 2, 1, 1, 2);
 
-    layout1->addWidget(lbl4,      3, 0, 1, 1);
-    layout1->addWidget(lineEdit3, 3, 1, 1, 2);
+    layout1->addWidget(lbl2,      3, 0, 1, 1);
+    layout1->addWidget(comboBox1, 3, 1, 1, 2);
 
-    layout1->addWidget(btn,       4, 0, 1, 3, Qt::AlignCenter);
+    layout1->addWidget(lbl3,      4, 0, 1, 1);
+    layout1->addWidget(lineEdit2, 4, 1, 1, 2);
+
+    layout1->addWidget(lbl4,      5, 0, 1, 1);
+    layout1->addWidget(lineEdit3, 5, 1, 1, 2);
+
+    layout1->addWidget(btn,       6, 0, 1, 3, Qt::AlignCenter);
 
     QVBoxLayout *layout2 = new QVBoxLayout;
     layout2->addLayout(layout1);
     layout2->addStretch();
 
-    QHBoxLayout *layout3 = new QHBoxLayout(addUserInfoWidget);
+    QHBoxLayout *layout3 = new QHBoxLayout(m_addUserInfoWidget);
     layout3->addStretch(1);
     layout3->addLayout(layout2, 4);
     layout3->addStretch(1);
@@ -226,13 +257,13 @@ void UserInfoView::handleModifyInfo()
 {
     int row = sender()->objectName().toInt();
 
-    static_cast<QLineEdit *>(modifyInfoMap["User"])->setText(model()->data(model()->index(row, 1)).toString());
-    static_cast<QComboBox *>(modifyInfoMap["Group"])->setCurrentIndex(model()->data(model()->index(row, 2)).toInt());
+    static_cast<LineEdit *>(m_modifyInfoMap["User"])->setText(model()->data(model()->index(row, 1)).toString());
+    static_cast<QComboBox *>(m_modifyInfoMap["Group"])->setCurrentIndex(model()->data(model()->index(row, 2)).toInt());
 
-    static_cast<QLineEdit *>(modifyInfoMap["Password"])->clear();
-    static_cast<QLineEdit *>(modifyInfoMap["Confirm"])->clear();
+    static_cast<LineEdit *>(m_modifyInfoMap["Password"])->clear();
+    static_cast<LineEdit *>(m_modifyInfoMap["Confirm"])->clear();
 
-    modifyInfoWidget->exec();
+    m_modifyInfoWidget->exec();
 }
 
 void UserInfoView::handleDelUserInfo()
@@ -242,26 +273,28 @@ void UserInfoView::handleDelUserInfo()
     QString user = model()->data(model()->index(row, 1)).toString();
     if (QMessageBox::question(this, "删除用户！！", QString("是否删除用户名为：%1的账号信息").arg(user.toStdString().data()))
             == QMessageBox::Yes) {
-        VidiconProtocol::UserConfigInfo *info = new VidiconProtocol::UserConfigInfo;
+        UserConfigInfo *info = new UserConfigInfo;
         info->UserName = user;
-        emit signalSetParameter(DELETEUSER, info);
+        emit signalSetParameter(VidiconProtocol::DELETEUSER, info);
     }
 }
 
 void UserInfoView::handleAddUserInfo()
 {
-    static_cast<QLineEdit *>(addUserInfoMap["User"])->clear();
-    static_cast<QComboBox *>(addUserInfoMap["Group"])->setCurrentIndex(0);
-    static_cast<QLineEdit *>(addUserInfoMap["Password"])->clear();
-    static_cast<QLineEdit *>(addUserInfoMap["Confirm"])->clear();
+    static_cast<LineEdit *>(m_addUserInfoMap["train"])->clear();
+    static_cast<LineEdit *>(m_addUserInfoMap["coach"])->clear();
+    static_cast<LineEdit *>(m_addUserInfoMap["seat"])->clear();
+    static_cast<QComboBox *>(m_addUserInfoMap["Group"])->setCurrentIndex(0);
+    static_cast<LineEdit *>(m_addUserInfoMap["Password"])->clear();
+    static_cast<LineEdit *>(m_addUserInfoMap["Confirm"])->clear();
 
-    addUserInfoWidget->exec();
+    m_addUserInfoWidget->exec();
 }
 
 UserInfoModel::UserInfoModel(QObject *parent) : QAbstractTableModel(parent),
-    column(5)
+    m_column(5)
 {
-    headList << "No." << "用户名" << "权限" << "操作";
+    m_headItems << "No." << "用户名" << "权限" << "操作";
 }
 
 UserInfoModel::~UserInfoModel()
@@ -272,13 +305,13 @@ UserInfoModel::~UserInfoModel()
 int UserInfoModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return list.size() + 1;
+    return m_items.size() + 1;
 }
 
 int UserInfoModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return column;
+    return m_column;
 }
 
 QVariant UserInfoModel::data(const QModelIndex &index, int role) const
@@ -296,16 +329,16 @@ QVariant UserInfoModel::data(const QModelIndex &index, int role) const
         case Qt::DisplayRole:
             {
                 if(index.row() == 0){
-                    return headList.at(index.column());
+                    return m_headItems.at(index.column());
                 }
                 if(0 == index.column())
                     return index.row();
                 else if(1 == index.column())
-                    return list.at(index.row() - 1).UserName;
+                    return m_items.at(index.row() - 1).UserName;
                 else if(2 == index.column()) {
                     QStringList list;
                     list << "管理权限" << "维护权限" << "一般权限";
-                    return list.at(this->list.at(index.row() - 1).Privilege);
+                    return list.at(this->m_items.at(index.row() - 1).Privilege);
                 }
             }
             break;
@@ -358,9 +391,9 @@ Qt::ItemFlags UserInfoModel::flags(const QModelIndex &index) const
     return flags;
 }
 
-void UserInfoModel::setDataSource(const QList<VidiconProtocol::UserConfigInfo> &l)
+void UserInfoModel::setItems(const QList<UserConfigInfo> &l)
 {
-    list = l;
+    m_items = l;
     beginResetModel();
     endResetModel();
 }

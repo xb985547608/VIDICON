@@ -8,10 +8,10 @@
 #include <QVBoxLayout>
 #include <QMovie>
 
-WaitingShade *WaitingShade::_instance = NULL;
+WaitingShade *WaitingShade::s_instance = NULL;
 WaitingShade::WaitingShade(bool folowToHeadWidget, QWidget *parent) :
     QWidget(parent),
-    isUpdateSelf(false)
+    m_isUpdateSelf(false)
 {
     Q_ASSERT_X(parent, "", Q_FUNC_INFO);
 
@@ -51,7 +51,7 @@ void WaitingShade::paintEvent(QPaintEvent *event)
     QPainter p;
 
     p.begin(this);
-    p.drawPixmap(0, 0, width(), height(), parentWidgetPixmap);
+    p.drawPixmap(0, 0, width(), height(), m_parentWidgetPixmap);
     p.setBrush(QBrush(QColor(0, 0, 0, 220)));
     p.drawRect(0, 0, width(), height());
     p.end();
@@ -79,15 +79,15 @@ bool WaitingShade::eventFilter(QObject *watched, QEvent *event)
 
 void WaitingShade::updateSelf()
 {
-    if (!isUpdateSelf) {
-        isUpdateSelf = true;
+    if (!m_isUpdateSelf) {
+        m_isUpdateSelf = true;
         {
             hide();
             resize(parentWidget()->size());
-            parentWidgetPixmap = grabParentWidgetPixmap();
+            m_parentWidgetPixmap = grabParentWidgetPixmap();
             show();
         }
-        isUpdateSelf = false;
+        m_isUpdateSelf = false;
     }
 }
 

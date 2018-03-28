@@ -39,6 +39,8 @@ CONFIG(debug, debug|release){
 
 INCLUDEPATH += $$PWD/../OperationInterface/
 INCLUDEPATH += $$PWD/../OperationInterface/Control/sdk/include
+INCLUDEPATH += $$PWD/../OperationInterface/Control/CodeMeter/include
+#INCLUDEPATH += $$PWD/../OperationInterface/Logger/log4cplus/include
 
 SOURCES += \
         main.cpp \
@@ -46,16 +48,19 @@ SOURCES += \
     customstyle.cpp \
     selectcurrentipdialog.cpp \
     statustip.cpp \
-    waitingshade.cpp \
-    soundeffect.cpp
+    soundeffect.cpp \
+    basicwidget.cpp \
+    stackedwidget.cpp
 
 HEADERS += \
         mainwindow.h \
     customstyle.h \
     selectcurrentipdialog.h \
     statustip.h \
-    waitingshade.h \
-    soundeffect.h
+    soundeffect.h \
+    basicwidget.h \
+    stackedwidget.h \
+    lineedit.h
 
 FORMS += \
     selectcurrentipdialog.ui
@@ -68,6 +73,8 @@ include($$PWD/Playback/Playback.pri)
 include($$PWD/Photo/Photo.pri)
 include($$PWD/Download/Download.pri)
 include($$PWD/Navigation/Navigation.pri)
+include($$PWD/log4qt/log4qt.pri)
+
 
 RESOURCES += \
     mainwindow.qrc

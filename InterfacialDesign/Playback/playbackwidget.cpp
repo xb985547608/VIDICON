@@ -4,43 +4,36 @@
 #include "control/vlccontrol.h"
 #include <QVBoxLayout>
 #include <QPushButton>
-#include "timershaft.h"
 #include "soundeffect.h"
 #include "parsexml.h"
 #include "statustip.h"
 
 PlaybackWidget::PlaybackWidget(QWidget *parent) :
-    QWidget(parent),
+    BasicWidget(parent),
     ui(new Ui::PlaybackForm),
-    stateValue(0),
-    isPlaying(false)
+    m_stateValue(0),
+    m_isPlaying(false)
 {
     qsrand(QTime::currentTime().msec());
-    htmlid = qrand();
+    m_htmlid = qrand();
 
     ui->setupUi(this);
     ui->playBtn->setProperty("State", "pause");
 
-    connect(this, &PlaybackWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
-    connect(this, &PlaybackWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &PlaybackWidget::handleReceiveData);
     connect(this, &PlaybackWidget::signalVlcControl, VlcControl::getInstance(), &VlcControl::handleVlcControl);
 
-    fileDialog = new FileManagerDialog(this);
-    connect(fileDialog, &FileManagerDialog::signalAddDownloadTask, this, [this](QStringList files){
+    m_fileDialog = new FileManagerDialog(this);
+    connect(m_fileDialog, &FileManagerDialog::signalAddDownloadTask, this, [this](QStringList files){
         emit signalAddDownloadTask(files);
     });
 
-    dateWidget = new DateWidget(ui->rightBar);
+    m_dateWidget = new DateWidget(ui->rightBar);
 
-    TimerShaft *view = new TimerShaft(htmlid, ui->timeslider);
-    connect(dateWidget, &DateWidget::signalDateChange, view, &TimerShaft::hanlderDateChange);
+    m_timerShaft = new TimerShaft(m_htmlid, ui->timeslider);
+    connect(m_dateWidget, &DateWidget::signalDateChange, m_timerShaft, &TimerShaft::hanlderDateChange);
     QVBoxLayout *layout2 = new QVBoxLayout(ui->timeslider);
-    layout2->addWidget(view);
+    layout2->addWidget(m_timerShaft);
     layout2->setContentsMargins(0, 0, 0, 0);
-
-    snapshotSoundEffect = new QSound(":/snapshot.wav");
-    snapshotSoundEffect->setLoops(1);
 
     connect(ui->playBtn, &QPushButton::clicked, this, &PlaybackWidget::onPlayBtnClicked);
     connect(ui->fastPlayBtn, &QPushButton::clicked, this, &PlaybackWidget::onFastPlayBtnClicked);
@@ -66,48 +59,49 @@ void PlaybackWidget::refreshPolish(QWidget *w)
 
 void PlaybackWidget::setStateValue(int value)
 {
-    if (value == stateValue || value > 2 || value < -2)
+    if (value == m_stateValue || value > 2 || value < -2)
         return;
-    stateValue = value;
-    VidiconProtocol::PlayStateParameter *param = new VidiconProtocol::PlayStateParameter;
-    param->htmlid = htmlid;
-    param->StateValue = stateValue;
-    emit signalSetParameter(PLAYSTATE, param);
+    m_stateValue = value;
+    PlayStateParameter *param = new PlayStateParameter;
+    param->htmlid = m_htmlid;
+    param->StateValue = m_stateValue;
+    emit signalSetParameter(VidiconProtocol::PLAYSTATE, param);
 }
 
 void PlaybackWidget::resizeEvent(QResizeEvent *event)
 {
     Q_UNUSED(event);
-    dateWidget->setGeometry(5, 5, ui->rightBar->size().width() - 10, ui->rightBar->size().height() - 5);
+    m_dateWidget->setGeometry(5, 5, ui->rightBar->size().width() - 10, ui->rightBar->size().height() - 5);
 }
 
-void PlaybackWidget::handleWidgetSwitch()
+void PlaybackWidget::refresh()
 {
     if (!isVisible()) {
-        isPlaying = false;
+        m_isPlaying = false;
         checkPlayState();
         emit signalVlcControl(VLCCONTROLSTOP);
     } else {
+        m_dateWidget->refresh();
         emit signalVlcControl(VLCCONTROLINIT, BACKUPSTREAMTYPE, ui->displayArea->winId());
     }
 }
 
-void PlaybackWidget::handleReceiveData(int type, QByteArray data)
+void PlaybackWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray data)
 {
     StatusTip *s = StatusTip::getInstance();
     bool isOK = false;
 
     switch(type) {
-    case STARTPLAYING: {
-        VidiconProtocol::ResponseStatus reply;
+    case VidiconProtocol::STARTPLAYING: {
+        ResponseStatus reply;
         isOK = ParseXML::getInstance()->parseResponseStatus(&reply, data);
         if (isOK) {
             QString info;
             if(reply.StatusCode == 1) {
                 info = "(*^▽^*)  开始回放";
-                isPlaying = true;
+                m_isPlaying = true;
             }else {
-                isPlaying = false;
+                m_isPlaying = false;
                 info = "(╯﹏╰)  回放失败";
             }
             checkPlayState();
@@ -115,13 +109,13 @@ void PlaybackWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case CURRENTPLAYINGTIME: {
-        VidiconProtocol::PlayingTimeParameter param;
+    case VidiconProtocol::CURRENTPLAYINGTIME: {
+        PlayingTimeParameter param;
         isOK = ParseXML::getInstance()->parsePlayingTimeParameter(&param, data);
         if(isOK) {
-            if (param.htmlid == htmlid) {
-                if (isPlaying != (param.Playend == 0)) {
-                    isPlaying = param.Playend != 0;
+            if (param.htmlid == m_htmlid) {
+                if (m_isPlaying != (param.Playend == 0)) {
+                    m_isPlaying = param.Playend != 0;
                     checkPlayState();
                 }
             }
@@ -140,7 +134,7 @@ void PlaybackWidget::handleReceiveData(int type, QByteArray data)
 
 void PlaybackWidget::onPlayBtnClicked()
 {
-    isPlaying = !isPlaying;
+    m_isPlaying = !m_isPlaying;
 
 
     checkPlayState();
@@ -148,10 +142,10 @@ void PlaybackWidget::onPlayBtnClicked()
 
 void PlaybackWidget::checkPlayState()
 {
-    ui->playBtn->setProperty("State", isPlaying ? "play" : "pause");
+    ui->playBtn->setProperty("State", m_isPlaying ? "play" : "pause");
     refreshPolish(ui->playBtn);
 
-    if (isPlaying) {
+    if (m_isPlaying) {
         emit signalVlcControl(VLCCONTROLPLAY);
     } else {
         emit signalVlcControl(VLCCONTROLSTOP);
@@ -160,12 +154,12 @@ void PlaybackWidget::checkPlayState()
 
 void PlaybackWidget::onSlowForwardBtnClicked()
 {
-    setStateValue(stateValue + 1);
+    setStateValue(m_stateValue + 1);
 }
 
 void PlaybackWidget::onFastPlayBtnClicked()
 {
-    setStateValue(stateValue - 1);
+    setStateValue(m_stateValue - 1);
 }
 
 void PlaybackWidget::onSnapshotBtnClicked()
@@ -183,5 +177,5 @@ void PlaybackWidget::handleTimeout()
 {
     if (isVisible())
         QMetaObject::invokeMethod(VidiconProtocol::getInstance(), "getCurrentPlayingTime", Qt::QueuedConnection,
-                                  Q_ARG(int, htmlid), Q_ARG(QString, "r00001"));
+                                  Q_ARG(int, m_htmlid), Q_ARG(QString, "r00001"));
 }

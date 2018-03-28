@@ -21,13 +21,13 @@ void ImageWidget::paintEvent(QPaintEvent *event)
     QPainter p(this);
 
     p.fillRect(rect(), Qt::black);
-    p.drawPixmap(rect(), backgroundPixmap);
+    p.drawPixmap(rect(), m_backgroundPixmap);
 }
 
 void ImageWidget::handleReceiveImage(QPixmap *pixmap)
 {
     if(isVisible() && !pixmap->isNull()){
-        backgroundPixmap = *pixmap;
+        m_backgroundPixmap = *pixmap;
         update();
         delete pixmap;
     }

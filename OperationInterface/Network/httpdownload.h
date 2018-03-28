@@ -27,17 +27,17 @@ class OPERATIONINTERFACESHARED_EXPORT HttpDownload : public QObject
 {
     Q_OBJECT
 public:
-    typedef struct FileStatus {
+    struct FileStatus {
         qint64  bytesReceived;  //已下载大小
         qint64  bytesTotal;     //总大小
         QString fileName;       //文件名
         QString speed;          //下载速度
         int     percent;        //下载百分比
         int     state;          //文件状态
-    }FileStatus;
-    static HttpDownload *getInstance(QString host = "", int port = -1) {
+    };
+    static HttpDownload *getInstance() {
         if(_instance == NULL){
-            _instance = new HttpDownload(host, QString::number(port));
+            _instance = new HttpDownload();
         }
         return _instance;
     }
@@ -59,11 +59,15 @@ public slots:
     void readyRead();
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
     void handleTimeout();
+    void handleError(QNetworkReply::NetworkError error);
     Q_INVOKABLE void handleCancelDownload(QString file);
 
 private:
+    void reset();
+
+private:
     static HttpDownload *_instance;
-    explicit HttpDownload(QString host, QString port, QObject *parent = nullptr);
+    explicit HttpDownload(QObject *parent = nullptr);
 
     QString host;
     QString port;

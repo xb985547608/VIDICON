@@ -16,12 +16,12 @@ public:
     explicit UserInfoView(QWidget *parent = Q_NULLPTR);
     ~UserInfoView();
 
-    void setDataSource(const QList<VidiconProtocol::UserConfigInfo> &l);
+    void setItems(const QList<UserConfigInfo> &l);
 
     void initModifyInfoWidget();
     void initAddUserInfoWidget();
 signals:
-    void signalSetParameter(int type, void *param = NULL, QString SessionID = "R00001");
+    void signalSetParameter(VidiconProtocol::Type type, void *param = NULL, QString SessionID = "R00001");
 
 protected:
     virtual void mousePressEvent(QMouseEvent *event);
@@ -32,11 +32,11 @@ public slots:
     void handleAddUserInfo();
 
 private:
-    QDialog *modifyInfoWidget;
-    QMap<QString, QWidget *> modifyInfoMap;
+    QDialog *m_modifyInfoWidget;
+    QMap<QString, QWidget *> m_modifyInfoMap;
 
-    QDialog *addUserInfoWidget;
-    QMap<QString, QWidget *> addUserInfoMap;
+    QDialog *m_addUserInfoWidget;
+    QMap<QString, QWidget *> m_addUserInfoMap;
 };
 
 class UserInfoModel : public QAbstractTableModel
@@ -46,7 +46,7 @@ public:
     explicit UserInfoModel(QObject *parent = 0);
     ~UserInfoModel();
 
-    void setDataSource(const QList<VidiconProtocol::UserConfigInfo> &l);
+    void setItems(const QList<UserConfigInfo> &l);
 
 protected:
     //获取行数
@@ -61,9 +61,9 @@ signals:
 public slots:
 
 private:
-    int column;
-    QList<VidiconProtocol::UserConfigInfo> list;
-    QStringList headList;
+    int m_column;
+    QList<UserConfigInfo> m_items;
+    QStringList m_headItems;
 };
 
 #endif // TABLEVIEW_H

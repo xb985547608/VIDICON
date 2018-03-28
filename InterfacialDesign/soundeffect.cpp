@@ -3,22 +3,22 @@
 SoundEffect *SoundEffect::_instance = NULL;
 SoundEffect::SoundEffect(QObject *parent) : QObject(parent)
 {
-    errorEffct = new QSound(":/error.wav");
-    successEffect = new QSound(":/success.wav");
-    snapshotEffect = new QSound(":/snapshot.wav");
+    m_errorEffct = new QSound(":/error.wav");
+    m_successEffect = new QSound(":/success.wav");
+    m_snapshotEffect = new QSound(":/snapshot.wav");
 }
 
 void SoundEffect::triggerSoundEffect(SoundEffect::EffectMode mode)
 {
     switch (mode) {
     case Error:
-        errorEffct->play();
+        m_errorEffct->play();
         break;
     case Success:
-        successEffect->play();
+        m_successEffect->play();
         break;
     case Snapshot:
-        snapshotEffect->play();
+        m_snapshotEffect->play();
         break;
     default:
         break;
@@ -29,11 +29,11 @@ const QSound *SoundEffect::getSoundEffect(SoundEffect::EffectMode mode)
 {
     switch (mode) {
     case Error:
-        return errorEffct;
+        return m_errorEffct;
     case Success:
-        return successEffect;
+        return m_successEffect;
     case Snapshot:
-        return snapshotEffect;
+        return m_snapshotEffect;
     default:
         break;
     }

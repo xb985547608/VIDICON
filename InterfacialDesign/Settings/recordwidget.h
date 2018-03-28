@@ -1,10 +1,10 @@
 #ifndef TABRECORD_H
 #define TABRECORD_H
 
-#include <QStackedWidget>
 #include <QMap>
+#include "stackedwidget.h"
 
-class RecordWidget : public QStackedWidget
+class RecordWidget : public StackedWidget
 {
     Q_OBJECT
 public:
@@ -17,32 +17,29 @@ public:
     void initDestinationWidget();
     void initNASWidget();
 
-signals:
-    void signalSetParameter(int type, void *param = NULL, QString SessionID = "R00001");
-    void signalGetParameter(int type, void *param = NULL, QString SessionID = "R00001");
-
 public slots:
-    void handleSwitchTab(const QModelIndex &index);
+    void setCurrentIndex(const QModelIndex &index) override;
+    void handlePrepareData() override;
+    void handleReceiveData(VidiconProtocol::Type type, QByteArray data) override;
+
     void handleTimeSelect(int state);
     void handleSelectAllWeek();
-    void handlePrepareData();
-    void handleReceiveData(int type, QByteArray data);
 
 private:
-    QWidget *scheduleWidget;
-    QMap<QString, QWidget *> scheduleMap;
+    QWidget *m_scheduleWidget;
+    QMap<QString, QWidget *> m_scheduleMap;
 
-    QWidget *SDStorageWidget;
-    QMap<QString, QWidget *> SDStorageMap;
+    QWidget *m_SDStorageWidget;
+    QMap<QString, QWidget *> m_SDStorageMap;
 
-    QWidget *snapshotWidget;
-    QMap<QString, QWidget *> snapshotMap;
+    QWidget *m_snapshotWidget;
+    QMap<QString, QWidget *> m_snapshotMap;
 
-    QWidget *destinationWidget;
-    QMap<QString, QWidget *> destinationMap;
+    QWidget *m_destinationWidget;
+    QMap<QString, QWidget *> m_destinationMap;
 
-    QWidget *NASWidget;
-    QMap<QString, QWidget *> NASMap;
+    QWidget *m_NASWidget;
+    QMap<QString, QWidget *> m_NASMap;
 };
 
 #endif // TABRECORD_H

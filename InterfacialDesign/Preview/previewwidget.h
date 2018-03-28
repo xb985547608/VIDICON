@@ -3,12 +3,13 @@
 
 #include <QWidget>
 #include "Protocol/vidiconprotocol.h"
+#include "basicwidget.h"
 
 namespace Ui{
 class PreviewForm;
 }
 
-class PreviewWidget : public QWidget
+class PreviewWidget : public BasicWidget
 {
     Q_OBJECT
 public:
@@ -18,21 +19,19 @@ public:
     void updateDynamicProperty(QWidget *w);
 
 signals:
-    void signalSetParameter(int type, void *param = NULL, QString SessionID = "R00001");
-    void signalGetParameter(int type, void *param = NULL, QString SessionID = "R00001");
     void signalVlcControl(int type, int subtype = -1, WId id = 0);
 
 public slots:
-    void handleWidgetSwitch();
+    void refresh();
     void handleStreamSwitch(bool checked);
     void handleTimeout();
-    void handleReceiveData(int type, QByteArray data);
+    void handleReceiveData(VidiconProtocol::Type type, QByteArray data);
     void onSnapshotBtn();
 
 private:
     Ui::PreviewForm *ui;
-    VidiconProtocol::AlarmParameter msgs[3];
-    VidiconProtocol::PullMessage param;
+    AlarmParameter msgs[3];
+    PullMessage param;
     //闪烁标志
     bool sensorAlarmFlicker;
     bool motionAlarmFlicker;

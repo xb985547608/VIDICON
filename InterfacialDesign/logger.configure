@@ -1,0 +1,21 @@
+### 设置 ###
+log4j.rootLogger = ALL,Console,LogFile
+
+### 输出信息到控制抬 ###
+log4j.appender.Console = org.apache.log4j.ConsoleAppender
+log4j.appender.Console.layout = org.apache.log4j.PatternLayout
+log4j.appender.Console.layout.ConversionPattern = [%-5p][%d{dd/MM/yy HH:mm:ss:zzz}] -- %m %n
+log4j.appender.Console.Threshold = ALL
+log4j.appender.Console.ImmediateFlush = TRUE
+log4j.appender.Console.Target = system.out
+
+### 输出信息到文件 ###
+log4j.appender.LogFile = org.apache.log4j.RollingFileAppender
+log4j.appender.LogFile.layout = org.apache.log4j.PatternLayout
+log4j.appender.LogFile.layout.ConversionPattern = [%-5p][%d{dd/MM/yy HH:mm:ss:zzz}] -- %m %n
+log4j.appender.LogFile.Threshold = ALL
+log4j.appender.LogFile.ImmediateFlush = TRUE
+log4j.appender.LogFile.AppendFile = TRUE
+log4j.appender.LogFile.MaxFileSize = 100MB
+log4j.appender.LogFile.MaxBackupIndex = 4
+log4j.appender.LogFile.File = log/vidicon.log

@@ -4,102 +4,56 @@
 #include "customstyle.h"
 #include "Protocol/vidiconprotocol.h"
 #include "Control/vlccontrol.h"
-#include "settings.h"
 #include <QDebug>
-#include <QCryptographicHash>
 #include <QThread>
-#include <QMetaObject>
-#include "searchdevicethread.h"
-#include "selectcurrentipdialog.h"
-#include <QLabel>
+#include "settings.h"
 #include <QPropertyAnimation>
 #include "Network/httpdownload.h"
-#include "logger.h"
-
-void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
-
+#include "log4qt/logmanager.h"
+#include "log4qt/propertyconfigurator.h"
 int main(int argc, char *argv[])
 {
 
     QApplication a(argc, argv);
     a.setStyle(new CustomStyle);
 
+    qRegisterMetaType<WholeDeviceInfo>("WholeDeviceInfo");
+    qRegisterMetaType<WId>("WId");
+
     //永久性配置信息管理
     SettingsObject::getInstance();
     //启动日志记录器
-    Logger::getInstance()->start();
+    Log4Qt::PropertyConfigurator::configure(":/logger.configure");
+    Log4Qt::LogManager::setHandleQtMessages(true);
 
-    //安装日志记录器
-//    qInstallMessageHandler(&customMessageHandler);
+    //将一些较为耗时的操作放入次线程中运行
+//    QThread *t1 = new QThread;
+    VidiconProtocol *vp = VidiconProtocol::getInstance();
+    vp->init();
+//    vp->moveToThread(t1);
+//    QObject::connect(t1, &QThread::started, vp, &VidiconProtocol::init);
+//    t1->start();
 
+    QThread *t2 = new QThread;
+    VlcControl *vc = VlcControl::getInstance();
+    vc->moveToThread(t2);
+    t2->start();
 
-    SearchDeviceThread *s = new SearchDeviceThread;
-    //网卡地址选择
-    {
-        SelectCurrentIpDialog d;
-        if(d.exec()) {
-            qDebug() << d.getCurrentSelectIp().toString();
-            s->setSpecifiedIP(d.getCurrentSelectIp());
-        }else {
-            exit(-1);
-        }
-    }
+    QThread *t3 = new QThread;
+    HttpDownload *hd = HttpDownload::getInstance();
+    hd->moveToThread(t3);
+    QObject::connect(t3, &QThread::started, hd, &HttpDownload::init);
+    t3->start();
 
-    QLabel *lbl = new QLabel("正在搜寻设备中...");
-    lbl->setAlignment(Qt::AlignCenter);
-    lbl->setFixedSize(200, 100);
-    lbl->show();
+    //本地登录成功后方可进入软件
+    LoginWidget loginWidget;
+    MainWindow mainWindow;
+    QObject::connect(&loginWidget, SIGNAL(signalLoginState(LoginWidget::LoginState)), &mainWindow, SLOT(loginHandler(LoginWidget::LoginState)));
 
-    //等待成功寻找到设备
-    QObject::connect(s, &SearchDeviceThread::signalDeviceInfo, lbl, [lbl](SearchDeviceThread::DeviceInfo *info){
-        //将一些较为耗时的类放入次线程中运行
-        QThread *t1 = new QThread;
-        VidiconProtocol *vp = VidiconProtocol::getInstance(info->IPAddr, info->HTTPPort);
-        vp->moveToThread(t1);
-        QObject::connect(t1, &QThread::started, vp, &VidiconProtocol::init);
-
-        QThread *t2 = new QThread;
-        VlcControl *vc = VlcControl::getInstance(info->IPAddr, info->RTSPPort);
-        vc->moveToThread(t2);
-
-        QThread *t3 = new QThread;
-        HttpDownload *hd = HttpDownload::getInstance(info->IPAddr, info->HTTPPort);
-        hd->moveToThread(t3);
-        QObject::connect(t3, &QThread::started, hd, &HttpDownload::init);
-
-        t1->start();
-        t2->start();
-        t3->start();
-        delete info;
-
-        lbl->setText("搜寻设备成功");
-        QPropertyAnimation *animation = new QPropertyAnimation(lbl, "windowOpacity");
-        animation->setDuration(2000);
-        animation->setStartValue(1.0);
-        animation->setEndValue(0.0);
-        animation->setLoopCount(1);
-        QObject::connect(animation, &QPropertyAnimation::finished, lbl, [lbl](){
-            LoginWidget::getInstance();
-            MainWindow *w = new MainWindow;
-            Q_UNUSED(w);
-            lbl->deleteLater();
-        });
-        QObject::connect(animation, &QPropertyAnimation::finished, animation, &QPropertyAnimation::deleteLater);
-        animation->start();
-    });
-    QObject::connect(s, &SearchDeviceThread::finished, s, &SearchDeviceThread::deleteLater);
-
-    qRegisterMetaType<WId>("WId");
-
-    //开始搜寻设备
-    s->start();
+    loginWidget.show();
 
     qDebug() << "------------------start------------------";
 
     return a.exec();
 }
 
-void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
-{
-    Logger::getInstance()->log(type, context, msg);
-}

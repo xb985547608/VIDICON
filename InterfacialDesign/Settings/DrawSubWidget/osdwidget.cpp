@@ -8,13 +8,13 @@
 #include <QDebug>
 
 OSDWidget::OSDWidget(QWidget *parent) : QWidget(parent) ,
-    validPress(false)
+    m_validPress(false)
 {
     QFont f = font();
     f.setPixelSize(16);
     setFont(f);
 
-    parameters = new VidiconProtocol::OSDParameter[4];
+    m_parameters = new OSDParameter[4];
 
     QTimer *timer = new QTimer(this);
     timer->start(100);
@@ -24,7 +24,7 @@ OSDWidget::OSDWidget(QWidget *parent) : QWidget(parent) ,
 
 OSDWidget::~OSDWidget()
 {
-    delete []parameters;
+    delete []m_parameters;
 }
 
 void OSDWidget::paintEvent(QPaintEvent *event)
@@ -34,11 +34,11 @@ void OSDWidget::paintEvent(QPaintEvent *event)
     QPen pen;
 
     p.fillRect(rect(), Qt::black);
-    p.drawPixmap(rect(), backgroundPixmap);
+    p.drawPixmap(rect(), m_backgroundPixmap);
 
     for(int i=0; i<4; i++) {
-        QRect rect(parameters[i].x * size().width() / XSCALEMAX,
-                   parameters[i].y * size().height() / YSCALEMAX,
+        QRect rect(m_parameters[i].x * size().width() / XSCALEMAX,
+                   m_parameters[i].y * size().height() / YSCALEMAX,
                    size().width() / 2, fontMetrics().height() + 4);
         pen.setColor(Qt::yellow);
         p.setPen(pen);
@@ -46,9 +46,9 @@ void OSDWidget::paintEvent(QPaintEvent *event)
         pen.setColor(Qt::red);
         p.setPen(pen);
         rect.adjust(4, 0, 0, -2);
-        switch(parameters[i].OSDType) {
+        switch(m_parameters[i].OSDType) {
         case 0: {
-            p.drawText(rect.bottomLeft() , parameters[i].OSDText);
+            p.drawText(rect.bottomLeft() , m_parameters[i].OSDText);
             break;
         }
         case 1: {
@@ -60,7 +60,7 @@ void OSDWidget::paintEvent(QPaintEvent *event)
             break;
         }
         case 3: {
-            p.drawText(rect.bottomLeft() , parameters[i].OSDText);
+            p.drawText(rect.bottomLeft() , m_parameters[i].OSDText);
             break;
         }
         default:
@@ -73,13 +73,13 @@ void OSDWidget::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton) {
         for(int i=0; i<4; i++) {
-            QRect rect(parameters[i].x * size().width() / XSCALEMAX,
-                       parameters[i].y * size().height() / YSCALEMAX,
+            QRect rect(m_parameters[i].x * size().width() / XSCALEMAX,
+                       m_parameters[i].y * size().height() / YSCALEMAX,
                        size().width() / 2, fontMetrics().height() + 4);
             if(rect.contains(event->pos())) {
-                validPress = true;
-                diffValue = event->pos() - rect.topLeft();
-                currentMoveIndex = i;
+                m_validPress = true;
+                m_diffValue = event->pos() - rect.topLeft();
+                m_currentMoveIndex = i;
             }
         }
     }
@@ -87,15 +87,15 @@ void OSDWidget::mousePressEvent(QMouseEvent *event)
 
 void OSDWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    if(validPress){
-        QRect rect(parameters[currentMoveIndex].x * size().width() / XSCALEMAX,
-                   parameters[currentMoveIndex].y * size().height() / YSCALEMAX,
+    if(m_validPress){
+        QRect rect(m_parameters[m_currentMoveIndex].x * size().width() / XSCALEMAX,
+                   m_parameters[m_currentMoveIndex].y * size().height() / YSCALEMAX,
                    size().width() / 2, fontMetrics().height() + 4);
         qDebug() << rect;
-        rect.moveTo(event->pos() - diffValue);
+        rect.moveTo(event->pos() - m_diffValue);
         qDebug() << rect;
-        parameters[currentMoveIndex].x = rect.x() * XSCALEMAX / size().width();
-        parameters[currentMoveIndex].y = rect.y() * YSCALEMAX / size().height();
+        m_parameters[m_currentMoveIndex].x = rect.x() * XSCALEMAX / size().width();
+        m_parameters[m_currentMoveIndex].y = rect.y() * YSCALEMAX / size().height();
 
         update();
     }
@@ -104,13 +104,13 @@ void OSDWidget::mouseMoveEvent(QMouseEvent *event)
 void OSDWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     Q_UNUSED(event);
-    validPress = false;
+    m_validPress = false;
 }
 
 void OSDWidget::handleReceiveImage(QPixmap *pixmap)
 {
     if(isVisible() && !pixmap->isNull()){
-        backgroundPixmap = *pixmap;
+        m_backgroundPixmap = *pixmap;
         update();
         delete pixmap;
     }

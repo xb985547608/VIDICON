@@ -8,7 +8,7 @@
 
 PrivacyWidget::PrivacyWidget(QWidget *parent) : QWidget(parent)
 {
-    rects = new QRect[4];
+    m_rects = new QRect[4];
 
     QTimer *timer = new QTimer(this);
     timer->start(100);
@@ -20,15 +20,15 @@ PrivacyWidget::PrivacyWidget(QWidget *parent) : QWidget(parent)
 
 PrivacyWidget::~PrivacyWidget()
 {
-    delete []rects;
+    delete []m_rects;
 }
 
 void PrivacyWidget::reset()
 {
     for(int i=0; i<4; i++) {
-        rects[i] = QRect(0, 0, 0, 0);
+        m_rects[i] = QRect(0, 0, 0, 0);
     }
-    currentIndex = 0;
+    m_currentIndex = 0;
 }
 
 void PrivacyWidget::paintEvent(QPaintEvent *event)
@@ -41,27 +41,27 @@ void PrivacyWidget::paintEvent(QPaintEvent *event)
 
     p.fillRect(rect(), Qt::black);
 
-    p.drawPixmap(rect(), backgroundPixmap);
+    p.drawPixmap(rect(), m_backgroundPixmap);
 
     for(int i=0; i<4; i++) {
-        p.fillRect(rects[i], Qt::black);
-        p.drawRect(rects[i]);
+        p.fillRect(m_rects[i], Qt::black);
+        p.drawRect(m_rects[i]);
     }
 }
 
 void PrivacyWidget::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton) {
-        startPos = event->pos();
+        m_startPos = event->pos();
     }
 }
 
 void PrivacyWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    if(event->buttons() & Qt::LeftButton && currentIndex != -1) {
-        endPos = event->pos();
-        rects[currentIndex].setTopLeft(QPoint(qMin(startPos.x(), endPos.x()), qMin(startPos.y(), endPos.y())));
-        rects[currentIndex].setBottomRight(QPoint(qMax(startPos.x(), endPos.x()), qMax(startPos.y(), endPos.y())));
+    if(event->buttons() & Qt::LeftButton && m_currentIndex != -1) {
+        m_endPos = event->pos();
+        m_rects[m_currentIndex].setTopLeft(QPoint(qMin(m_startPos.x(), m_endPos.x()), qMin(m_startPos.y(), m_endPos.y())));
+        m_rects[m_currentIndex].setBottomRight(QPoint(qMax(m_startPos.x(), m_endPos.x()), qMax(m_startPos.y(), m_endPos.y())));
         update();
     }
 }
@@ -69,16 +69,16 @@ void PrivacyWidget::mouseMoveEvent(QMouseEvent *event)
 void PrivacyWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     Q_UNUSED(event);
-    currentIndex++;
-    if(currentIndex >= 4) {
-        currentIndex = -1;
+    m_currentIndex++;
+    if(m_currentIndex >= 4) {
+        m_currentIndex = -1;
     }
 }
 
 void PrivacyWidget::handleReceiveImage(QPixmap *pixmap)
 {
     if(isVisible() && !pixmap->isNull()){
-        backgroundPixmap = *pixmap;
+        m_backgroundPixmap = *pixmap;
         update();
         delete pixmap;
     }

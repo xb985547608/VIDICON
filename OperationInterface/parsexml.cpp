@@ -8,7 +8,7 @@ ParseXML::ParseXML(QObject *parent) : QObject(parent)
 
 }
 
-bool ParseXML::parseVideoEncodingParameter(VidiconProtocol::VideoEncodingParameter *param, QByteArray data)
+bool ParseXML::parseVideoEncodingParameter(VideoEncodingParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -67,7 +67,7 @@ bool ParseXML::parseVideoEncodingParameter(VidiconProtocol::VideoEncodingParamet
     return true;
 }
 
-bool ParseXML::parseAudioEncodingParameter(VidiconProtocol::AudioEncodingParameter *param, QByteArray data)
+bool ParseXML::parseAudioEncodingParameter(AudioEncodingParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -112,7 +112,7 @@ bool ParseXML::parseAudioEncodingParameter(VidiconProtocol::AudioEncodingParamet
     return true;
 }
 
-bool ParseXML::parseOSDParameter(VidiconProtocol::OSDParameter *param, QByteArray data)
+bool ParseXML::parseOSDParameter(OSDParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -178,7 +178,7 @@ bool ParseXML::parseOSDParameter(VidiconProtocol::OSDParameter *param, QByteArra
     return true;
 }
 
-bool ParseXML::parseNTPParameter(VidiconProtocol::NTPParameter *param, QByteArray data)
+bool ParseXML::parseNTPParameter(NTPParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -227,7 +227,7 @@ bool ParseXML::parseNTPParameter(VidiconProtocol::NTPParameter *param, QByteArra
     return true;
 }
 
-bool ParseXML::parseDeviceInfo(VidiconProtocol::DeviceInfo *param, QByteArray data)
+bool ParseXML::parseDeviceInfo(DeviceInfo *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -274,7 +274,7 @@ bool ParseXML::parseDeviceInfo(VidiconProtocol::DeviceInfo *param, QByteArray da
     return true;
 }
 
-bool ParseXML::parseImageParameter(VidiconProtocol::ImageParameter *param, QByteArray data)
+bool ParseXML::parseImageParameter(ImageParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -419,7 +419,7 @@ bool ParseXML::parseImageParameter(VidiconProtocol::ImageParameter *param, QByte
     return true;
 }
 
-bool ParseXML::parseBasicParameter(VidiconProtocol::BasicParameter *param, QByteArray data)
+bool ParseXML::parseBasicParameter(BasicParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -502,7 +502,7 @@ bool ParseXML::parseBasicParameter(VidiconProtocol::BasicParameter *param, QByte
     return true;
 }
 
-bool ParseXML::parseOtherParameter(VidiconProtocol::OtherParameter *param, QByteArray data)
+bool ParseXML::parseOtherParameter(OtherParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -530,7 +530,7 @@ bool ParseXML::parseOtherParameter(VidiconProtocol::OtherParameter *param, QByte
     }
 
     QDomElement child1 = root.firstChildElement();
-    VidiconProtocol::OtherBasicParameter *param1 = (VidiconProtocol::OtherBasicParameter *)(param);
+    OtherBasicParameter *param1 = (OtherBasicParameter *)(param);
     while(!child1.isNull()) {
         for(int i=1; i<=3; i++) {
             if(child1.tagName().compare(QString("Option_%1").arg(i), Qt::CaseInsensitive) == 0) {
@@ -555,7 +555,7 @@ bool ParseXML::parseOtherParameter(VidiconProtocol::OtherParameter *param, QByte
     return true;
 }
 
-bool ParseXML::parsePPPOEParameter(VidiconProtocol::PPPOEParameter *param, QByteArray data)
+bool ParseXML::parsePPPOEParameter(PPPOEParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -598,7 +598,7 @@ bool ParseXML::parsePPPOEParameter(VidiconProtocol::PPPOEParameter *param, QByte
     return true;
 }
 
-bool ParseXML::parseDDNSParameter(VidiconProtocol::DDNSParameter *param, QByteArray data)
+bool ParseXML::parseDDNSParameter(DDNSParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -647,7 +647,7 @@ bool ParseXML::parseDDNSParameter(VidiconProtocol::DDNSParameter *param, QByteAr
     return true;
 }
 
-bool ParseXML::parseEmailParameter(VidiconProtocol::EmailParameter *param, QByteArray data)
+bool ParseXML::parseEmailParameter(EmailParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -708,7 +708,7 @@ bool ParseXML::parseEmailParameter(VidiconProtocol::EmailParameter *param, QByte
     return true;
 }
 
-bool ParseXML::parseFTPParameter(VidiconProtocol::FTPParameter *param, QByteArray data)
+bool ParseXML::parseFTPParameter(FTPParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -759,7 +759,7 @@ bool ParseXML::parseFTPParameter(VidiconProtocol::FTPParameter *param, QByteArra
     return true;
 }
 
-bool ParseXML::parseBonjourParameter(VidiconProtocol::BonjourParameter *param, QByteArray data)
+bool ParseXML::parseBonjourParameter(BonjourParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -800,7 +800,7 @@ bool ParseXML::parseBonjourParameter(VidiconProtocol::BonjourParameter *param, Q
     return true;
 }
 
-bool ParseXML::parseSNMPParameter(VidiconProtocol::SNMPParameter *param, QByteArray data)
+bool ParseXML::parseSNMPParameter(SNMPParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -857,7 +857,7 @@ bool ParseXML::parseSNMPParameter(VidiconProtocol::SNMPParameter *param, QByteAr
     return true;
 }
 
-bool ParseXML::parseUPNPParameter(VidiconProtocol::UPNPParameter *param, QByteArray data)
+bool ParseXML::parseUPNPParameter(UPNPParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -896,7 +896,7 @@ bool ParseXML::parseUPNPParameter(VidiconProtocol::UPNPParameter *param, QByteAr
     return true;
 }
 
-bool ParseXML::parseHTTPsParameter(VidiconProtocol::HTTPsParameter *param, QByteArray data)
+bool ParseXML::parseHTTPsParameter(HTTPsParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -937,7 +937,7 @@ bool ParseXML::parseHTTPsParameter(VidiconProtocol::HTTPsParameter *param, QByte
     return true;
 }
 
-bool ParseXML::parseP2PParameter(VidiconProtocol::P2PParameter *param, QByteArray data)
+bool ParseXML::parseP2PParameter(P2PParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -978,7 +978,7 @@ bool ParseXML::parseP2PParameter(VidiconProtocol::P2PParameter *param, QByteArra
     return true;
 }
 
-bool ParseXML::parseMotionParameter(VidiconProtocol::MotionDetectionParameter *param, QByteArray data)
+bool ParseXML::parseMotionParameter(MotionDetectionParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -1059,7 +1059,7 @@ bool ParseXML::parseMotionParameter(VidiconProtocol::MotionDetectionParameter *p
     return true;
 }
 
-bool ParseXML::parseBlindParameter(VidiconProtocol::VideoBlindAlarmParameter *param, QByteArray data)
+bool ParseXML::parseBlindParameter(VideoBlindAlarmParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -1132,7 +1132,7 @@ bool ParseXML::parseBlindParameter(VidiconProtocol::VideoBlindAlarmParameter *pa
     return true;
 }
 
-bool ParseXML::parseSensorParameter(VidiconProtocol::SensorAlarmParameter *param, QByteArray data)
+bool ParseXML::parseSensorParameter(SensorAlarmParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -1205,7 +1205,7 @@ bool ParseXML::parseSensorParameter(VidiconProtocol::SensorAlarmParameter *param
     return true;
 }
 
-bool ParseXML::parseScheduleParameter(VidiconProtocol::RemoteRecordingPlan *param, QByteArray data)
+bool ParseXML::parseScheduleParameter(RemoteRecordingPlan *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -1270,7 +1270,7 @@ bool ParseXML::parseScheduleParameter(VidiconProtocol::RemoteRecordingPlan *para
     return true;
 }
 
-bool ParseXML::parseSnapshotParameter(VidiconProtocol::SnapshotPlanParameter *param, QByteArray data)
+bool ParseXML::parseSnapshotParameter(SnapshotPlanParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -1337,7 +1337,7 @@ bool ParseXML::parseSnapshotParameter(VidiconProtocol::SnapshotPlanParameter *pa
     return true;
 }
 
-bool ParseXML::parseSDCardStatusParameter(VidiconProtocol::SDCardStatus *param, QByteArray data)
+bool ParseXML::parseSDCardStatusParameter(SDCardStatus *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -1379,7 +1379,7 @@ bool ParseXML::parseSDCardStatusParameter(VidiconProtocol::SDCardStatus *param, 
     return true;
 }
 
-bool ParseXML::parseSDStorageParameter(VidiconProtocol::SDStorageParameter *param, QByteArray data)
+bool ParseXML::parseSDStorageParameter(SDStorageParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -1423,7 +1423,7 @@ bool ParseXML::parseSDStorageParameter(VidiconProtocol::SDStorageParameter *para
     return true;
 }
 
-bool ParseXML::parseBackUpQueryParameter(VidiconProtocol::BackUpQueryParameter *param, QByteArray data)
+bool ParseXML::parseBackUpQueryParameter(BackUpQueryParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -1454,7 +1454,7 @@ bool ParseXML::parseBackUpQueryParameter(VidiconProtocol::BackUpQueryParameter *
     case 0: {
         while(!child.isNull()) {
             if(child.tagName().left(8).compare("TimePara", Qt::CaseInsensitive) == 0) {
-                VidiconProtocol::TimeParameter timeParam;
+                TimeParameter timeParam;
 
                 QDomElement child2 = child.firstChildElement();
                 while(!child2.isNull()) {
@@ -1510,7 +1510,7 @@ bool ParseXML::parseBackUpQueryParameter(VidiconProtocol::BackUpQueryParameter *
     return true;
 }
 
-bool ParseXML::parsePlayingTimeParameter(VidiconProtocol::PlayingTimeParameter *param, QByteArray data)
+bool ParseXML::parsePlayingTimeParameter(PlayingTimeParameter *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -1549,7 +1549,7 @@ bool ParseXML::parsePlayingTimeParameter(VidiconProtocol::PlayingTimeParameter *
     return true;
 }
 
-bool ParseXML::parseUserConfgInfo(QList<VidiconProtocol::UserConfigInfo> &param, QByteArray data)
+bool ParseXML::parseUserConfgInfo(QList<UserConfigInfo> &param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -1580,7 +1580,7 @@ bool ParseXML::parseUserConfgInfo(QList<VidiconProtocol::UserConfigInfo> &param,
     while (!child.isNull()) {
         if (child.tagName().left(5).compare("User_", Qt::CaseInsensitive) == 0) {
             QDomElement child2 = child.firstChildElement();
-            VidiconProtocol::UserConfigInfo info;
+            UserConfigInfo info;
             while (!child2.isNull()) {
                 if (child2.tagName().compare("UserName", Qt::CaseInsensitive) == 0) {
                     info.UserName = child2.text();
@@ -1602,7 +1602,7 @@ bool ParseXML::parseUserConfgInfo(QList<VidiconProtocol::UserConfigInfo> &param,
     return true;
 }
 
-bool ParseXML::parsePullMsg(VidiconProtocol::PullMessage *param, QByteArray data)
+bool ParseXML::parsePullMsg(PullMessage *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -1656,7 +1656,7 @@ bool ParseXML::parsePullMsg(VidiconProtocol::PullMessage *param, QByteArray data
     return true;
 }
 
-bool ParseXML::parseResponseStatus(VidiconProtocol::ResponseStatus *param, QByteArray data)
+bool ParseXML::parseResponseStatus(ResponseStatus *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
@@ -1697,7 +1697,7 @@ bool ParseXML::parseResponseStatus(VidiconProtocol::ResponseStatus *param, QByte
     return true;
 }
 
-bool ParseXML::parseDiscoveryDevice(SearchDeviceThread::DeviceInfo *param, QByteArray data)
+bool ParseXML::parseDiscoveryDevice(WholeDeviceInfo *param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;

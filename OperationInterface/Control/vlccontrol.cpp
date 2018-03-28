@@ -3,17 +3,17 @@
 #include <QThread>
 #include "util.h"
 
-VlcControl *VlcControl::_instance = NULL;
-VlcControl::VlcControl(QString host, QString port, QObject *parent) : QObject(parent),
-    vlcInstance(NULL),
-    vlcMedia(NULL),
-    vlcMediaPlayer(NULL),
-    vlcCache(300),
-    vlcVolume(50),
-    dstIPAddr(host),
-    dstPort(port),
-    user("admin"),
-    passwd("admin")
+VlcControl *VlcControl::s_instance = NULL;
+VlcControl::VlcControl(QObject *parent) : QObject(parent),
+    m_vlcInstance(NULL),
+    m_vlcMedia(NULL),
+    m_vlcMediaPlayer(NULL),
+    m_vlcCache(300),
+    m_vlcVolume(50),
+    m_host("192.168.0.66"),
+    m_port("554"),
+    m_user("admin"),
+    m_passwd("admin")
 {
 
 }
@@ -23,11 +23,11 @@ void VlcControl::handleVlcControl(int type, int subtype, WId id)
     switch(type) {
     case VLCCONTROLINIT: {
         QString url = QString("rtsp://%4:%5@%1:%2/H264?channel=0&subtype=%3&unicast=true&proto=Onvif")
-                .arg(dstIPAddr)
-                .arg(dstPort)
+                .arg(m_host)
+                .arg(m_port)
                 .arg(subtype)
-                .arg(user)
-                .arg(passwd);
+                .arg(m_user)
+                .arg(m_passwd);
 
         stop();
         init(url, id);
@@ -46,22 +46,22 @@ void VlcControl::handleVlcControl(int type, int subtype, WId id)
 
 VlcControl::~VlcControl()
 {
-    if(vlcMediaPlayer != NULL){
-        libvlc_media_player_release(vlcMediaPlayer);
+    if(m_vlcMediaPlayer != NULL){
+        libvlc_media_player_release(m_vlcMediaPlayer);
     }
-    if(vlcMedia != NULL){
-        libvlc_media_release(vlcMedia);
+    if(m_vlcMedia != NULL){
+        libvlc_media_release(m_vlcMedia);
     }
-    if(vlcInstance != NULL){
-        libvlc_release(vlcInstance);
+    if(m_vlcInstance != NULL){
+        libvlc_release(m_vlcInstance);
     }
 }
 
 void VlcControl::setVolume(int volume)
 {
-    vlcVolume = volume;
-    if(vlcMediaPlayer != NULL){
-        if(libvlc_audio_set_volume(vlcMediaPlayer, vlcVolume) == -1) {
+    m_vlcVolume = volume;
+    if(m_vlcMediaPlayer != NULL){
+        if(libvlc_audio_set_volume(m_vlcMediaPlayer, m_vlcVolume) == -1) {
             qDebug("#VlcControl# setVolume Error, volume out of range");
         }
     }
@@ -69,83 +69,83 @@ void VlcControl::setVolume(int volume)
 
 int VlcControl::getDuration()
 {
-    if(vlcMediaPlayer == NULL){
+    if(m_vlcMediaPlayer == NULL){
         return -1;
     }else{
-        return libvlc_media_player_get_length(vlcMediaPlayer);
+        return libvlc_media_player_get_length(m_vlcMediaPlayer);
     }
 }
 
 int VlcControl::getProgress()
 {
-    if(vlcMediaPlayer == NULL){
+    if(m_vlcMediaPlayer == NULL){
         return -1;
     }else{
-        return libvlc_media_player_get_time(vlcMediaPlayer);
+        return libvlc_media_player_get_time(m_vlcMediaPlayer);
     }
 }
 
 void VlcControl::setPosition(float pos)
 {
-    if(vlcMediaPlayer == NULL){
+    if(m_vlcMediaPlayer == NULL){
         return ;
     }else{
-        libvlc_media_player_set_position(vlcMediaPlayer, pos);
+        libvlc_media_player_set_position(m_vlcMediaPlayer, pos);
     }
 }
 
 int VlcControl::init(QString url, WId id)
 {
-    if(vlcMediaPlayer != NULL){
-        libvlc_media_player_release(vlcMediaPlayer);
+    if(m_vlcMediaPlayer != NULL){
+        libvlc_media_player_release(m_vlcMediaPlayer);
     }
-    if(vlcMedia != NULL){
-        libvlc_media_release(vlcMedia);
+    if(m_vlcMedia != NULL){
+        libvlc_media_release(m_vlcMedia);
     }
-    if(vlcInstance == NULL) {
-        vlcInstance = libvlc_new(0, NULL);
-        if(vlcInstance == NULL) {
-            vlcInstance = libvlc_new(0, NULL);
-            if(vlcInstance == NULL) {
+    if(m_vlcInstance == NULL) {
+        m_vlcInstance = libvlc_new(0, NULL);
+        if(m_vlcInstance == NULL) {
+            m_vlcInstance = libvlc_new(0, NULL);
+            if(m_vlcInstance == NULL) {
                 qDebug("#VlcControl# init Error, libvlc_new Instance Error");
                 return -1;
             }
         }
     }
 
-    vlcWId = id;
+    m_vlcWId = id;
 
     //根据url创建一个媒体对象
-    vlcMedia = libvlc_media_new_location(vlcInstance, url.toStdString().data());
-    if(vlcMedia == NULL) {
+    m_vlcMedia = libvlc_media_new_location(m_vlcInstance, url.toStdString().data());
+    if(m_vlcMedia == NULL) {
         qDebug("#VlcControl# init Error, libvlc_media_new_location return NULL");
         return -1;
     }
     //创建媒体播放器
-    vlcMediaPlayer = libvlc_media_player_new_from_media(vlcMedia);
-    if(vlcMediaPlayer == NULL) {
+    m_vlcMediaPlayer = libvlc_media_player_new_from_media(m_vlcMedia);
+    if(m_vlcMediaPlayer == NULL) {
         qDebug("#VlcControl# init Error, libvlc_media_player_new_from_media return NULL");
         return -1;
     }
     //设置显示窗口
-    libvlc_media_player_set_hwnd(vlcMediaPlayer, (void *)vlcWId);
+    libvlc_media_player_set_hwnd(m_vlcMediaPlayer, (void *)m_vlcWId);
 
-    setVolume(vlcVolume);
+    setVolume(m_vlcVolume);
     return 0;
 }
 
 int VlcControl::play()
 {
     int ret = 0;
-    if (vlcMedia == NULL)
+    if (m_vlcMedia == NULL)
         return -1;
 
-    if (libvlc_media_get_state(vlcMedia) != libvlc_Playing) {
-        if (vlcMediaPlayer != NULL) {
-            QString para = "network-caching=" + QString::number(vlcCache);
-            libvlc_media_add_option(vlcMedia, para.toStdString().data());
+    if (libvlc_media_get_state(m_vlcMedia) != libvlc_Playing) {
+        if (m_vlcMediaPlayer != NULL) {
+            QString para = "network-caching=" + QString::number(m_vlcCache);
+            libvlc_media_add_option(m_vlcMedia, para.toStdString().data());
 
-            ret = libvlc_media_player_play(vlcMediaPlayer);
+            ret = libvlc_media_player_play(m_vlcMediaPlayer);
             if(ret == -1) {
                 qDebug("#VlcControl# play Error---------------------------");
             }
@@ -158,8 +158,8 @@ int VlcControl::play()
 
 int VlcControl::pause()
 {
-    if(vlcMediaPlayer != NULL){
-        libvlc_media_player_pause(vlcMediaPlayer);
+    if(m_vlcMediaPlayer != NULL){
+        libvlc_media_player_pause(m_vlcMediaPlayer);
     }else{
         return -1;
     }
@@ -168,8 +168,8 @@ int VlcControl::pause()
 
 int VlcControl::stop()
 {
-    if(vlcMediaPlayer != NULL){
-        libvlc_media_player_stop(vlcMediaPlayer);
+    if(m_vlcMediaPlayer != NULL){
+        libvlc_media_player_stop(m_vlcMediaPlayer);
     }else{
         return -1;
     }

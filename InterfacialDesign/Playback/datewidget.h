@@ -7,11 +7,14 @@
 #include <QLabel>
 #include <QDateEdit>
 #include <QComboBox>
-class DateWidget : public QWidget
+#include "basicwidget.h"
+
+class DateWidget : public BasicWidget
 {
     Q_OBJECT
 public:
     explicit DateWidget(QWidget *parent = nullptr);
+
 
 protected:
     virtual void paintEvent(QPaintEvent *event);
@@ -20,18 +23,19 @@ protected:
     virtual void mousePressEvent(QMouseEvent *event);
 
 signals:
-    void signalSetParameter(int type, void *param, QString SessionID = "R00001");
-    void signalGetParameter(int type, int StreamType = 0, int Channel = 0, QString SessionID = "R00001");
     void signalDateChange(QDate date);
 
 public slots:
-    void handleReceiveData(int type, QByteArray data);
+    void refresh(QDate date = QDate());
+
+    void handleReceiveData(VidiconProtocol::Type type, QByteArray data);
+
     void handleDateChangle(const QDate &date);
 
 private:
-    QMap<int, QLabel *> lblDateMap;
-    QDateEdit *dateEdit;
-    QMap<int, int> MonthMap;
+    QMap<int, QLabel *> m_lblDateMap;
+    QDateEdit *m_dateEdit;
+    QMap<int, int> m_MonthMap;
 //    QComboBox *typeSelect;
 };
 

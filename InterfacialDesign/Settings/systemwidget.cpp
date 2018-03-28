@@ -17,53 +17,49 @@
 #include "parsexml.h"
 #include <QMessageBox>
 
-SystemWidget::SystemWidget(QWidget *parent) : QStackedWidget(parent)
+SystemWidget::SystemWidget(QWidget *parent) :
+    StackedWidget(parent)
 {
     initMaintenanceWidget();
     initDeviceInfoWidget();
     initSetTimeWidget();
     initUserConfigWidget();
-
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &SystemWidget::handleReceiveData);
-    connect(this, &SystemWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
-    connect(this, &SystemWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
 }
 
 SystemWidget::~SystemWidget()
 {
-    qDebug("delete TabSystem");
 }
 
 void SystemWidget::initMaintenanceWidget()
 {
     QStringList list;
-    maintenanceWidget = new QWidget(this);
+    m_maintenanceWidget = new QWidget(this);
 
-    QLabel *lbl1 = new QLabel("恢复出厂设置", maintenanceWidget);
+    QLabel *lbl1 = new QLabel("恢复出厂设置", m_maintenanceWidget);
     QPushButton *btn1 = new QPushButton("确定");
     btn1->setFixedWidth(80);
     connect(btn1, &QPushButton::clicked, this, [this]() {
         if(QMessageBox::question(this, "警告", "确定需要恢复出厂设置吗？") == QMessageBox::Yes) {
-            emit signalSetParameter(RECOVEDEFAULT, NULL);
+            emit signalSetParameter(VidiconProtocol::RECOVEDEFAULT, NULL);
         }
     });
 
-    QLabel *lbl2 = new QLabel("重启设备", maintenanceWidget);
+    QLabel *lbl2 = new QLabel("重启设备", m_maintenanceWidget);
     QPushButton *btn2 = new QPushButton("确定");
     btn2->setFixedWidth(80);
     connect(btn2, &QPushButton::clicked, this, [this]() {
         if(QMessageBox::question(this, "警告", "确定需要重启吗？") == QMessageBox::Yes) {
-            emit signalSetParameter(REBOOT, NULL);
+            emit signalSetParameter(VidiconProtocol::REBOOT, NULL);
         }
     });
 
-    QRadioButton *rBtn = new QRadioButton("自动重启", maintenanceWidget);
+    QRadioButton *rBtn = new QRadioButton("自动重启", m_maintenanceWidget);
 
-    QComboBox *comboBox = new QComboBox(maintenanceWidget);
+    QComboBox *comboBox = new QComboBox(m_maintenanceWidget);
     list << "每天" << "周一" << "周二" << "周三"
          << "周四" << "周五" << "周六" << "周天";
     comboBox->addItems(list);
-    QTimeEdit *time1 = new QTimeEdit(maintenanceWidget);
+    QTimeEdit *time1 = new QTimeEdit(m_maintenanceWidget);
     QPushButton *btn3 = new QPushButton("确定");
     btn3->setFixedWidth(80);
 
@@ -83,37 +79,37 @@ void SystemWidget::initMaintenanceWidget()
     layout2->addLayout(layout1);
     layout2->addStretch();
 
-    QHBoxLayout *layout3 = new QHBoxLayout(maintenanceWidget);
+    QHBoxLayout *layout3 = new QHBoxLayout(m_maintenanceWidget);
     layout3->addStretch();
     layout3->addLayout(layout2);
     layout3->addStretch();
 
-    addWidget(maintenanceWidget);
+    addWidget(m_maintenanceWidget);
 }
 
 void SystemWidget::initDeviceInfoWidget()
 {
-    deviceInfoWidget = new QWidget(this);
+    m_deviceInfoWidget = new QWidget(this);
 
-    QLabel *lbl1 = new QLabel("设备名:", deviceInfoWidget);
-    QLineEdit *lineEdit1 = new QLineEdit(deviceInfoWidget);
+    QLabel *lbl1 = new QLabel("设备名:", m_deviceInfoWidget);
+    LineEdit *lineEdit1 = new LineEdit(m_deviceInfoWidget);
     lineEdit1->setReadOnly(true);
-    deviceInfoMap.insert("DeviceName", lineEdit1);
+    m_deviceInfoMap.insert("DeviceName", lineEdit1);
 
-    QLabel *lbl2 = new QLabel("设备模式:", deviceInfoWidget);
-    QLineEdit *lineEdit2 = new QLineEdit(deviceInfoWidget);
+    QLabel *lbl2 = new QLabel("设备模式:", m_deviceInfoWidget);
+    LineEdit *lineEdit2 = new LineEdit(m_deviceInfoWidget);
     lineEdit2->setReadOnly(true);
-    deviceInfoMap.insert("DeviceModel", lineEdit2);
+    m_deviceInfoMap.insert("DeviceModel", lineEdit2);
 
-    QLabel *lbl3 = new QLabel("软件版本:", deviceInfoWidget);
-    QLineEdit *lineEdit3 = new QLineEdit(deviceInfoWidget);
+    QLabel *lbl3 = new QLabel("软件版本:", m_deviceInfoWidget);
+    LineEdit *lineEdit3 = new LineEdit(m_deviceInfoWidget);
     lineEdit3->setReadOnly(true);
-    deviceInfoMap.insert("SoftwareVer", lineEdit3);
+    m_deviceInfoMap.insert("SoftwareVer", lineEdit3);
 
-    QLabel *lbl4 = new QLabel("设备ID:", deviceInfoWidget);
-    QLineEdit *lineEdit4 = new QLineEdit(deviceInfoWidget);
+    QLabel *lbl4 = new QLabel("设备ID:", m_deviceInfoWidget);
+    LineEdit *lineEdit4 = new LineEdit(m_deviceInfoWidget);
     lineEdit4->setReadOnly(true);
-    deviceInfoMap.insert("DeviceID", lineEdit4);
+    m_deviceInfoMap.insert("DeviceID", lineEdit4);
 
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(lbl1,      0, 0, 1, 1);
@@ -132,21 +128,21 @@ void SystemWidget::initDeviceInfoWidget()
     layout2->addLayout(layout1);
     layout2->addStretch();
 
-    QHBoxLayout *layout3 = new QHBoxLayout(deviceInfoWidget);
+    QHBoxLayout *layout3 = new QHBoxLayout(m_deviceInfoWidget);
     layout3->addStretch();
     layout3->addLayout(layout2);
     layout3->addStretch();
 
-    addWidget(deviceInfoWidget);
+    addWidget(m_deviceInfoWidget);
 }
 
 void SystemWidget::initSetTimeWidget()
 {
     QStringList list;
-    setTimeWidget = new QWidget(this);
+    m_setTimeWidget = new QWidget(this);
 
-    QLabel *lbl1 = new QLabel("时区：", setTimeWidget);
-    QComboBox *comboBox1 = new QComboBox(setTimeWidget);
+    QLabel *lbl1 = new QLabel("时区：", m_setTimeWidget);
+    QComboBox *comboBox1 = new QComboBox(m_setTimeWidget);
     for(int i=12; i>0; i--){
         list.append(QString("GMT-%1:00").arg(i, 2, 10, QChar('0')));
     }
@@ -155,18 +151,18 @@ void SystemWidget::initSetTimeWidget()
     }
     comboBox1->addItems(list);
     list.clear();
-    setTimeMap.insert("Time Zone", comboBox1);
+    m_setTimeMap.insert("Time Zone", comboBox1);
 
-    QLabel *lbl2 = new QLabel("时间设置：", setTimeWidget);
-    QDateEdit *date = new QDateEdit(setTimeWidget);
+    QLabel *lbl2 = new QLabel("时间设置：", m_setTimeWidget);
+    QDateEdit *date = new QDateEdit(m_setTimeWidget);
     date->setDate(QDate::currentDate());
     date->setCalendarPopup(true);
-    setTimeMap.insert("date", date);
-    QTimeEdit *time = new QTimeEdit(setTimeWidget);
+    m_setTimeMap.insert("date", date);
+    QTimeEdit *time = new QTimeEdit(m_setTimeWidget);
     time->setDisplayFormat("hh:mm:ss");
     time->setCalendarPopup(true);
-    setTimeMap.insert("time", time);
-    QPushButton *btn1 = new QPushButton(setTimeWidget);
+    m_setTimeMap.insert("time", time);
+    QPushButton *btn1 = new QPushButton(m_setTimeWidget);
     btn1->setIcon(QIcon(":/images/refresh.png"));
     btn1->setFixedSize(25, 25);
     connect(btn1, &QPushButton::clicked, this, [date, time](){
@@ -174,25 +170,25 @@ void SystemWidget::initSetTimeWidget()
         time->setTime(QTime::currentTime());
     });
 
-    QLabel *lbl3 = new QLabel("同步电脑时间：", setTimeWidget);
-    QComboBox *comboBox2 = new QComboBox(setTimeWidget);
+    QLabel *lbl3 = new QLabel("同步电脑时间：", m_setTimeWidget);
+    QComboBox *comboBox2 = new QComboBox(m_setTimeWidget);
     list << "NO" << "YES";
     comboBox2->addItems(list);
     list.clear();
-    setTimeMap.insert("PC Time Sync", comboBox2);
+    m_setTimeMap.insert("PC Time Sync", comboBox2);
 
-    QLabel *lbl4 = new QLabel("是否启用NTP：", setTimeWidget);
-    QComboBox *comboBox3 = new QComboBox(setTimeWidget);
+    QLabel *lbl4 = new QLabel("是否启用NTP：", m_setTimeWidget);
+    QComboBox *comboBox3 = new QComboBox(m_setTimeWidget);
     list << "Disable" << "Enable";
     comboBox3->addItems(list);
     list.clear();
-    setTimeMap.insert("NTP", comboBox3);
+    m_setTimeMap.insert("NTP", comboBox3);
 
-    QLabel *lbl5 = new QLabel("NTP服务器：", setTimeWidget);
-    QLineEdit *lineEdit1 = new QLineEdit(setTimeWidget);
-    setTimeMap.insert("NTP Server", lineEdit1);
+    QLabel *lbl5 = new QLabel("NTP服务器：", m_setTimeWidget);
+    LineEdit *lineEdit1 = new LineEdit(m_setTimeWidget);
+    m_setTimeMap.insert("NTP Server", lineEdit1);
 
-    QPushButton *btn2 = new QPushButton("保存", setTimeWidget);
+    QPushButton *btn2 = new QPushButton("保存", m_setTimeWidget);
     btn2->setFixedWidth(50);
     connect(btn2, &QPushButton::clicked, this, &SystemWidget::handlePrepareData);
 
@@ -220,22 +216,22 @@ void SystemWidget::initSetTimeWidget()
     layout2->addLayout(layout1);
     layout2->addStretch();
 
-    QHBoxLayout *layout3 = new QHBoxLayout(setTimeWidget);
+    QHBoxLayout *layout3 = new QHBoxLayout(m_setTimeWidget);
     layout3->addStretch();
     layout3->addLayout(layout2);
     layout3->addStretch();
 
-    addWidget(setTimeWidget);
+    addWidget(m_setTimeWidget);
 }
 
 void SystemWidget::initUserConfigWidget()
 {
-    userConfigWidget = new QWidget(this);
+    m_userConfigWidget = new QWidget(this);
 
-    UserInfoView *view = new UserInfoView(userConfigWidget);
-    userConfigMap.insert("view", view);
+    UserInfoView *view = new UserInfoView(m_userConfigWidget);
+    m_userConfigMap.insert("view", view);
 
-    QPushButton *btn = new QPushButton("新增用户", setTimeWidget);
+    QPushButton *btn = new QPushButton("新增用户", m_setTimeWidget);
     btn->setFixedWidth(100);
     connect(btn, &QPushButton::clicked, this, [view](){
         view->handleAddUserInfo();
@@ -249,15 +245,15 @@ void SystemWidget::initUserConfigWidget()
     layout2->addLayout(layout1);
     layout2->addStretch();
 
-    QHBoxLayout *layout3 = new QHBoxLayout(userConfigWidget);
+    QHBoxLayout *layout3 = new QHBoxLayout(m_userConfigWidget);
     layout3->addStretch(1);
     layout3->addLayout(layout2, 8);
     layout3->addStretch(1);
 
-    addWidget(userConfigWidget);
+    addWidget(m_userConfigWidget);
 }
 
-void SystemWidget::handleSwitchTab(const QModelIndex &index)
+void SystemWidget::setCurrentIndex(const QModelIndex &index)
 {
     if (!index.isValid())
         return;
@@ -268,36 +264,36 @@ void SystemWidget::handleSwitchTab(const QModelIndex &index)
         break;
     }
     case 1: {
-        emit signalGetParameter(GETDEVICEINFO);
+        emit signalGetParameter(VidiconProtocol::GETDEVICEINFO);
         break;
     }
     case 2: {
-        emit signalGetParameter(NTP);
+        emit signalGetParameter(VidiconProtocol::NTP);
         break;
     }
     case 3: {
-        emit signalGetParameter(USERCONFIG);
+        emit signalGetParameter(VidiconProtocol::USERCONFIG);
         break;
     }
     default:
         break;
     }
 
-    setCurrentIndex(index.row());
+    StackedWidget::setCurrentIndex(index.row());
 }
 
 void SystemWidget::handlePrepareData()
 {
     switch(currentIndex()) {
     case 2: {
-        VidiconProtocol::NTPParameter *param = new VidiconProtocol::NTPParameter;
-        param->TZ = static_cast<QComboBox *>(setTimeMap["Time Zone"])->currentText();
-        param->UTCDateTime = QString("%1T%2Z").arg(static_cast<QDateEdit *>(setTimeMap["date"])->date().toString("yyyy-MM-dd"))
-                .arg(static_cast<QDateEdit *>(setTimeMap["time"])->time().toString("HH:mm:ss"));
-        param->IsUpdateTime = static_cast<QComboBox *>(setTimeMap["PC Time Sync"])->currentIndex();
-        param->Enabled = static_cast<QComboBox *>(setTimeMap["NTP"])->currentIndex();
-        param->NTPServer = static_cast<QLineEdit *>(setTimeMap["NTP Server"])->text();
-        emit signalSetParameter(NTP, param);
+        NTPParameter *param = new NTPParameter;
+        param->TZ = static_cast<QComboBox *>(m_setTimeMap["Time Zone"])->currentText();
+        param->UTCDateTime = QString("%1T%2Z").arg(static_cast<QDateEdit *>(m_setTimeMap["date"])->date().toString("yyyy-MM-dd"))
+                .arg(static_cast<QDateEdit *>(m_setTimeMap["time"])->time().toString("HH:mm:ss"));
+        param->IsUpdateTime = static_cast<QComboBox *>(m_setTimeMap["PC Time Sync"])->currentIndex();
+        param->Enabled = static_cast<QComboBox *>(m_setTimeMap["NTP"])->currentIndex();
+        param->NTPServer = static_cast<LineEdit *>(m_setTimeMap["NTP Server"])->text();
+        emit signalSetParameter(VidiconProtocol::NTP, param);
         break;
     }
     default:
@@ -305,45 +301,48 @@ void SystemWidget::handlePrepareData()
     }
 }
 
-void SystemWidget::handleReceiveData(int type, QByteArray data)
+void SystemWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray data)
 {
     bool isOK = false;
 
     switch (type) {
-    case NTP: {
-        VidiconProtocol::NTPParameter param;
+    case VidiconProtocol::NTP: {
+        NTPParameter param;
         isOK = ParseXML::getInstance()->parseNTPParameter(&param, data);
         if (isOK) {
-            static_cast<QComboBox *>(setTimeMap["Time Zone"])->setCurrentText(param.TZ);
+            static_cast<QComboBox *>(m_setTimeMap["Time Zone"])->setCurrentText(param.TZ);
             QStringList list = param.UTCDateTime.split(QRegExp("[^0-9]"), QString::SkipEmptyParts);
-            static_cast<QDateEdit *>(setTimeMap["date"])->setDate(QDate(list.at(0).toInt(), list.at(1).toInt(), list.at(2).toInt()));
-            static_cast<QDateEdit *>(setTimeMap["time"])->setTime(QTime(list.at(3).toInt(), list.at(4).toInt(), list.at(5).toInt()));
-            static_cast<QComboBox *>(setTimeMap["PC Time Sync"])->setCurrentIndex(param.IsUpdateTime);
-            static_cast<QComboBox *>(setTimeMap["NTP"])->setCurrentIndex(param.Enabled);
-            static_cast<QLineEdit *>(setTimeMap["NTP Server"])->setText(param.NTPServer);
+            static_cast<QDateEdit *>(m_setTimeMap["date"])->setDate(QDate(list.at(0).toInt(), list.at(1).toInt(), list.at(2).toInt()));
+            static_cast<QDateEdit *>(m_setTimeMap["time"])->setTime(QTime(list.at(3).toInt(), list.at(4).toInt(), list.at(5).toInt()));
+            static_cast<QComboBox *>(m_setTimeMap["PC Time Sync"])->setCurrentIndex(param.IsUpdateTime);
+            static_cast<QComboBox *>(m_setTimeMap["NTP"])->setCurrentIndex(param.Enabled);
+            static_cast<LineEdit *>(m_setTimeMap["NTP Server"])->setText(param.NTPServer);
         }
         break;
     }
-    case GETDEVICEINFO: {
-        VidiconProtocol::DeviceInfo param;
+    case VidiconProtocol::GETDEVICEINFO: {
+        DeviceInfo param;
         isOK = ParseXML::getInstance()->parseDeviceInfo(&param, data);
         if (isOK) {
-            static_cast<QLineEdit *>(deviceInfoMap["DeviceName"])->setText(param.DeviceName);
-            static_cast<QLineEdit *>(deviceInfoMap["DeviceModel"])->setText(param.DeviceModel);
-            static_cast<QLineEdit *>(deviceInfoMap["SoftwareVer"])->setText(param.SoftwareVer);
-            static_cast<QLineEdit *>(deviceInfoMap["DeviceID"])->setText(QString::number(param.DeviceID));
+            static_cast<LineEdit *>(m_deviceInfoMap["DeviceName"])->setText(param.DeviceName);
+            static_cast<LineEdit *>(m_deviceInfoMap["DeviceModel"])->setText(param.DeviceModel);
+            static_cast<LineEdit *>(m_deviceInfoMap["SoftwareVer"])->setText(param.SoftwareVer);
+            static_cast<LineEdit *>(m_deviceInfoMap["DeviceID"])->setText(QString::number(param.DeviceID));
         }
         break;
     }
-    case USERCONFIG: {
-        QList<VidiconProtocol::UserConfigInfo> param;
+    case VidiconProtocol::USERCONFIG: {
+        QList<UserConfigInfo> param;
         isOK = ParseXML::getInstance()->parseUserConfgInfo(param, data);
         if (isOK) {
             for (int i=0; i<param.size(); i++) {
-                qDebug() << param[i].UserName << param[i].PassWord << param[i].Privilege;
+                qDebug() << "#SystemWidget# "
+                         << "UserName: " << param[i].UserName
+                         << "PassWord: " << param[i].PassWord
+                         << "Privilege: " << param[i].Privilege;
             }
 
-            static_cast<UserInfoView *>(userConfigMap["view"])->setDataSource(param);
+            static_cast<UserInfoView *>(m_userConfigMap["view"])->setItems(param);
         }
     }
     default:

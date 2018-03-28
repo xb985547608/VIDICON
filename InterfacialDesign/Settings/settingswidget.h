@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QToolBox>
+#include <QListWidget>
 #include "boxview.h"
 #include <QTabWidget>
 #include "mediawidget.h"
@@ -10,6 +11,7 @@
 #include "alarmwidget.h"
 #include "recordwidget.h"
 #include "systemwidget.h"
+#include <QStackedLayout>
 
 namespace Ui{
 class SettingsForm;
@@ -30,22 +32,24 @@ private:
 signals:
 
 public slots:
-    void handleToolBoxClicked(int index);
+    void refresh(int index = 0);
 
 private:
     Ui::SettingsForm *ui;
-    QToolBox   *toolbox;
-    BoxView    *boxMedia;
-    BoxView    *boxNetwork;
-    BoxView    *boxAlarm;
-    BoxView    *boxRecord;
-    BoxView    *boxSystem;
+    QToolBox    *m_toolbox;
+    ListView    *m_boxMedia;
+    ListView    *m_boxNetwork;
+    ListView    *m_boxAlarm;
+    ListView    *m_boxRecord;
+    ListView    *m_boxSystem;
 
-    MediaWidget   *tabMedia;
-    NetworkWidget *tabNetwork;
-    AlarmWidget   *tabAlarm;
-    RecordWidget  *tabRecord;
-    SystemWidget  *tabSystem;
+    MediaWidget   *m_tabMedia;
+    NetworkWidget *m_tabNetwork;
+    AlarmWidget   *m_tabAlarm;
+    RecordWidget  *m_tabRecord;
+    SystemWidget  *m_tabSystem;
+
+    QStackedLayout *m_stackedLayout;
 };
 
 #endif // SETUPWIDGET_H

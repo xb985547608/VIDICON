@@ -20,37 +20,37 @@ public:
         return _instance;
     }
 
-    bool parseVideoEncodingParameter(VidiconProtocol::VideoEncodingParameter *param, QByteArray data);
-    bool parseAudioEncodingParameter(VidiconProtocol::AudioEncodingParameter *param, QByteArray data);
-    bool parseOSDParameter(VidiconProtocol::OSDParameter *param, QByteArray data);
-    bool parseNTPParameter(VidiconProtocol::NTPParameter *param, QByteArray data);
-    bool parseDeviceInfo(VidiconProtocol::DeviceInfo *param, QByteArray data);
-    bool parseImageParameter(VidiconProtocol::ImageParameter *param, QByteArray data);
-    bool parseBasicParameter(VidiconProtocol::BasicParameter *param, QByteArray data);
-    bool parseOtherParameter(VidiconProtocol::OtherParameter *param, QByteArray data);
-    bool parsePPPOEParameter(VidiconProtocol::PPPOEParameter *param, QByteArray data);
-    bool parseDDNSParameter(VidiconProtocol::DDNSParameter *param, QByteArray data);
-    bool parseEmailParameter(VidiconProtocol::EmailParameter *param, QByteArray data);
-    bool parseFTPParameter(VidiconProtocol::FTPParameter *param, QByteArray data);
-    bool parseBonjourParameter(VidiconProtocol::BonjourParameter *param, QByteArray data);
-    bool parseSNMPParameter(VidiconProtocol::SNMPParameter *param, QByteArray data);
-    bool parseUPNPParameter(VidiconProtocol::UPNPParameter *param, QByteArray data);
-    bool parseHTTPsParameter(VidiconProtocol::HTTPsParameter *param, QByteArray data);
-    bool parseP2PParameter(VidiconProtocol::P2PParameter *param, QByteArray data);
-    bool parseMotionParameter(VidiconProtocol::MotionDetectionParameter *param, QByteArray data);
-    bool parseBlindParameter(VidiconProtocol::VideoBlindAlarmParameter *param, QByteArray data);
-    bool parseSensorParameter(VidiconProtocol::SensorAlarmParameter *param, QByteArray data);
-    bool parseScheduleParameter(VidiconProtocol::RemoteRecordingPlan *param, QByteArray data);
-    bool parseSnapshotParameter(VidiconProtocol::SnapshotPlanParameter *param, QByteArray data);
-    bool parseSDCardStatusParameter(VidiconProtocol::SDCardStatus *param, QByteArray data);
-    bool parseSDStorageParameter(VidiconProtocol::SDStorageParameter *param, QByteArray data);
-    bool parseBackUpQueryParameter(VidiconProtocol::BackUpQueryParameter *param, QByteArray data);
-    bool parsePlayingTimeParameter(VidiconProtocol::PlayingTimeParameter *param, QByteArray data);
-    bool parseUserConfgInfo(QList<VidiconProtocol::UserConfigInfo> &param, QByteArray data);
+    bool parseVideoEncodingParameter(VideoEncodingParameter *param, QByteArray data);
+    bool parseAudioEncodingParameter(AudioEncodingParameter *param, QByteArray data);
+    bool parseOSDParameter(OSDParameter *param, QByteArray data);
+    bool parseNTPParameter(NTPParameter *param, QByteArray data);
+    bool parseDeviceInfo(DeviceInfo *param, QByteArray data);
+    bool parseImageParameter(ImageParameter *param, QByteArray data);
+    bool parseBasicParameter(BasicParameter *param, QByteArray data);
+    bool parseOtherParameter(OtherParameter *param, QByteArray data);
+    bool parsePPPOEParameter(PPPOEParameter *param, QByteArray data);
+    bool parseDDNSParameter(DDNSParameter *param, QByteArray data);
+    bool parseEmailParameter(EmailParameter *param, QByteArray data);
+    bool parseFTPParameter(FTPParameter *param, QByteArray data);
+    bool parseBonjourParameter(BonjourParameter *param, QByteArray data);
+    bool parseSNMPParameter(SNMPParameter *param, QByteArray data);
+    bool parseUPNPParameter(UPNPParameter *param, QByteArray data);
+    bool parseHTTPsParameter(HTTPsParameter *param, QByteArray data);
+    bool parseP2PParameter(P2PParameter *param, QByteArray data);
+    bool parseMotionParameter(MotionDetectionParameter *param, QByteArray data);
+    bool parseBlindParameter(VideoBlindAlarmParameter *param, QByteArray data);
+    bool parseSensorParameter(SensorAlarmParameter *param, QByteArray data);
+    bool parseScheduleParameter(RemoteRecordingPlan *param, QByteArray data);
+    bool parseSnapshotParameter(SnapshotPlanParameter *param, QByteArray data);
+    bool parseSDCardStatusParameter(SDCardStatus *param, QByteArray data);
+    bool parseSDStorageParameter(SDStorageParameter *param, QByteArray data);
+    bool parseBackUpQueryParameter(BackUpQueryParameter *param, QByteArray data);
+    bool parsePlayingTimeParameter(PlayingTimeParameter *param, QByteArray data);
+    bool parseUserConfgInfo(QList<UserConfigInfo> &param, QByteArray data);
 
-    bool parsePullMsg(VidiconProtocol::PullMessage *param, QByteArray data);
-    bool parseResponseStatus(VidiconProtocol::ResponseStatus *param, QByteArray data);
-    bool parseDiscoveryDevice(SearchDeviceThread::DeviceInfo *param, QByteArray data);
+    bool parsePullMsg(PullMessage *param, QByteArray data);
+    bool parseResponseStatus(ResponseStatus *param, QByteArray data);
+    bool parseDiscoveryDevice(WholeDeviceInfo *param, QByteArray data);
 
 signals:
 

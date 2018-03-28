@@ -4,19 +4,19 @@
 
 TimeRegionWidget::TimeRegionWidget(QWidget *parent) : QWidget(parent)
 {
-    wordList << "周天" << "周一" << "周二" << "周三" << "周四"
+    m_wordList << "周天" << "周一" << "周二" << "周三" << "周四"
              << "周五" << "周六";
 
-    plans = new VidiconProtocol::Plan *[7];
+    m_plans = new PlanBasic *[7];
     for(int i=0; i<7; i++) {
-        plans[i] = new VidiconProtocol::Plan[4];
-        plans[i]->PlanTimeEnabled = 0;
-        plans[i]->BeginTime = QTime(0, 0, 0);
-        plans[i]->EndTime = QTime(0, 0, 0);
+        m_plans[i] = new PlanBasic[4];
+        m_plans[i]->PlanTimeEnabled = 0;
+        m_plans[i]->BeginTime = QTime(0, 0, 0);
+        m_plans[i]->EndTime = QTime(0, 0, 0);
     }
 
     for(int i=0; i<7; i++) {
-        weekStateMap[i] = Qt::Unchecked;
+        m_weekStateMap[i] = Qt::Unchecked;
     }
 
     resize(550, 160);
@@ -31,10 +31,10 @@ void TimeRegionWidget::insertTimeRegion(int index, const QTime &startTime, const
     if(startTime > endTime)
         return;
     for(int i=0; i<7; i++){
-        if(weekStateMap.value(i) != Qt::Checked)
+        if(m_weekStateMap.value(i) != Qt::Checked)
             continue;
-        plans[i][index].BeginTime = startTime;
-        plans[i][index].EndTime = endTime;
+        m_plans[i][index].BeginTime = startTime;
+        m_plans[i][index].EndTime = endTime;
     }
 
     update();
@@ -57,9 +57,9 @@ void TimeRegionWidget::paintEvent(QPaintEvent *e)
                           numHeight), QString::number(i));
     }
     //绘制单词
-    for(int i=0; i<wordList.length(); i++){
-        p.drawText(QPoint(wordWidth - fontMetrics().width(wordList.at(i)),
-                          numHeight*2 + ROWCOUNT / wordList.length() * GRIDSIZE * i), wordList.at(i));
+    for(int i=0; i<m_wordList.length(); i++){
+        p.drawText(QPoint(wordWidth - fontMetrics().width(m_wordList.at(i)),
+                          numHeight*2 + ROWCOUNT / m_wordList.length() * GRIDSIZE * i), m_wordList.at(i));
     }
     wordWidth += 3;
     numHeight += 3;
@@ -101,10 +101,10 @@ void TimeRegionWidget::drawTimeRegion(int day, const QPoint &sPoint, QPainter *p
     int sumWidth = COLUMNCOUNT * GRIDSIZE;
 
     for(int i=0; i<4; i++){
-        if(plans[day][i].PlanTimeEnabled == 0)
+        if(m_plans[day][i].PlanTimeEnabled == 0)
             continue;
-        startPos = ((float)plans[day][i].BeginTime.msecsTo(QTime(0, 0, 0)) / sumTimeMsec) * sumWidth;
-        endPos = ((float)plans[day][i].EndTime.msecsTo(QTime(0, 0, 0)) / sumTimeMsec) * sumWidth;
+        startPos = ((float)m_plans[day][i].BeginTime.msecsTo(QTime(0, 0, 0)) / sumTimeMsec) * sumWidth;
+        endPos = ((float)m_plans[day][i].EndTime.msecsTo(QTime(0, 0, 0)) / sumTimeMsec) * sumWidth;
 
         p->fillRect(QRect(sPoint.x() + startPos,
                           sPoint.y() + day * GRIDSIZE * ROWCOUNT / 7,
@@ -120,17 +120,17 @@ void TimeRegionWidget::handleTimeChange(QTime time)
     int index = list.at(2).toInt();
 
     for(int i=0; i<7; i++) {
-        if(weekStateMap.value(i) == Qt::Checked) {
+        if(m_weekStateMap.value(i) == Qt::Checked) {
             if(list.at(3) == "start") {
-                if(plans[i][index].EndTime < time)
+                if(m_plans[i][index].EndTime < time)
                     continue;
-                plans[i][index].BeginTime = time;
+                m_plans[i][index].BeginTime = time;
             }else if(list.at(3) == "end") {
-                if(plans[i][index].BeginTime > time)
+                if(m_plans[i][index].BeginTime > time)
                     continue;
-                plans[i][index].EndTime = time;
+                m_plans[i][index].EndTime = time;
             }
-            plans[i][index].PlanTimeEnabled = 1;
+            m_plans[i][index].PlanTimeEnabled = 1;
         }
     }
 
@@ -141,7 +141,7 @@ void TimeRegionWidget::handleWeekSelectState(int state)
 {
     int index = sender()->objectName().right(1).toInt();
 
-    weekStateMap[index] = state;
+    m_weekStateMap[index] = state;
 
     update();
 }
@@ -151,8 +151,8 @@ void TimeRegionWidget::handleTimeSelectState(int state)
     int index = sender()->objectName().right(1).toInt();
 
     for(int i=0; i<7; i++) {
-        if(weekStateMap[i] == Qt::Checked) {
-            plans[i][index].PlanTimeEnabled = state == Qt::Checked ? 1 : 0;
+        if(m_weekStateMap[i] == Qt::Checked) {
+            m_plans[i][index].PlanTimeEnabled = state == Qt::Checked ? 1 : 0;
         }
     }
 

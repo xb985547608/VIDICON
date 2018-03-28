@@ -68,10 +68,10 @@ void FileView::setDataSource(const QStringList &list)
 {
     static_cast<FileModel *>(model())->setDataSource(list);
 
-    for(int i=0; i<btnList.length(); i++) {
-        delete btnList.at(i);
+    for(int i=0; i<m_btnList.length(); i++) {
+        delete m_btnList.at(i);
     }
-    btnList.clear();
+    m_btnList.clear();
 
     for(int i=0; i<list.length(); i++) {
         QPushButton *btn = new QPushButton("查看", this);
@@ -84,7 +84,7 @@ void FileView::setDataSource(const QStringList &list)
                 QMetaObject::invokeMethod(HttpDownload::getInstance(), "getImage", Q_ARG(QString, path));
         });
         setIndexWidget(model()->index(i, OPERATIONCOLUMN), btn);
-        btnList.append(btn);
+        m_btnList.append(btn);
     }
 }
 
@@ -131,9 +131,9 @@ void FileView::handleReceiveImage(QPixmap *pixmap)
 }
 
 FileModel::FileModel(QObject *parent) : QAbstractTableModel(parent),
-    column(3)
+    m_column(3)
 {
-    headList << "" << "文件名" << "操作";
+    m_headItems << "" << "文件名" << "操作";
 }
 
 FileModel::~FileModel()
@@ -144,13 +144,13 @@ FileModel::~FileModel()
 int FileModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return fileList.length();
+    return m_items.length();
 }
 
 int FileModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return column;
+    return m_column;
 }
 
 QVariant FileModel::data(const QModelIndex &index, int role) const
@@ -167,7 +167,7 @@ QVariant FileModel::data(const QModelIndex &index, int role) const
     //正常时显示的数据
     case Qt::DisplayRole: {
         if(1 == index.column())
-            return fileList.at(index.row()).fileName;
+            return m_items.at(index.row()).fileName;
         break;
     }
     //显示的字体样式
@@ -189,13 +189,13 @@ QVariant FileModel::data(const QModelIndex &index, int role) const
 //    }
     case Qt::CheckStateRole:{
         if (index.column() == CHECKBOXCOLUMN) {
-            return fileList.at(index.row()).CheckState;
+            return m_items.at(index.row()).CheckState;
         }
         break;
     }
     case PRESSEDROLE: {
         if (index.column() == CHECKBOXCOLUMN) {
-            return fileList.at(index.row()).bPressed;
+            return m_items.at(index.row()).bPressed;
         }
         break;
     }
@@ -214,7 +214,7 @@ bool FileModel::setData(const QModelIndex &index, const QVariant &value, int rol
     switch (role) {
     //保存每个item的checkbox状态
     case Qt::CheckStateRole: {
-        fileList[index.row()].CheckState = value.toInt();
+        m_items[index.row()].CheckState = value.toInt();
         checkState();
         emit dataChanged(index, index);
         return true;
@@ -222,7 +222,7 @@ bool FileModel::setData(const QModelIndex &index, const QVariant &value, int rol
     //显示按压效果
     case PRESSEDROLE: {
         if (index.column() == CHECKBOXCOLUMN) {
-            fileList[index.row()].bPressed = value.toBool();
+            m_items[index.row()].bPressed = value.toBool();
             emit dataChanged(index, index);
         }
         break;
@@ -239,8 +239,8 @@ QVariant FileModel::headerData(int section, Qt::Orientation orientation, int rol
     //显示的数据
     case Qt::DisplayRole:{
         if(Qt::Horizontal == orientation){
-            if(0 <= section && section < headList.size()){
-                return headList.at(section);
+            if(0 <= section && section < m_headItems.size()){
+                return m_headItems.at(section);
             }
         }
         break;
@@ -277,26 +277,26 @@ Qt::ItemFlags FileModel::flags(const QModelIndex &index) const
 //根据头列表复选框状态的改变来确定列表所有item的状态
 void FileModel::handleStateChange(int state)
 {
-    if(fileList.length() == 0)
+    if(m_items.length() == 0)
         return;
 
-    for(int i=0; i<fileList.length(); i++) {
-        fileList[i].CheckState = state;
+    for(int i=0; i<m_items.length(); i++) {
+        m_items[i].CheckState = state;
     }
-    emit dataChanged(index(0, CHECKBOXCOLUMN), index(fileList.length(), CHECKBOXCOLUMN));
+    emit dataChanged(index(0, CHECKBOXCOLUMN), index(m_items.length(), CHECKBOXCOLUMN));
 }
 
 //设置显示的数据源
 void FileModel::setDataSource(const QStringList &l)
 {
     emit signalStateChange(Qt::Unchecked);
-    fileList.clear();
+    m_items.clear();
     FileInfo info;
     info.CheckState = Qt::Unchecked;
     info.bPressed = false;
     foreach (QString fileName, l) {
         info.fileName = fileName;
-        fileList.append(info);
+        m_items.append(info);
     }
     beginResetModel();
     endResetModel();
@@ -305,13 +305,13 @@ void FileModel::setDataSource(const QStringList &l)
 //根据列表中item的状态来确定目前头列表复选框的状态
 void FileModel::checkState()
 {
-    if(fileList.length() == 0) {
+    if(m_items.length() == 0) {
         emit signalStateChange(Qt::Unchecked);
         return;
     }
 
     int count = 0;
-    foreach (FileInfo info, fileList) {
+    foreach (FileInfo info, m_items) {
         if(info.CheckState == Qt::Checked) {
             count++;
         }
@@ -319,9 +319,9 @@ void FileModel::checkState()
 
     if(count == 0) {
         emit signalStateChange(Qt::Unchecked);
-    }else if(count < fileList.length()) {
+    }else if(count < m_items.length()) {
         emit signalStateChange(Qt::PartiallyChecked);
-    }else if(count == fileList.length()) {
+    }else if(count == m_items.length()) {
         emit signalStateChange(Qt::Checked);
     }
 }
@@ -398,10 +398,10 @@ void FileViewDelegate::drawBackground(QPainter *painter,
 }
 
 FileViewHeaderView::FileViewHeaderView(Qt::Orientation orientation, QWidget *parent) : QHeaderView(orientation, parent),
-    bPressed(false),
-    bMoving(false),
-    bTristate(false),
-    bChecked(false)
+    m_pressed(false),
+    m_moving(false),
+    m_tristate(false),
+    m_checked(false)
 {
     setHighlightSections(false);
     setMouseTracking(true);
@@ -435,16 +435,16 @@ void FileViewHeaderView::paintSection(QPainter *painter, const QRect &rect, int 
         QStyleOptionButton option;
         option.initFrom(this);
 
-        if (bPressed)
+        if (m_pressed)
             option.state |= QStyle::State_Sunken;
 
-        if (bTristate)
+        if (m_tristate)
             option.state |= QStyle::State_NoChange;
         else
-            option.state |= bChecked ? QStyle::State_On : QStyle::State_Off;
+            option.state |= m_checked ? QStyle::State_On : QStyle::State_Off;
 
         if (testAttribute(Qt::WA_Hover) && underMouse()) {
-            if (bMoving)
+            if (m_moving)
                 option.state |= QStyle::State_MouseOver;
             else
                 option.state &= ~QStyle::State_MouseOver;
@@ -464,7 +464,7 @@ void FileViewHeaderView::paintSection(QPainter *painter, const QRect &rect, int 
 void FileViewHeaderView::mousePressEvent(QMouseEvent *event)
 {
     if ((event->buttons() & Qt::LeftButton) && (logicalIndexAt(event->pos()) == CHECKBOXCOLUMN)) {
-        bPressed = true;
+        m_pressed = true;
         update();
     } else {
         QHeaderView::mousePressEvent(event);
@@ -473,21 +473,21 @@ void FileViewHeaderView::mousePressEvent(QMouseEvent *event)
 
 void FileViewHeaderView::mouseReleaseEvent(QMouseEvent *event)
 {
-    if (bPressed) {
-        if (bTristate) {
-            bChecked = true;
-            bTristate = false;
+    if (m_pressed) {
+        if (m_tristate) {
+            m_checked = true;
+            m_tristate = false;
         } else {
-            bChecked = !bChecked;
+            m_checked = !m_checked;
         }
         update();
-        Qt::CheckState state = bChecked ? Qt::Checked : Qt::Unchecked;
+        Qt::CheckState state = m_checked ? Qt::Checked : Qt::Unchecked;
         emit signalStateChange(state);
     } else {
         QHeaderView::mouseReleaseEvent(event);
     }
 
-    bPressed = false;
+    m_pressed = false;
 }
 
 bool FileViewHeaderView::event(QEvent *event)
@@ -495,7 +495,7 @@ bool FileViewHeaderView::event(QEvent *event)
     if (event->type() == QEvent::Enter || event->type() == QEvent::Leave) {
         QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
         if (logicalIndexAt(mouseEvent->x()) == CHECKBOXCOLUMN) {
-            bMoving = (event->type() == QEvent::Enter);
+            m_moving = (event->type() == QEvent::Enter);
             update();
             return true;
         }
@@ -507,11 +507,11 @@ bool FileViewHeaderView::event(QEvent *event)
 void FileViewHeaderView::handleStateChange(int state)
 {
     if (state == Qt::PartiallyChecked) {
-        bTristate = true;
+        m_tristate = true;
     } else {
-        bTristate = false;
+        m_tristate = false;
     }
 
-    bChecked = (state != Qt::Unchecked);
+    m_checked = (state != Qt::Unchecked);
     update();
 }

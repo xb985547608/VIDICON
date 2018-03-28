@@ -9,39 +9,19 @@
 #include "parsexml.h"
 #include <QPushButton>
 
-DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
+DateWidget::DateWidget(QWidget *parent) :
+    BasicWidget(parent)
 {
     setMouseTracking(true);
-
-    connect(this, &DateWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter, Qt::QueuedConnection);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &DateWidget::handleReceiveData, Qt::QueuedConnection);
 
     /*********************************界面布局*********************************/
     QGridLayout *layout1 = new QGridLayout;
 
-
-//    QLabel *lbl = new QLabel("文件类型", this);
-//    typeSelect = new QComboBox(this);
-//    typeSelect->addItem("图片");
-//    typeSelect->addItem("视频");
-//    layout1->addWidget(lbl, 0, 0, 1, 3);
-//    layout1->addWidget(typeSelect, 0, 3, 1, 4);
-
-    dateEdit = new QDateEdit(this);
-//    dateEdit->setStyleSheet("background-color:#e6f1f5");
-    dateEdit->setDisplayFormat("当前日期:yyyy-MM-dd");
-    connect(dateEdit, &QDateEdit::dateChanged, this, [this](QDate date){
-        VidiconProtocol::BackUpQueryParameter *param1 = new VidiconProtocol::BackUpQueryParameter;
-        param1->Type = 6;
-        param1->Date = date;
-        emit signalSetParameter(BACKQUERY, param1);
-        VidiconProtocol::BackUpQueryParameter *param2 = new VidiconProtocol::BackUpQueryParameter;
-        param2->Type = 0;
-        param2->Date = date;
-        emit signalSetParameter(BACKQUERY, param2);
-        emit signalDateChange(date);
-    });
-    layout1->addWidget(dateEdit, 1, 0, 1, 7, Qt::AlignCenter);
+    m_dateEdit = new QDateEdit(this);
+    m_dateEdit->setDate(QDate::currentDate());
+    m_dateEdit->setDisplayFormat("当前日期:yyyy-MM-dd");
+    connect(m_dateEdit, &QDateEdit::dateChanged, this, &DateWidget::refresh);
+    layout1->addWidget(m_dateEdit, 1, 0, 1, 7, Qt::AlignCenter);
     QStringList list;
     list << "日" << "一" << "二" << "三" << "四" << "五" << "六";
     for(int i=0; i<7; i++) {
@@ -58,7 +38,7 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
             lbl->setObjectName(QString("lbl%1").arg(i*7 + j));
             lbl->setFixedSize(25, 25);
             lbl->setMouseTracking(true);
-            lblDateMap.insert(i*7 + j, lbl);
+            m_lblDateMap.insert(i*7 + j, lbl);
             layout1->addWidget(lbl, i+3, j, 1, 1, Qt::AlignCenter);
         }
     }
@@ -85,14 +65,14 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
     btn->setStyleSheet("QPushButton{border-image:url(:images/query.png)0 80 0 0}"
                        "QPushButton:pressed{border-image:url(:images/query.png)0 0 0 80}");
     connect(btn, &QPushButton::clicked, this, [this]() {
-        VidiconProtocol::BackUpQueryParameter *param1 = new VidiconProtocol::BackUpQueryParameter;
-        param1->Date = dateEdit->date();
+        BackUpQueryParameter *param1 = new BackUpQueryParameter;
+        param1->Date = m_dateEdit->date();
         param1->Type = 1;
-        emit signalSetParameter(BACKQUERY, param1);
-        VidiconProtocol::BackUpQueryParameter *param2 = new VidiconProtocol::BackUpQueryParameter;
-        param2->Date = dateEdit->date();
+        emit signalSetParameter(VidiconProtocol::BACKQUERY, param1);
+        BackUpQueryParameter *param2 = new BackUpQueryParameter;
+        param2->Date = m_dateEdit->date();
         param2->Type = 2;
-        emit signalSetParameter(BACKQUERY, param2);
+        emit signalSetParameter(VidiconProtocol::BACKQUERY, param2);
     });
 
     QVBoxLayout *layout2 = new QVBoxLayout(this);
@@ -102,8 +82,7 @@ DateWidget::DateWidget(QWidget *parent) : QWidget(parent)
     layout2->setContentsMargins(0, 0, 0, 0);
     /*********************************界面布局*********************************/
 
-    dateEdit->setDate(QDate::currentDate());
-    MonthMap.clear();
+    m_MonthMap.clear();
     handleDateChangle(QDate::currentDate());
 }
 
@@ -132,26 +111,42 @@ void DateWidget::mousePressEvent(QMouseEvent *event)
     if(w->objectName().left(3) == "lbl") {
         QLabel *lbl = static_cast<QLabel *>(w);
         if(lbl->text().length()) {
-            dateEdit->setDate(QDate(dateEdit->date().year(), dateEdit->date().month(), lbl->text().toInt()));
-            handleDateChangle(dateEdit->date());
+            m_dateEdit->setDate(QDate(m_dateEdit->date().year(), m_dateEdit->date().month(), lbl->text().toInt()));
+            handleDateChangle(m_dateEdit->date());
         }
     }
 }
 
-void DateWidget::handleReceiveData(int type, QByteArray data)
+void DateWidget::refresh(QDate date)
+{
+    if (date.isNull())
+        date = m_dateEdit->date();
+
+    BackUpQueryParameter *param1 = new BackUpQueryParameter;
+    param1->Type = 6;
+    param1->Date = date;
+    emit signalSetParameter(VidiconProtocol::BACKQUERY, param1);
+    BackUpQueryParameter *param2 = new BackUpQueryParameter;
+    param2->Type = 0;
+    param2->Date = date;
+    emit signalSetParameter(VidiconProtocol::BACKQUERY, param2);
+    emit signalDateChange(date);
+}
+
+void DateWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray data)
 {
     bool isOK = false;
 
     switch(type) {
-    case QUERYFILEMONTH: {
-        VidiconProtocol::BackUpQueryParameter param;
-        MonthMap.clear();
+    case VidiconProtocol::QUERYFILEMONTH: {
+        BackUpQueryParameter param;
+        m_MonthMap.clear();
         param.Type = 6;
-        param.MonthMap = &MonthMap;
+        param.MonthMap = &m_MonthMap;
 
         isOK = ParseXML::getInstance()->parseBackUpQueryParameter(&param, data);
         if (isOK) {
-            handleDateChangle(dateEdit->date());
+            handleDateChangle(m_dateEdit->date());
         }
         break;
     }
@@ -173,29 +168,29 @@ void DateWidget::handleDateChangle(const QDate &date)
     }
     //不在日期排列中的lbl隐藏掉
     for(int i=0; i<startIndex; i++) {
-        lblDateMap[i]->setText("");
-        lblDateMap[i]->setStyleSheet("background-color:transparent; color: transparent");
+        m_lblDateMap[i]->setText("");
+        m_lblDateMap[i]->setStyleSheet("background-color:transparent; color: transparent");
     }
     //将lbl按顺序填写日期
     for(int i=0; i<date.daysInMonth(); i++) {
-        lblDateMap[startIndex + i]->setText(QString::number(i + 1));
-        lblDateMap[startIndex + i]->setStyleSheet("QLabel{background-color:#0B282A; color: white} QLabel:hover{background-color:blue}");
+        m_lblDateMap[startIndex + i]->setText(QString::number(i + 1));
+        m_lblDateMap[startIndex + i]->setStyleSheet("QLabel{background-color:#0B282A; color: white} QLabel:hover{background-color:blue}");
     }
     //不在日期排列中的lbl隐藏掉
     for(int i=startIndex + date.daysInMonth(); i<42; i++) {
-        lblDateMap[i]->setText("");
-        lblDateMap[i]->setStyleSheet("background-color:transparent; color: transparent");
+        m_lblDateMap[i]->setText("");
+        m_lblDateMap[i]->setStyleSheet("background-color:transparent; color: transparent");
     }
 
-    int currentDay = dateEdit->date().day() - 1;
-    lblDateMap[currentDay + startIndex]->setStyleSheet("QLabel{background-color:#7BA8A7; color: white;} QLabel:hover{background-color:blue}");
+    int currentDay = m_dateEdit->date().day() - 1;
+    m_lblDateMap[currentDay + startIndex]->setStyleSheet("QLabel{background-color:#7BA8A7; color: white;} QLabel:hover{background-color:blue}");
 
-    for(int i=0; i<MonthMap.size(); i++) {
-        if(MonthMap[i] == 1) {
+    for(int i=0; i<m_MonthMap.size(); i++) {
+        if(m_MonthMap[i] == 1) {
             if(currentDay == i) {
-                lblDateMap[i + startIndex]->setStyleSheet("QLabel{background-color:green; color: white; border:4px solid #7BA8A7} QLabel:hover{background-color:blue}");
+                m_lblDateMap[i + startIndex]->setStyleSheet("QLabel{background-color:green; color: white; border:4px solid #7BA8A7} QLabel:hover{background-color:blue}");
             }else {
-                lblDateMap[i + startIndex]->setStyleSheet("QLabel{background-color:green; color: white;} QLabel:hover{background-color:blue}");
+                m_lblDateMap[i + startIndex]->setStyleSheet("QLabel{background-color:green; color: white;} QLabel:hover{background-color:blue}");
             }
         }
     }

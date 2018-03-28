@@ -8,7 +8,6 @@
 #include <QSlider>
 #include <QDebug>
 #include <QModelIndex>
-#include "Protocol/vidiconprotocol.h"
 #include "parsexml.h"
 #include "DrawSubWidget/osdwidget.h"
 #include <QCheckBox>
@@ -17,159 +16,155 @@
 #include "DrawSubWidget/imagewidget.h"
 #include "waitingshade.h"
 
-MediaWidget::MediaWidget(QWidget *parent) : QStackedWidget(parent)
+MediaWidget::MediaWidget(QWidget *parent) :
+    StackedWidget(parent)
 {
     initAudioVideoWidget();
     initPrivacyWidget();
     initImageWidget();
     initROIWidget();
     initOSDWidget();
-
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &MediaWidget::handleReceiveData);
-    connect(this, &MediaWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
-    connect(this, &MediaWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
 }
 
 MediaWidget::~MediaWidget()
 {
-    qDebug("delete TabMedia");
 }
 
 void MediaWidget::initAudioVideoWidget()
 {
     QStringList list;
-    audioVideoWidget = new QWidget(this);
+    m_audioVideoWidget = new QWidget(this);
 
-    QLabel *lbl1 = new QLabel("Standard", audioVideoWidget);
-    QComboBox *comboBox1 = new QComboBox(audioVideoWidget);
+    QLabel *lbl1 = new QLabel("Standard", m_audioVideoWidget);
+    QComboBox *comboBox1 = new QComboBox(m_audioVideoWidget);
     list << "PAL" << "NTSC";
     comboBox1->addItems(list);
     list.clear();
-    audioVideoMap.insert("Standard 0", comboBox1);
+    m_audioVideoMap.insert("Standard 0", comboBox1);
 
-    QLabel *lbl25 = new QLabel("Standard", audioVideoWidget);
-    QComboBox *comboBox13 = new QComboBox(audioVideoWidget);
+    QLabel *lbl25 = new QLabel("Standard", m_audioVideoWidget);
+    QComboBox *comboBox13 = new QComboBox(m_audioVideoWidget);
     list << "PAL" << "NTSC";
     comboBox13->addItems(list);
     list.clear();
-    audioVideoMap.insert("Standard 1", comboBox13);
+    m_audioVideoMap.insert("Standard 1", comboBox13);
 
-    QLabel *lbl2 = new QLabel("码流类型", audioVideoWidget);
-    QLabel *lbl3 = new QLabel("主码流", audioVideoWidget);
+    QLabel *lbl2 = new QLabel("码流类型", m_audioVideoWidget);
+    QLabel *lbl3 = new QLabel("主码流", m_audioVideoWidget);
 
-    QLabel *lbl4 = new QLabel("码流类型", audioVideoWidget);
-    QLabel *lbl5 = new QLabel("子码流", audioVideoWidget);
+    QLabel *lbl4 = new QLabel("码流类型", m_audioVideoWidget);
+    QLabel *lbl5 = new QLabel("子码流", m_audioVideoWidget);
 
 
-    QLabel *lbl6 = new QLabel("帧率", audioVideoWidget);
-    QComboBox *comboBox2 = new QComboBox(audioVideoWidget);
+    QLabel *lbl6 = new QLabel("帧率", m_audioVideoWidget);
+    QComboBox *comboBox2 = new QComboBox(m_audioVideoWidget);
     for(int i=1; i<=25; i++){
         list.append(QString::number(i));
     }
     comboBox2->addItems(list);
     list.clear();
-    audioVideoMap.insert("Frame Rate 0", comboBox2);
+    m_audioVideoMap.insert("Frame Rate 0", comboBox2);
 
-    QLabel *lbl7 = new QLabel("帧率", audioVideoWidget);
-    QComboBox *comboBox3 = new QComboBox(audioVideoWidget);
+    QLabel *lbl7 = new QLabel("帧率", m_audioVideoWidget);
+    QComboBox *comboBox3 = new QComboBox(m_audioVideoWidget);
     for(int i=1; i<=25; i++){
         list.append(QString::number(i));
     }
     comboBox3->addItems(list);
     list.clear();
-    audioVideoMap.insert("Frame Rate 1", comboBox3);
+    m_audioVideoMap.insert("Frame Rate 1", comboBox3);
 
-    QLabel *lbl8 = new QLabel("编码类型", audioVideoWidget);
-    QComboBox *comboBox4 = new QComboBox(audioVideoWidget);
+    QLabel *lbl8 = new QLabel("编码类型", m_audioVideoWidget);
+    QComboBox *comboBox4 = new QComboBox(m_audioVideoWidget);
     list << "H264" << "H265";
     comboBox4->addItems(list);
     list.clear();
-    audioVideoMap.insert("Codec 0", comboBox4);
+    m_audioVideoMap.insert("Codec 0", comboBox4);
 
-    QLabel *lbl9 = new QLabel("编码类型", audioVideoWidget);
-    QComboBox *comboBox5 = new QComboBox(audioVideoWidget);
+    QLabel *lbl9 = new QLabel("编码类型", m_audioVideoWidget);
+    QComboBox *comboBox5 = new QComboBox(m_audioVideoWidget);
     list << "H264" << "H265";
     comboBox5->addItems(list);
     list.clear();
-    audioVideoMap.insert("Codec 1", comboBox5);
+    m_audioVideoMap.insert("Codec 1", comboBox5);
 
-    QLabel *lbl10 = new QLabel("码流模式", audioVideoWidget);
-    QComboBox *comboBox6 = new QComboBox(audioVideoWidget);
+    QLabel *lbl10 = new QLabel("码流模式", m_audioVideoWidget);
+    QComboBox *comboBox6 = new QComboBox(m_audioVideoWidget);
     list << "CBR" << "VBR";
     comboBox6->addItems(list);
     list.clear();
-    audioVideoMap.insert("Bitrate Mode 0", comboBox6);
+    m_audioVideoMap.insert("Bitrate Mode 0", comboBox6);
 
-    QLabel *lbl11 = new QLabel("码流模式", audioVideoWidget);
-    QComboBox *comboBox7 = new QComboBox(audioVideoWidget);
+    QLabel *lbl11 = new QLabel("码流模式", m_audioVideoWidget);
+    QComboBox *comboBox7 = new QComboBox(m_audioVideoWidget);
     list << "CBR" << "VBR";
     comboBox7->addItems(list);
     list.clear();
-    audioVideoMap.insert("Bitrate Mode 1", comboBox7);
+    m_audioVideoMap.insert("Bitrate Mode 1", comboBox7);
 
-    QLabel *lbl12 = new QLabel("分辨率", audioVideoWidget);
-    QComboBox *comboBox8 = new QComboBox(audioVideoWidget);
+    QLabel *lbl12 = new QLabel("分辨率", m_audioVideoWidget);
+    QComboBox *comboBox8 = new QComboBox(m_audioVideoWidget);
     list << "1920*1080" << "1280*720";
     comboBox8->addItems(list);
     list.clear();
-    audioVideoMap.insert("Resolution 0", comboBox8);
+    m_audioVideoMap.insert("Resolution 0", comboBox8);
 
-    QLabel *lbl13 = new QLabel("分辨率", audioVideoWidget);
-    QComboBox *comboBox9 = new QComboBox(audioVideoWidget);
+    QLabel *lbl13 = new QLabel("分辨率", m_audioVideoWidget);
+    QComboBox *comboBox9 = new QComboBox(m_audioVideoWidget);
     list << "352*288" << "704*576";
     comboBox9->addItems(list);
     list.clear();
-    audioVideoMap.insert("Resolution 1", comboBox9);
+    m_audioVideoMap.insert("Resolution 1", comboBox9);
 
-    QLabel *lbl14 = new QLabel("视频质量", audioVideoWidget);
-    QComboBox *comboBox10 = new QComboBox(audioVideoWidget);
+    QLabel *lbl14 = new QLabel("视频质量", m_audioVideoWidget);
+    QComboBox *comboBox10 = new QComboBox(m_audioVideoWidget);
     list << "差" << "正常" << "好" << "更好" << "最好";
     comboBox10->addItems(list);
     list.clear();
-    audioVideoMap.insert("Video quality 0", comboBox10);
+    m_audioVideoMap.insert("Video quality 0", comboBox10);
 
-    QLabel *lbl15 = new QLabel("视频质量", audioVideoWidget);
-    QComboBox *comboBox11 = new QComboBox(audioVideoWidget);
+    QLabel *lbl15 = new QLabel("视频质量", m_audioVideoWidget);
+    QComboBox *comboBox11 = new QComboBox(m_audioVideoWidget);
     list << "差" << "正常" << "好" << "更好" << "最好";
     comboBox11->addItems(list);
     list.clear();
-    audioVideoMap.insert("Video quality 1", comboBox11);
+    m_audioVideoMap.insert("Video quality 1", comboBox11);
 
-    QLabel *lbl16 = new QLabel("码流大小", audioVideoWidget);
-    QLineEdit *lineEdit1 = new QLineEdit(audioVideoWidget);
+    QLabel *lbl16 = new QLabel("码流大小", m_audioVideoWidget);
+    LineEdit *lineEdit1 = new LineEdit(m_audioVideoWidget);
     lineEdit1->setValidator(new QIntValidator(36, 10240, this));
-    QLabel *lbl17 = new QLabel("(Kbit)(36-10240)", audioVideoWidget);
-    audioVideoMap.insert("Video Rate 0", lineEdit1);
+    QLabel *lbl17 = new QLabel("(Kbit)(36-10240)", m_audioVideoWidget);
+    m_audioVideoMap.insert("Video Rate 0", lineEdit1);
 
-    QLabel *lbl18 = new QLabel("码流大小", audioVideoWidget);
-    QLineEdit *lineEdit2 = new QLineEdit(audioVideoWidget);
+    QLabel *lbl18 = new QLabel("码流大小", m_audioVideoWidget);
+    LineEdit *lineEdit2 = new LineEdit(m_audioVideoWidget);
     lineEdit2->setValidator(new QIntValidator(20, 2048, this));
-    QLabel *lbl19 = new QLabel("(Kbit)(20-2048)", audioVideoWidget);
-    audioVideoMap.insert("Video Rate 1", lineEdit2);
+    QLabel *lbl19 = new QLabel("(Kbit)(20-2048)", m_audioVideoWidget);
+    m_audioVideoMap.insert("Video Rate 1", lineEdit2);
 
-    QLabel *lbl20 = new QLabel("I帧间隔", audioVideoWidget);
-    QLineEdit *lineEdit3 = new QLineEdit(audioVideoWidget);
+    QLabel *lbl20 = new QLabel("I帧间隔", m_audioVideoWidget);
+    LineEdit *lineEdit3 = new LineEdit(m_audioVideoWidget);
     lineEdit3->setValidator(new QIntValidator(1, 150, this));
-    QLabel *lbl21 = new QLabel("(FPS)(1-150)", audioVideoWidget);
-    audioVideoMap.insert("I Frame Interval 0", lineEdit3);
+    QLabel *lbl21 = new QLabel("(FPS)(1-150)", m_audioVideoWidget);
+    m_audioVideoMap.insert("I Frame Interval 0", lineEdit3);
 
-    QLabel *lbl22 = new QLabel("I帧间隔", audioVideoWidget);
-    QLineEdit *lineEdit4 = new QLineEdit(audioVideoWidget);
+    QLabel *lbl22 = new QLabel("I帧间隔", m_audioVideoWidget);
+    LineEdit *lineEdit4 = new LineEdit(m_audioVideoWidget);
     lineEdit4->setValidator(new QIntValidator(1, 150, this));
-    QLabel *lbl23 = new QLabel("(FPS)(1-150)", audioVideoWidget);
-    audioVideoMap.insert("I Frame Interval 1", lineEdit4);
+    QLabel *lbl23 = new QLabel("(FPS)(1-150)", m_audioVideoWidget);
+    m_audioVideoMap.insert("I Frame Interval 1", lineEdit4);
 
-    QRadioButton *radioBtn = new QRadioButton("启用音频", audioVideoWidget);
-    audioVideoMap.insert("Audio Enable", radioBtn);
+    QRadioButton *radioBtn = new QRadioButton("启用音频", m_audioVideoWidget);
+    m_audioVideoMap.insert("Audio Enable", radioBtn);
 
-    QLabel *lbl24 = new QLabel("编码类型", audioVideoWidget);
-    QComboBox *comboBox12 = new QComboBox(audioVideoWidget);
+    QLabel *lbl24 = new QLabel("编码类型", m_audioVideoWidget);
+    QComboBox *comboBox12 = new QComboBox(m_audioVideoWidget);
     list << "G711A" << "G711U" /*<< "G726" << "AAC"*/;
     comboBox12->addItems(list);
     list.clear();
-    audioVideoMap.insert("Audio Codec", comboBox12);
+    m_audioVideoMap.insert("Audio Codec", comboBox12);
 
-    QPushButton *btn = new QPushButton("保存", audioVideoWidget);
+    QPushButton *btn = new QPushButton("保存", m_audioVideoWidget);
     connect(btn, &QPushButton::clicked, this, [this](){handlePrepareData();});
 
     QGridLayout *layout = new QGridLayout;
@@ -236,34 +231,33 @@ void MediaWidget::initAudioVideoWidget()
 
     layout->addWidget(btn, 11, 7, 1, 2);
 
-    QVBoxLayout *vLayout = new QVBoxLayout(audioVideoWidget);
+    QVBoxLayout *vLayout = new QVBoxLayout(m_audioVideoWidget);
     vLayout->addLayout(layout);
     vLayout->addStretch();
 
-    addWidget(audioVideoWidget);
-
+    addWidget(m_audioVideoWidget);
 }
 
 void MediaWidget::initPrivacyWidget()
 {
-    privacyWidget = new QWidget(this);
+    m_privacyWidget = new QWidget(this);
 
-    PrivacyWidget *displayArea = new PrivacyWidget(privacyWidget);
+    PrivacyWidget *displayArea = new PrivacyWidget(m_privacyWidget);
     displayArea->setFixedSize(400, 400);
     displayArea->setStyleSheet("background-color:black");
-    privacyMap.insert("DisplayArea", displayArea);
+    m_privacyMap.insert("DisplayArea", displayArea);
 
-    QRadioButton *radioBtn1 = new QRadioButton("使能(支持4个区域)", privacyWidget);
-    privacyMap.insert("Enable", radioBtn1);
+    QRadioButton *radioBtn1 = new QRadioButton("使能(支持4个区域)", m_privacyWidget);
+    m_privacyMap.insert("Enable", radioBtn1);
 
-    QPushButton *btn1 = new QPushButton("全屏", privacyWidget);
-    privacyMap.insert("FullScreen", btn1);
+    QPushButton *btn1 = new QPushButton("全屏", m_privacyWidget);
+    m_privacyMap.insert("FullScreen", btn1);
 
-    QPushButton *btn2 = new QPushButton("清屏", privacyWidget);
-    privacyMap.insert("ClearScreen", btn2);
+    QPushButton *btn2 = new QPushButton("清屏", m_privacyWidget);
+    m_privacyMap.insert("ClearScreen", btn2);
 
-    QPushButton *btn3 = new QPushButton("保存", privacyWidget);
-    privacyMap.insert("Save", btn3);
+    QPushButton *btn3 = new QPushButton("保存", m_privacyWidget);
+    m_privacyMap.insert("Save", btn3);
     connect(btn3, &QPushButton::clicked, this, &MediaWidget::handlePrepareData);
 
     QHBoxLayout *layout1 = new QHBoxLayout;
@@ -287,179 +281,179 @@ void MediaWidget::initPrivacyWidget()
     layout4->addLayout(layout3);
     layout4->addStretch();
 
-    QHBoxLayout *layout5 = new QHBoxLayout(privacyWidget);
+    QHBoxLayout *layout5 = new QHBoxLayout(m_privacyWidget);
     layout5->addStretch();
     layout5->addLayout(layout4);
     layout5->addStretch();
 
-    addWidget(privacyWidget);
+    addWidget(m_privacyWidget);
 }
 
 void MediaWidget::initImageWidget()
 {
     QStringList list;
-    imageWidget = new QWidget(this);
+    m_imageWidget = new QWidget(this);
 
-    ImageWidget *displayArea = new ImageWidget(imageWidget);
+    ImageWidget *displayArea = new ImageWidget(m_imageWidget);
     displayArea->setFixedSize(250, 250);
     displayArea->setStyleSheet("background-color:black");
-    imageMap.insert("DisplayArea", displayArea);
+    m_imageMap.insert("DisplayArea", displayArea);
 
-    QLabel *lbl1 = new QLabel("色度：",imageWidget);
-    QSlider *slider1 = new QSlider(Qt::Horizontal, imageWidget);
+    QLabel *lbl1 = new QLabel("色度：",m_imageWidget);
+    QSlider *slider1 = new QSlider(Qt::Horizontal, m_imageWidget);
     slider1->setRange(1, 100);
     slider1->setFixedWidth(100);
-    QLabel *lbl2 = new QLabel(imageWidget);
+    QLabel *lbl2 = new QLabel(m_imageWidget);
     lbl2->setFixedWidth(20);
-    imageMap.insert("HueLevel", slider1);
+    m_imageMap.insert("HueLevel", slider1);
     connect(slider1, &QSlider::valueChanged, this, [lbl2](int value){
         lbl2->setText(QString::number(value));
     });
 
-    QLabel *lbl3 = new QLabel("亮度：",imageWidget);
-    QSlider *slider2 = new QSlider(Qt::Horizontal, imageWidget);
+    QLabel *lbl3 = new QLabel("亮度：",m_imageWidget);
+    QSlider *slider2 = new QSlider(Qt::Horizontal, m_imageWidget);
     slider2->setRange(1, 100);
     slider2->setFixedWidth(100);
-    QLabel *lbl4 = new QLabel(imageWidget);
-    imageMap.insert("BrightnessLevel", slider2);
+    QLabel *lbl4 = new QLabel(m_imageWidget);
+    m_imageMap.insert("BrightnessLevel", slider2);
     connect(slider2, &QSlider::valueChanged, this, [lbl4](int value){
         lbl4->setText(QString::number(value));
     });
 
-    QLabel *lbl5 = new QLabel("对比度：",imageWidget);
-    QSlider *slider3 = new QSlider(Qt::Horizontal, imageWidget);
+    QLabel *lbl5 = new QLabel("对比度：",m_imageWidget);
+    QSlider *slider3 = new QSlider(Qt::Horizontal, m_imageWidget);
     slider3->setRange(1, 100);
     slider3->setFixedWidth(100);
-    QLabel *lbl6 = new QLabel(imageWidget);
-    imageMap.insert("ContrastLevel", slider3);
+    QLabel *lbl6 = new QLabel(m_imageWidget);
+    m_imageMap.insert("ContrastLevel", slider3);
     connect(slider3, &QSlider::valueChanged, this, [lbl6](int value){
         lbl6->setText(QString::number(value));
     });
 
-    QLabel *lbl7 = new QLabel("饱和度：",imageWidget);
-    QSlider *slider4 = new QSlider(Qt::Horizontal, imageWidget);
+    QLabel *lbl7 = new QLabel("饱和度：",m_imageWidget);
+    QSlider *slider4 = new QSlider(Qt::Horizontal, m_imageWidget);
     slider4->setRange(1, 100);
     slider4->setFixedWidth(100);
-    QLabel *lbl8 = new QLabel(imageWidget);
-    imageMap.insert("SaturationLevel", slider4);
+    QLabel *lbl8 = new QLabel(m_imageWidget);
+    m_imageMap.insert("SaturationLevel", slider4);
     connect(slider4, &QSlider::valueChanged, this, [lbl8](int value){
         lbl8->setText(QString::number(value));
     });
 
-    QLabel *lbl9 = new QLabel("锐度：",imageWidget);
-    QSlider *slider5 = new QSlider(Qt::Horizontal, imageWidget);
+    QLabel *lbl9 = new QLabel("锐度：",m_imageWidget);
+    QSlider *slider5 = new QSlider(Qt::Horizontal, m_imageWidget);
     slider5->setRange(1, 100);
     slider5->setFixedWidth(100);
-    QLabel *lbl10 = new QLabel(imageWidget);
-    imageMap.insert("Sharpness", slider5);
+    QLabel *lbl10 = new QLabel(m_imageWidget);
+    m_imageMap.insert("Sharpness", slider5);
     connect(slider5, &QSlider::valueChanged, this, [lbl10](int value){
         lbl10->setText(QString::number(value));
     });
 
-    QLabel *lbl11 = new QLabel("镜像：", imageWidget);
-    QComboBox *comboBox1 = new QComboBox(imageWidget);
+    QLabel *lbl11 = new QLabel("镜像：", m_imageWidget);
+    QComboBox *comboBox1 = new QComboBox(m_imageWidget);
     list << "左" << "右";
     comboBox1->addItems(list);
     list.clear();
-    imageMap.insert("Mirror", comboBox1);
+    m_imageMap.insert("Mirror", comboBox1);
 
-    QLabel *lbl12 = new QLabel("翻转：", imageWidget);
-    QComboBox *comboBox2 = new QComboBox(imageWidget);
+    QLabel *lbl12 = new QLabel("翻转：", m_imageWidget);
+    QComboBox *comboBox2 = new QComboBox(m_imageWidget);
     list << "上" << "下";
     comboBox2->addItems(list);
     list.clear();
-    imageMap.insert("Turn", comboBox2);
+    m_imageMap.insert("Turn", comboBox2);
 
-    QLabel *lbl13 = new QLabel("视角：", imageWidget);
-    QComboBox *comboBox3 = new QComboBox(imageWidget);
+    QLabel *lbl13 = new QLabel("视角：", m_imageWidget);
+    QComboBox *comboBox3 = new QComboBox(m_imageWidget);
     list << "正常" << "顺时针旋转90" << "顺时针旋转270" << "顺时针旋转180";
     comboBox3->addItems(list);
     list.clear();
-    imageMap.insert("VisionMode", comboBox3);
+    m_imageMap.insert("VisionMode", comboBox3);
 
-    QLabel *lbl14 = new QLabel("3D降噪：", imageWidget);
-    QComboBox *comboBox4 = new QComboBox(imageWidget);
+    QLabel *lbl14 = new QLabel("3D降噪：", m_imageWidget);
+    QComboBox *comboBox4 = new QComboBox(m_imageWidget);
     list << "失能" << "使能";
     comboBox4->addItems(list);
     list.clear();
-    imageMap.insert("NoiseReduceMode", comboBox4);
+    m_imageMap.insert("NoiseReduceMode", comboBox4);
 
-    QLabel *lbl15 = new QLabel("快门调节：", imageWidget);
-    QComboBox *comboBox5 = new QComboBox(imageWidget);
+    QLabel *lbl15 = new QLabel("快门调节：", m_imageWidget);
+    QComboBox *comboBox5 = new QComboBox(m_imageWidget);
     list << "1/25" << "1/30" << "1/50" << "1/60" << "1/100" << "1/120" << "1/250" << "1/500" << "1/1000"
          << "1/2000" << "1/4000" << "1/10000" << "1/30000" << "1/100000";
     comboBox5->addItems(list);
     list.clear();
-    imageMap.insert("Shutter", comboBox5);
+    m_imageMap.insert("Shutter", comboBox5);
 
-    QLabel *lbl16 = new QLabel("鱼眼矫正：", imageWidget);
-    QComboBox *comboBox6 = new QComboBox(imageWidget);
+    QLabel *lbl16 = new QLabel("鱼眼矫正：", m_imageWidget);
+    QComboBox *comboBox6 = new QComboBox(m_imageWidget);
     list << "失能" << "使能";
     comboBox6->addItems(list);
     list.clear();
-    imageMap.insert("Fisheye correction", comboBox6);
+    m_imageMap.insert("Fisheye correction", comboBox6);
 
-    QLabel *lbl17 = new QLabel("防闪烁：", imageWidget);
-    QComboBox *comboBox7 = new QComboBox(imageWidget);
+    QLabel *lbl17 = new QLabel("防闪烁：", m_imageWidget);
+    QComboBox *comboBox7 = new QComboBox(m_imageWidget);
     list << "失能" << "使能";
     comboBox7->addItems(list);
     list.clear();
-    imageMap.insert("AntiFlashMode", comboBox7);
+    m_imageMap.insert("AntiFlashMode", comboBox7);
 
-    QLabel *lbl18 = new QLabel("曝光：", imageWidget);
-    QComboBox *comboBox8 = new QComboBox(imageWidget);
+    QLabel *lbl18 = new QLabel("曝光：", m_imageWidget);
+    QComboBox *comboBox8 = new QComboBox(m_imageWidget);
     list << "自动" << "手动";
     comboBox8->addItems(list);
     list.clear();
-    imageMap.insert("ExposureMode", comboBox8);
+    m_imageMap.insert("ExposureMode", comboBox8);
 
-    QLabel *lbl19 = new QLabel("背光补偿：", imageWidget);
-    QComboBox *comboBox9 = new QComboBox(imageWidget);
+    QLabel *lbl19 = new QLabel("背光补偿：", m_imageWidget);
+    QComboBox *comboBox9 = new QComboBox(m_imageWidget);
     list << "失能" << "背光补偿" << "宽动态" << "强光抑制" << "数字宽动态";
     comboBox9->addItems(list);
     list.clear();
     connect(comboBox9, static_cast<void (QComboBox:: *)(int)>(&QComboBox::currentIndexChanged), this, [this](int index){
         bool isShow = index != 0 ? true : false;
-        static_cast<QSlider *>(imageMap["BLCValue"])->setVisible(isShow);
-        static_cast<QLabel *>(imageMap["BLCValuetag"])->setVisible(isShow);
+        static_cast<QSlider *>(m_imageMap["BLCValue"])->setVisible(isShow);
+        static_cast<QLabel *>(m_imageMap["BLCValuetag"])->setVisible(isShow);
     });
-    imageMap.insert("BLCMode", comboBox9);
+    m_imageMap.insert("BLCMode", comboBox9);
 
-    QSlider *slider6 = new QSlider(Qt::Horizontal, imageWidget);
+    QSlider *slider6 = new QSlider(Qt::Horizontal, m_imageWidget);
     slider6->setRange(1, 100);
     slider6->setFixedWidth(100);
-    QLabel *lbl20 = new QLabel(imageWidget);
+    QLabel *lbl20 = new QLabel(m_imageWidget);
     lbl20->setFixedWidth(20);
-    imageMap.insert("BLCValuetag", lbl20);
-    imageMap.insert("BLCValue", slider6);
+    m_imageMap.insert("BLCValuetag", lbl20);
+    m_imageMap.insert("BLCValue", slider6);
     connect(slider6, &QSlider::valueChanged, this, [lbl20](int value){
         lbl20->setText(QString::number(value));
     });
 
-    QLabel *lbl21 = new QLabel("昼夜模式", imageWidget);
-    QComboBox *comboBox10 = new QComboBox(imageWidget);
+    QLabel *lbl21 = new QLabel("昼夜模式", m_imageWidget);
+    QComboBox *comboBox10 = new QComboBox(m_imageWidget);
     list << "全彩" << "全黑白" << "自动调节" << "时间调节";
     comboBox10->addItems(list);
     list.clear();
     connect(comboBox10, static_cast<void (QComboBox:: *)(int)>(&QComboBox::currentIndexChanged), this, [this](int index){
         bool isShow = index == 3 ? true : false;
-        static_cast<QLabel *>(imageMap["time1tag"])->setVisible(isShow);
-        static_cast<QTimeEdit *>(imageMap["time1"])->setVisible(isShow);
-        static_cast<QLabel *>(imageMap["time2tag"])->setVisible(isShow);
-        static_cast<QTimeEdit *>(imageMap["time2"])->setVisible(isShow);
+        static_cast<QLabel *>(m_imageMap["time1tag"])->setVisible(isShow);
+        static_cast<QTimeEdit *>(m_imageMap["time1"])->setVisible(isShow);
+        static_cast<QLabel *>(m_imageMap["time2tag"])->setVisible(isShow);
+        static_cast<QTimeEdit *>(m_imageMap["time2"])->setVisible(isShow);
     });
-    imageMap.insert("Day/Night", comboBox10);
+    m_imageMap.insert("Day/Night", comboBox10);
 
-    QLabel *lbl22 = new QLabel("白昼开始点:", imageWidget);
-    imageMap.insert("time1tag", lbl22);
-    QTimeEdit *time1 = new QTimeEdit(imageWidget);
-    imageMap.insert("time1", time1);
-    QLabel *lbl23 = new QLabel("黑夜开始点:", imageWidget);
-    imageMap.insert("time2tag", lbl23);
-    QTimeEdit *time2 = new QTimeEdit(imageWidget);
-    imageMap.insert("time2", time2);
+    QLabel *lbl22 = new QLabel("白昼开始点:", m_imageWidget);
+    m_imageMap.insert("time1tag", lbl22);
+    QTimeEdit *time1 = new QTimeEdit(m_imageWidget);
+    m_imageMap.insert("time1", time1);
+    QLabel *lbl23 = new QLabel("黑夜开始点:", m_imageWidget);
+    m_imageMap.insert("time2tag", lbl23);
+    QTimeEdit *time2 = new QTimeEdit(m_imageWidget);
+    m_imageMap.insert("time2", time2);
 
-    QPushButton *btn = new QPushButton("保存", imageWidget);
+    QPushButton *btn = new QPushButton("保存", m_imageWidget);
     connect(btn, &QPushButton::clicked, this, &MediaWidget::handlePrepareData);
 
     QGridLayout *layout1 = new QGridLayout;
@@ -528,44 +522,44 @@ void MediaWidget::initImageWidget()
     layout2->addLayout(layout1);
     layout2->addStretch();
 
-    QHBoxLayout *layout3 = new QHBoxLayout(imageWidget);
+    QHBoxLayout *layout3 = new QHBoxLayout(m_imageWidget);
     layout3->addStretch(1);
     layout3->addLayout(layout2, 10);
     layout3->addStretch(1);
 
-    addWidget(imageWidget);
+    addWidget(m_imageWidget);
 }
 
 void MediaWidget::initROIWidget()
 {
     QStringList list;
-    roiWidget = new QWidget(this);
+    m_roiWidget = new QWidget(this);
 
-    QWidget *displayArea = new QWidget(roiWidget);
+    QWidget *displayArea = new QWidget(m_roiWidget);
     displayArea->setFixedSize(400, 400);
     displayArea->setStyleSheet("background-color:black");
-    ROIMap.insert("DisplayArea", displayArea);
+    m_ROIMap.insert("DisplayArea", displayArea);
 
-    QRadioButton *radioBtn1 = new QRadioButton("使能(支持4个区域)", roiWidget);
-    ROIMap.insert("Enable", radioBtn1);
+    QRadioButton *radioBtn1 = new QRadioButton("使能(支持4个区域)", m_roiWidget);
+    m_ROIMap.insert("Enable", radioBtn1);
 
-    QLabel *lbl1 = new QLabel("模式", roiWidget);
+    QLabel *lbl1 = new QLabel("模式", m_roiWidget);
     lbl1->setFixedWidth(50);
-    QComboBox *comboBox = new QComboBox(roiWidget);
+    QComboBox *comboBox = new QComboBox(m_roiWidget);
     comboBox->setFixedWidth(150);
     list << "清晰" << "模式";
     comboBox->addItems(list);
     list.clear();
-    ROIMap.insert("Mode", comboBox);
+    m_ROIMap.insert("Mode", comboBox);
 
-    QPushButton *btn1 = new QPushButton("全屏", roiWidget);
-    ROIMap.insert("FullScreen", btn1);
+    QPushButton *btn1 = new QPushButton("全屏", m_roiWidget);
+    m_ROIMap.insert("FullScreen", btn1);
 
-    QPushButton *btn2 = new QPushButton("清屏", roiWidget);
-    ROIMap.insert("ClearScreen", btn2);
+    QPushButton *btn2 = new QPushButton("清屏", m_roiWidget);
+    m_ROIMap.insert("ClearScreen", btn2);
 
-    QPushButton *btn3 = new QPushButton("保存", roiWidget);
-    ROIMap.insert("Save", btn3);
+    QPushButton *btn3 = new QPushButton("保存", m_roiWidget);
+    m_ROIMap.insert("Save", btn3);
 
     QHBoxLayout *layout1 = new QHBoxLayout;
     layout1->addStretch();
@@ -594,43 +588,43 @@ void MediaWidget::initROIWidget()
     layout4->addLayout(layout3);
     layout4->addStretch();
 
-    QHBoxLayout *layout5 = new QHBoxLayout(roiWidget);
+    QHBoxLayout *layout5 = new QHBoxLayout(m_roiWidget);
     layout5->addStretch();
     layout5->addLayout(layout4);
     layout5->addStretch();
 
-    addWidget(roiWidget);
+    addWidget(m_roiWidget);
 }
 
 void MediaWidget::initOSDWidget()
 {
-    osdWidget = new QWidget(this);
+    m_osdWidget = new QWidget(this);
 
-    OSDWidget *displayArea = new OSDWidget(osdWidget);
+    OSDWidget *displayArea = new OSDWidget(m_osdWidget);
     displayArea->setFixedSize(400, 400);
     displayArea->setStyleSheet("background-color:black");
-    OSDMap.insert("DisplayArea", displayArea);
+    m_OSDMap.insert("DisplayArea", displayArea);
 
-    QCheckBox *cb1 = new QCheckBox("显示时间", osdWidget);
-    OSDMap.insert("Show Clock", cb1);
+    QCheckBox *cb1 = new QCheckBox("显示时间", m_osdWidget);
+    m_OSDMap.insert("Show Clock", cb1);
 
-    QCheckBox *cb2 = new QCheckBox("显示帧率码率", osdWidget);
-    OSDMap.insert("Show FPS", cb2);
+    QCheckBox *cb2 = new QCheckBox("显示帧率码率", m_osdWidget);
+    m_OSDMap.insert("Show FPS", cb2);
 
-    QCheckBox *cb3 = new QCheckBox("显示通道名称", osdWidget);
-    OSDMap.insert("Show Channel Name", cb3);
-    QLineEdit *lineEdit1 = new QLineEdit("cam00", osdWidget);
+    QCheckBox *cb3 = new QCheckBox("显示通道名称", m_osdWidget);
+    m_OSDMap.insert("Show Channel Name", cb3);
+    LineEdit *lineEdit1 = new LineEdit("cam00", m_osdWidget);
     //禁止调用输入法
     lineEdit1->setAttribute(Qt::WA_InputMethodEnabled, false);
-    OSDMap.insert("Channel Name", lineEdit1);
+    m_OSDMap.insert("Channel Name", lineEdit1);
 
-    QCheckBox *cb4 = new QCheckBox("显示车号-车厢号-车位号", osdWidget);
-    OSDMap.insert("Show User Info", cb4);
-    QLineEdit *lineEdit2 = new QLineEdit(osdWidget);
+    QCheckBox *cb4 = new QCheckBox("显示车号-车厢号-车位号", m_osdWidget);
+    m_OSDMap.insert("Show User Info", cb4);
+    LineEdit *lineEdit2 = new LineEdit(m_osdWidget);
     lineEdit2->setAttribute(Qt::WA_InputMethodEnabled, false);
-    OSDMap.insert("User Info", lineEdit2);
+    m_OSDMap.insert("User Info", lineEdit2);
 
-    QPushButton *btn = new QPushButton("保存", osdWidget);
+    QPushButton *btn = new QPushButton("保存", m_osdWidget);
     btn->setFixedWidth(50);
     connect(btn, &QPushButton::clicked, this, &MediaWidget::handlePrepareData);
 
@@ -653,53 +647,43 @@ void MediaWidget::initOSDWidget()
     layout2->addLayout(layout1);
     layout2->addStretch();
 
-    QHBoxLayout *layout3 = new QHBoxLayout(osdWidget);
+    QHBoxLayout *layout3 = new QHBoxLayout(m_osdWidget);
     layout3->addStretch();
     layout3->addLayout(layout2);
     layout3->addStretch();
 
-    addWidget(osdWidget);
+    addWidget(m_osdWidget);
 }
 
-void MediaWidget::refreshParameter()
-{
-    switch(currentIndex()){
-    case 0:
-        break;
-    default:
-        break;
-    }
-}
-
-void MediaWidget::handleSwitchTab(const QModelIndex &index)
+void MediaWidget::setCurrentIndex(const QModelIndex &index)
 {
     if (!index.isValid())
         return;
 
     switch(index.row()){
     case 0: {
-        VidiconProtocol::VideoEncoding *param1 = new VidiconProtocol::VideoEncoding;
+        VideoBasic *param1 = new VideoBasic;
         param1->Channel = 0;
         param1->StreamType = 0;
-        emit signalGetParameter(VIDEOENCODING, param1);
-        VidiconProtocol::VideoEncoding *param2 = new VidiconProtocol::VideoEncoding;
+        emit signalGetParameter(VidiconProtocol::VIDEOENCODING, param1);
+        VideoBasic *param2 = new VideoBasic;
         param2->Channel = 0;
         param2->StreamType = 1;
-        emit signalGetParameter(VIDEOENCODING, param2);
-        emit signalGetParameter(AUDIOENCODING);
+        emit signalGetParameter(VidiconProtocol::VIDEOENCODING, param2);
+        emit signalGetParameter(VidiconProtocol::AUDIOENCODING);
         break;
     }
     case 2: {
-        emit signalGetParameter(IMAGE);
+        emit signalGetParameter(VidiconProtocol::IMAGE);
     }
     case 4: {
-        emit signalGetParameter(OSD);
+        emit signalGetParameter(VidiconProtocol::OSD);
     }
     default:
         break;
     }
 
-    setCurrentIndex(index.row());
+    StackedWidget::setCurrentIndex(index.row());
 }
 
 void MediaWidget::handlePrepareData()
@@ -707,113 +691,107 @@ void MediaWidget::handlePrepareData()
     switch (currentIndex()) {
     case 0: {
         for(int i=0; i<2; i++) {
-            VidiconProtocol::VideoEncodingParameter *param = new VidiconProtocol::VideoEncodingParameter;
+            VideoEncodingParameter *param = new VideoEncodingParameter;
             param->Channel = 0;
             param->StreamType = i;
-            param->VideoCodecType = static_cast<QComboBox *>(audioVideoMap[QString("Codec %1").arg(i)])->currentText();
-            QStringList list = static_cast<QComboBox *>(audioVideoMap[QString("Resolution %1").arg(i)])->currentText().split('*');
+            param->VideoCodecType = static_cast<QComboBox *>(m_audioVideoMap[QString("Codec %1").arg(i)])->currentText();
+            QStringList list = static_cast<QComboBox *>(m_audioVideoMap[QString("Resolution %1").arg(i)])->currentText().split('*');
             param->VideoResolutionWidth = QString(list.at(0)).toInt();
             param->VideoResolutionHeight = QString(list.at(1)).toInt();
-            param->VideoQualityControlType = static_cast<QComboBox *>(audioVideoMap[QString("Bitrate Mode %1").arg(i)])->currentText();
-            param->ConstantBitRate = static_cast<QLineEdit *>(audioVideoMap[QString("Video Rate %1").arg(i)])->text().toInt();
-            param->FixedQuality = static_cast<QComboBox *>(audioVideoMap[QString("Video quality %1").arg(i)])->currentIndex() + 1;
-            param->FrameRate = static_cast<QComboBox *>(audioVideoMap[QString("Frame Rate %1").arg(i)])->currentText().toInt();
+            param->VideoQualityControlType = static_cast<QComboBox *>(m_audioVideoMap[QString("Bitrate Mode %1").arg(i)])->currentText();
+            param->ConstantBitRate = static_cast<LineEdit *>(m_audioVideoMap[QString("Video Rate %1").arg(i)])->text().toInt();
+            param->FixedQuality = static_cast<QComboBox *>(m_audioVideoMap[QString("Video quality %1").arg(i)])->currentIndex() + 1;
+            param->FrameRate = static_cast<QComboBox *>(m_audioVideoMap[QString("Frame Rate %1").arg(i)])->currentText().toInt();
             param->SnapShotImageType = "JPEG";
-            param->GovLength = static_cast<QLineEdit *>(audioVideoMap[QString("I Frame Interval %1").arg(i)])->text().toInt();
+            param->GovLength = static_cast<LineEdit *>(m_audioVideoMap[QString("I Frame Interval %1").arg(i)])->text().toInt();
 
-            emit signalSetParameter(VIDEOENCODING, param);
-            qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << VIDEOENCODING
-                     << "StreamType:" << i;
+            emit signalSetParameter(VidiconProtocol::VIDEOENCODING, param);
         }
-        VidiconProtocol::AudioEncodingParameter *param = new VidiconProtocol::AudioEncodingParameter;
-        param->Enabled = static_cast<QRadioButton *>(audioVideoMap["Audio Enable"])->isChecked() ? 1 : 0;
-        param->Encoding = static_cast<QComboBox *>(audioVideoMap["Audio Codec"])->currentText();
+        AudioEncodingParameter *param = new AudioEncodingParameter;
+        param->Enabled = static_cast<QRadioButton *>(m_audioVideoMap["Audio Enable"])->isChecked() ? 1 : 0;
+        param->Encoding = static_cast<QComboBox *>(m_audioVideoMap["Audio Codec"])->currentText();
         param->Bitrate = 16000;
         param->SampleRate = 8000;
-        emit signalSetParameter(AUDIOENCODING, param);
-        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << AUDIOENCODING;
+        emit signalSetParameter(VidiconProtocol::AUDIOENCODING, param);
 
         break;
     }
     case 1: {
-        VidiconProtocol::PrivacyMaskParameter *param = new VidiconProtocol::PrivacyMaskParameter[4];
-        PrivacyWidget *w = static_cast<PrivacyWidget *>(privacyMap["DisplayArea"]);
+        PrivacyMaskParameter *param = new PrivacyMaskParameter[4];
+        PrivacyWidget *w = static_cast<PrivacyWidget *>(m_privacyMap["DisplayArea"]);
         const QRect *rects = w->getRects();
         for(int i=0; i<4; i++) {
-            param[i].Enabled = static_cast<QRadioButton *>(privacyMap["Enable"])->isChecked() ? 1 : 0;
+            param[i].Enabled = static_cast<QRadioButton *>(m_privacyMap["Enable"])->isChecked() ? 1 : 0;
             param[i].PosX = rects[i].topLeft().x() * XSCALEMAX / w->size().width();
             param[i].PosY = rects[i].topLeft().y() * YSCALEMAX / w->size().height();
             param[i].Width = rects[i].width() * XSCALEMAX / w->size().width();
             param[i].Height = rects[i].height() * YSCALEMAX / w->size().height();
         }
-        emit signalSetParameter(PRIVACY, param);
+        emit signalSetParameter(VidiconProtocol::PRIVACY, param);
         w->reset();
-        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << PRIVACY;
 
         break;
     }
     case 2: {
-        VidiconProtocol::ImageParameter *param = new VidiconProtocol::ImageParameter;
-        param->HueLevel = static_cast<QSlider *>(imageMap["HueLevel"])->value();
-        param->BrightnessLevel = static_cast<QSlider *>(imageMap["BrightnessLevel"])->value();
-        param->ContrastLevel = static_cast<QSlider *>(imageMap["ContrastLevel"])->value();
-        param->SaturationLevel = static_cast<QSlider *>(imageMap["SaturationLevel"])->value();
-        param->Sharpness = static_cast<QSlider *>(imageMap["Sharpness"])->value();
-        param->Mirror = static_cast<QComboBox *>(imageMap["Mirror"])->currentIndex();
-        param->Turn = static_cast<QComboBox *>(imageMap["Turn"])->currentIndex();
-        param->VisionMode = static_cast<QComboBox *>(imageMap["VisionMode"])->currentIndex() + 1;
-        param->NoiseReduceMode = static_cast<QComboBox *>(imageMap["NoiseReduceMode"])->currentIndex();
-        param->Shutter = static_cast<QComboBox *>(imageMap["Shutter"])->currentIndex();
-        param->LDCEnabled = static_cast<QComboBox *>(imageMap["Fisheye correction"])->currentIndex();
-        param->AntiFlashMode = static_cast<QComboBox *>(imageMap["AntiFlashMode"])->currentIndex();
-        param->ExposureMode = static_cast<QComboBox *>(imageMap["ExposureMode"])->currentIndex();
-        param->BLCMode = static_cast<QComboBox *>(imageMap["BLCMode"])->currentIndex();
-        param->BLCIntensity = static_cast<QSlider *>(imageMap["BLCValue"])->value();
-        param->WDRIntensity = static_cast<QSlider *>(imageMap["BLCValue"])->value();
-        param->HLCIntensity = static_cast<QSlider *>(imageMap["BLCValue"])->value();
-        param->DWDRIntensity = static_cast<QSlider *>(imageMap["BLCValue"])->value();
-        param->IrcutFilterMode = static_cast<QComboBox *>(imageMap["Day/Night"])->currentIndex() + 1;
+        ImageParameter *param = new ImageParameter;
+        param->HueLevel = static_cast<QSlider *>(m_imageMap["HueLevel"])->value();
+        param->BrightnessLevel = static_cast<QSlider *>(m_imageMap["BrightnessLevel"])->value();
+        param->ContrastLevel = static_cast<QSlider *>(m_imageMap["ContrastLevel"])->value();
+        param->SaturationLevel = static_cast<QSlider *>(m_imageMap["SaturationLevel"])->value();
+        param->Sharpness = static_cast<QSlider *>(m_imageMap["Sharpness"])->value();
+        param->Mirror = static_cast<QComboBox *>(m_imageMap["Mirror"])->currentIndex();
+        param->Turn = static_cast<QComboBox *>(m_imageMap["Turn"])->currentIndex();
+        param->VisionMode = static_cast<QComboBox *>(m_imageMap["VisionMode"])->currentIndex() + 1;
+        param->NoiseReduceMode = static_cast<QComboBox *>(m_imageMap["NoiseReduceMode"])->currentIndex();
+        param->Shutter = static_cast<QComboBox *>(m_imageMap["Shutter"])->currentIndex();
+        param->LDCEnabled = static_cast<QComboBox *>(m_imageMap["Fisheye correction"])->currentIndex();
+        param->AntiFlashMode = static_cast<QComboBox *>(m_imageMap["AntiFlashMode"])->currentIndex();
+        param->ExposureMode = static_cast<QComboBox *>(m_imageMap["ExposureMode"])->currentIndex();
+        param->BLCMode = static_cast<QComboBox *>(m_imageMap["BLCMode"])->currentIndex();
+        param->BLCIntensity = static_cast<QSlider *>(m_imageMap["BLCValue"])->value();
+        param->WDRIntensity = static_cast<QSlider *>(m_imageMap["BLCValue"])->value();
+        param->HLCIntensity = static_cast<QSlider *>(m_imageMap["BLCValue"])->value();
+        param->DWDRIntensity = static_cast<QSlider *>(m_imageMap["BLCValue"])->value();
+        param->IrcutFilterMode = static_cast<QComboBox *>(m_imageMap["Day/Night"])->currentIndex() + 1;
         param->HighLowLevel = 0;
-        param->BeginTime = static_cast<QTimeEdit *>(imageMap["time1"])->time().toString("HH:MM");
-        param->EndTime = static_cast<QTimeEdit *>(imageMap["time2"])->time().toString("HH:MM");
+        param->BeginTime = static_cast<QTimeEdit *>(m_imageMap["time1"])->time().toString("HH:MM");
+        param->EndTime = static_cast<QTimeEdit *>(m_imageMap["time2"])->time().toString("HH:MM");
 
-        emit signalSetParameter(IMAGE, param);
-        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << IMAGE;
+        emit signalSetParameter(VidiconProtocol::IMAGE, param);
 
         break;
     }
     case 4: {
-        VidiconProtocol::OSDParameter *param = static_cast<OSDWidget *>(OSDMap["DisplayArea"])->getOSDParameters();
+        OSDParameter *param = static_cast<OSDWidget *>(m_OSDMap["DisplayArea"])->getOSDParameters();
         for(int i=0; i<4; i++) {
             switch(param[i].OSDType) {
             case 0: {
-                param[i].Enabled = static_cast<QCheckBox *>(OSDMap["Show Channel Name"])->checkState() ? 1 : 0;
-                param[i].OSDText = static_cast<QLineEdit *>(OSDMap["Channel Name"])->text();
+                param[i].Enabled = static_cast<QCheckBox *>(m_OSDMap["Show Channel Name"])->checkState() ? 1 : 0;
+                param[i].OSDText = static_cast<LineEdit *>(m_OSDMap["Channel Name"])->text();
                 break;
             }
             case 1: {
-                param[i].Enabled = static_cast<QCheckBox *>(OSDMap["Show Clock"])->checkState() ? 1 : 0;
+                param[i].Enabled = static_cast<QCheckBox *>(m_OSDMap["Show Clock"])->checkState() ? 1 : 0;
                 break;
             }
             case 2: {
-                param[i].Enabled = static_cast<QCheckBox *>(OSDMap["Show FPS"])->checkState() ? 1 : 0;
+                param[i].Enabled = static_cast<QCheckBox *>(m_OSDMap["Show FPS"])->checkState() ? 1 : 0;
                 break;
             }
             case 3: {
-                param[i].Enabled = static_cast<QCheckBox *>(OSDMap["Show User Info"])->checkState() ? 1 : 0;
-                param[i].OSDText = static_cast<QLineEdit *>(OSDMap["User Info"])->text();
+                param[i].Enabled = static_cast<QCheckBox *>(m_OSDMap["Show User Info"])->checkState() ? 1 : 0;
+                param[i].OSDText = static_cast<LineEdit *>(m_OSDMap["User Info"])->text();
                 break;
             }
             default:
                 break;
             }
         }
-        VidiconProtocol::OSDParameter *temp = new VidiconProtocol::OSDParameter[4];
+        OSDParameter *temp = new OSDParameter[4];
         for(int i=0; i<4; i++) {
             temp[i] = param[i];
         }
-        emit signalSetParameter(OSD, temp);
-        qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << OSD;
+        emit signalSetParameter(VidiconProtocol::OSD, temp);
         break;
     }
     default:
@@ -822,59 +800,59 @@ void MediaWidget::handlePrepareData()
     WaitingShade::getInstance()->show();
 }
 
-void MediaWidget::handleReceiveData(int type, QByteArray data)
+void MediaWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray data)
 {
     bool isOK = false;
 
     switch(type){
-    case VIDEOENCODING:{
-        VidiconProtocol::VideoEncodingParameter param;
+    case VidiconProtocol::VIDEOENCODING:{
+        VideoEncodingParameter param;
 
         isOK = ParseXML::getInstance()->parseVideoEncodingParameter(&param, data);
         if (isOK) {
-            static_cast<QComboBox *>(audioVideoMap[QString("Frame Rate %1").arg(param.StreamType)])->setCurrentText(QString::number(param.FrameRate));
-            static_cast<QComboBox *>(audioVideoMap[QString("Codec %1").arg(param.StreamType)])->setCurrentText(param.VideoCodecType);
-            static_cast<QComboBox *>(audioVideoMap[QString("Bitrate Mode %1").arg(param.StreamType)])->setCurrentText(param.VideoQualityControlType);
-            static_cast<QComboBox *>(audioVideoMap[QString("Resolution %1").arg(param.StreamType)])->setCurrentText(QString("%1*%2").arg(param.VideoResolutionWidth).arg(param.VideoResolutionHeight));
-            static_cast<QComboBox *>(audioVideoMap[QString("Video quality %1").arg(param.StreamType)])->setCurrentIndex(param.FixedQuality - 1);
-            static_cast<QLineEdit *>(audioVideoMap[QString("Video Rate %1").arg(param.StreamType)])->setText(QString::number(param.ConstantBitRate));
-            static_cast<QLineEdit *>(audioVideoMap[QString("I Frame Interval %1").arg(param.StreamType)])->setText(QString::number(param.GovLength));
+            static_cast<QComboBox *>(m_audioVideoMap[QString("Frame Rate %1").arg(param.StreamType)])->setCurrentText(QString::number(param.FrameRate));
+            static_cast<QComboBox *>(m_audioVideoMap[QString("Codec %1").arg(param.StreamType)])->setCurrentText(param.VideoCodecType);
+            static_cast<QComboBox *>(m_audioVideoMap[QString("Bitrate Mode %1").arg(param.StreamType)])->setCurrentText(param.VideoQualityControlType);
+            static_cast<QComboBox *>(m_audioVideoMap[QString("Resolution %1").arg(param.StreamType)])->setCurrentText(QString("%1*%2").arg(param.VideoResolutionWidth).arg(param.VideoResolutionHeight));
+            static_cast<QComboBox *>(m_audioVideoMap[QString("Video quality %1").arg(param.StreamType)])->setCurrentIndex(param.FixedQuality - 1);
+            static_cast<LineEdit *>(m_audioVideoMap[QString("Video Rate %1").arg(param.StreamType)])->setText(QString::number(param.ConstantBitRate));
+            static_cast<LineEdit *>(m_audioVideoMap[QString("I Frame Interval %1").arg(param.StreamType)])->setText(QString::number(param.GovLength));
         }
         break;
     }
-    case AUDIOENCODING:{
-        VidiconProtocol::AudioEncodingParameter param;
+    case VidiconProtocol::AUDIOENCODING:{
+        AudioEncodingParameter param;
 
         isOK = ParseXML::getInstance()->parseAudioEncodingParameter(&param, data);
         if (isOK) {
-            static_cast<QRadioButton *>(audioVideoMap["Audio Enable"])->setChecked(param.Enabled == 0 ? Qt::Unchecked : Qt::Checked);
-            static_cast<QComboBox *>(audioVideoMap["Audio Codec"])->setCurrentText(param.Encoding);
+            static_cast<QRadioButton *>(m_audioVideoMap["Audio Enable"])->setChecked(param.Enabled == 0 ? Qt::Unchecked : Qt::Checked);
+            static_cast<QComboBox *>(m_audioVideoMap["Audio Codec"])->setCurrentText(param.Encoding);
         }
         break;
     }
-    case OSD:{
-        VidiconProtocol::OSDParameter *param = static_cast<OSDWidget *>(OSDMap["DisplayArea"])->getOSDParameters();
+    case VidiconProtocol::OSD:{
+        OSDParameter *param = static_cast<OSDWidget *>(m_OSDMap["DisplayArea"])->getOSDParameters();
 
         isOK = ParseXML::getInstance()->parseOSDParameter(param, data);
         if (isOK) {
             for(int i=0; i<4; i++) {
                 switch(param[i].OSDType) {
                 case 0: {
-                    static_cast<QCheckBox *>(OSDMap["Show Channel Name"])->setChecked(param[i].Enabled ? true : false);
-                    static_cast<QLineEdit *>(OSDMap["Channel Name"])->setText(param[i].OSDText);
+                    static_cast<QCheckBox *>(m_OSDMap["Show Channel Name"])->setChecked(param[i].Enabled ? true : false);
+                    static_cast<LineEdit *>(m_OSDMap["Channel Name"])->setText(param[i].OSDText);
                     break;
                 }
                 case 1: {
-                    static_cast<QCheckBox *>(OSDMap["Show Clock"])->setChecked(param[i].Enabled ? true : false);
+                    static_cast<QCheckBox *>(m_OSDMap["Show Clock"])->setChecked(param[i].Enabled ? true : false);
                     break;
                 }
                 case 2: {
-                    static_cast<QCheckBox *>(OSDMap["Show FPS"])->setChecked(param[i].Enabled ? true : false);
+                    static_cast<QCheckBox *>(m_OSDMap["Show FPS"])->setChecked(param[i].Enabled ? true : false);
                     break;
                 }
                 case 3: {
-                    static_cast<QCheckBox *>(OSDMap["Show User Info"])->setChecked(param[i].Enabled ? true : false);
-                    static_cast<QLineEdit *>(OSDMap["User Info"])->setText(param[i].OSDText);
+                    static_cast<QCheckBox *>(m_OSDMap["Show User Info"])->setChecked(param[i].Enabled ? true : false);
+                    static_cast<LineEdit *>(m_OSDMap["User Info"])->setText(param[i].OSDText);
                     break;
                 }
                 default:
@@ -884,45 +862,45 @@ void MediaWidget::handleReceiveData(int type, QByteArray data)
         }
         break;
     }
-    case IMAGE: {
-        VidiconProtocol::ImageParameter param;
+    case VidiconProtocol::IMAGE: {
+        ImageParameter param;
 
         isOK = ParseXML::getInstance()->parseImageParameter(&param, data);
         if (isOK) {
-            static_cast<QSlider *>(imageMap["HueLevel"])->setValue(param.HueLevel);
-            static_cast<QSlider *>(imageMap["BrightnessLevel"])->setValue(param.BrightnessLevel);
-            static_cast<QSlider *>(imageMap["ContrastLevel"])->setValue(param.ContrastLevel);
-            static_cast<QSlider *>(imageMap["SaturationLevel"])->setValue(param.SaturationLevel);
-            static_cast<QSlider *>(imageMap["Sharpness"])->setValue(param.Sharpness);
-            static_cast<QComboBox *>(imageMap["Mirror"])->setCurrentIndex(param.Mirror);
-            static_cast<QComboBox *>(imageMap["Turn"])->setCurrentIndex(param.Turn);
-            static_cast<QComboBox *>(imageMap["VisionMode"])->setCurrentIndex(param.VisionMode - 1);
-            static_cast<QComboBox *>(imageMap["NoiseReduceMode"])->setCurrentIndex(param.NoiseReduceMode);
-            static_cast<QComboBox *>(imageMap["Shutter"])->setCurrentIndex(param.Shutter);
-            static_cast<QComboBox *>(imageMap["Fisheye correction"])->setCurrentIndex(param.LDCEnabled);
-            static_cast<QComboBox *>(imageMap["AntiFlashMode"])->setCurrentIndex(param.AntiFlashMode);
-            static_cast<QComboBox *>(imageMap["ExposureMode"])->setCurrentIndex(param.ExposureMode);
-            static_cast<QComboBox *>(imageMap["BLCMode"])->setCurrentIndex(param.BLCMode);
+            static_cast<QSlider *>(m_imageMap["HueLevel"])->setValue(param.HueLevel);
+            static_cast<QSlider *>(m_imageMap["BrightnessLevel"])->setValue(param.BrightnessLevel);
+            static_cast<QSlider *>(m_imageMap["ContrastLevel"])->setValue(param.ContrastLevel);
+            static_cast<QSlider *>(m_imageMap["SaturationLevel"])->setValue(param.SaturationLevel);
+            static_cast<QSlider *>(m_imageMap["Sharpness"])->setValue(param.Sharpness);
+            static_cast<QComboBox *>(m_imageMap["Mirror"])->setCurrentIndex(param.Mirror);
+            static_cast<QComboBox *>(m_imageMap["Turn"])->setCurrentIndex(param.Turn);
+            static_cast<QComboBox *>(m_imageMap["VisionMode"])->setCurrentIndex(param.VisionMode - 1);
+            static_cast<QComboBox *>(m_imageMap["NoiseReduceMode"])->setCurrentIndex(param.NoiseReduceMode);
+            static_cast<QComboBox *>(m_imageMap["Shutter"])->setCurrentIndex(param.Shutter);
+            static_cast<QComboBox *>(m_imageMap["Fisheye correction"])->setCurrentIndex(param.LDCEnabled);
+            static_cast<QComboBox *>(m_imageMap["AntiFlashMode"])->setCurrentIndex(param.AntiFlashMode);
+            static_cast<QComboBox *>(m_imageMap["ExposureMode"])->setCurrentIndex(param.ExposureMode);
+            static_cast<QComboBox *>(m_imageMap["BLCMode"])->setCurrentIndex(param.BLCMode);
             switch(param.BLCMode) {
             case 1:
-                static_cast<QSlider *>(imageMap["BLCValue"])->setValue(param.BLCIntensity);
+                static_cast<QSlider *>(m_imageMap["BLCValue"])->setValue(param.BLCIntensity);
                 break;
             case 2:
-                static_cast<QSlider *>(imageMap["BLCValue"])->setValue(param.WDRIntensity);
+                static_cast<QSlider *>(m_imageMap["BLCValue"])->setValue(param.WDRIntensity);
                 break;
             case 3:
-                static_cast<QSlider *>(imageMap["BLCValue"])->setValue(param.HLCIntensity);
+                static_cast<QSlider *>(m_imageMap["BLCValue"])->setValue(param.HLCIntensity);
                 break;
             case 4:
-                static_cast<QSlider *>(imageMap["BLCValue"])->setValue(param.DWDRIntensity);
+                static_cast<QSlider *>(m_imageMap["BLCValue"])->setValue(param.DWDRIntensity);
                 break;
             default:
                 break;
             }
 
-            static_cast<QComboBox *>(imageMap["Day/Night"])->setCurrentIndex(param.IrcutFilterMode - 1);
-            static_cast<QTimeEdit *>(imageMap["time1"])->setTime(QTime(param.BeginTime.left(2).toInt(), param.BeginTime.right(2).toInt()));
-            static_cast<QTimeEdit *>(imageMap["time2"])->setTime(QTime(param.EndTime.left(2).toInt(), param.EndTime.right(2).toInt()));
+            static_cast<QComboBox *>(m_imageMap["Day/Night"])->setCurrentIndex(param.IrcutFilterMode - 1);
+            static_cast<QTimeEdit *>(m_imageMap["time1"])->setTime(QTime(param.BeginTime.left(2).toInt(), param.BeginTime.right(2).toInt()));
+            static_cast<QTimeEdit *>(m_imageMap["time2"])->setTime(QTime(param.EndTime.left(2).toInt(), param.EndTime.right(2).toInt()));
 
         }
         break;

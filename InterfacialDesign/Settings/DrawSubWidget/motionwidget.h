@@ -13,7 +13,7 @@ class MotionWidget : public QWidget
     Q_OBJECT
 public:
     explicit MotionWidget(QWidget *parent = nullptr);
-    char **getMotionRegionMap() { return motionRegionMap; }
+    char **getMotionRegionMap() { return m_motionRegionMap; }
 
 protected:
     virtual void paintEvent(QPaintEvent *event);
@@ -29,13 +29,13 @@ public slots:
     void handleTimeout();
 
 private:
-    char **motionRegionMap;
+    char **m_motionRegionMap;
 
-    bool validPressLeft;
-    bool validPressRight;
-    QPoint pressPos;
-    QPixmap backgroundPixmap;
-    QTimer *timer;
+    bool m_validPressLeft;
+    bool m_validPressRight;
+    QPoint m_pressPos;
+    QPixmap m_backgroundPixmap;
+    QTimer *m_timer;
 };
 
 #endif // DRAWMOTIONREGION_H

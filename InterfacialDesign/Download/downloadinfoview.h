@@ -26,12 +26,12 @@ signals:
 public slots:
     void contextMenuEvent(QContextMenuEvent *event) override;
 private:
-    QMenu *popMenu;
-    QAction *cancelDownloadAction;
-    QAction *redownloadAction;
-    QAction *deleteAction;
-    QAction *pauseAction;
-    int pointToRow;//弹出菜单所在的行
+    QMenu *m_popMenu;
+    QAction *m_cancelDownloadAction;
+    QAction *m_redownloadAction;
+    QAction *m_deleteAction;
+    QAction *m_pauseAction;
+    int m_pointToRow;//弹出菜单所在的行
 };
 
 class DownloadInfoModel : public QAbstractTableModel
@@ -44,7 +44,7 @@ public:
         QString fileName;
     }DownloadInfo;
 
-    explicit DownloadInfoModel(QSortFilterProxyModel *proxy, QObject *parent = 0);
+    explicit DownloadInfoModel(QSortFilterProxyModel *m_proxy, QObject *parent = 0);
     ~DownloadInfoModel();
     void addData(QString fileName, int state = Waiting, int progress = 0);
 
@@ -61,10 +61,10 @@ protected:
     virtual bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex());
 
 private:
-    int column;
-    QList<DownloadInfo> infoList;
-    QStringList headList;
-    QSortFilterProxyModel *proxy;
+    int m_column;
+    QList<DownloadInfo> m_items;
+    QStringList m_headItems;
+    QSortFilterProxyModel *m_proxy;
 };
 
 class DownloadInfoDelegate : public QStyledItemDelegate
@@ -83,11 +83,11 @@ protected:
                            const QModelIndex &index) const;
 
 private:
-    QPixmap downloadingPixmap;
-    QPixmap waitingPixmap;
-    QPixmap pausePixmap;
-    QPixmap errorPixmap;
-    QPixmap finishedPixmap;
+    QPixmap m_downloadingPixmap;
+    QPixmap m_waitingPixmap;
+    QPixmap m_pausePixmap;
+    QPixmap m_errorPixmap;
+    QPixmap m_finishedPixmap;
 };
 
 #endif // DOWNLOADINFOVIEW_H

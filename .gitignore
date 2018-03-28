@@ -4,7 +4,9 @@ moc
 ui
 obj
 rcc
+log
 Makefile*
 *.user*
 object_script*
 *.ui.*
+*.autosave

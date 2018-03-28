@@ -5,7 +5,7 @@
 StatusTip *StatusTip::_instance = NULL;
 StatusTip::StatusTip(bool folowToHeadWidget, QWidget *parent) :
     QLabel(parent),
-    tipHeight(20)
+    m_tipHeight(20)
 {
     Q_ASSERT_X(parent, "", Q_FUNC_INFO);
     //追溯根界面
@@ -19,17 +19,17 @@ StatusTip::StatusTip(bool folowToHeadWidget, QWidget *parent) :
     setAlignment(Qt::AlignRight | Qt::AlignCenter);
     setStyleSheet("background-color:lightGray; color:black; border:1px solid darkGray; border-top-left-radius:5px");
 
-    effect = new QGraphicsOpacityEffect(this);
-    setGraphicsEffect(effect);
+    m_effect = new QGraphicsOpacityEffect(this);
+    setGraphicsEffect(m_effect);
 
-    animation = new QPropertyAnimation(effect, "opacity", this);
-    animation->setDuration(3000);
-    animation->setStartValue(1.0);
-    animation->setEndValue(0.0);
-    animation->setLoopCount(1);
-    animation->setEasingCurve(QEasingCurve::InQuart);
+    m_animation = new QPropertyAnimation(m_effect, "opacity", this);
+    m_animation->setDuration(3000);
+    m_animation->setStartValue(1.0);
+    m_animation->setEndValue(0.0);
+    m_animation->setLoopCount(1);
+    m_animation->setEasingCurve(QEasingCurve::InQuart);
 
-    connect(animation, &QPropertyAnimation::finished, this, &StatusTip::hide);
+    connect(m_animation, &QPropertyAnimation::finished, this, &StatusTip::hide);
 
     hide();
 }
@@ -47,8 +47,8 @@ bool StatusTip::eventFilter(QObject *watched, QEvent *event)
 
     if(event->type() == QEvent::Resize) {
         QWidget* parent = parentWidget();
-        QRect rect(parent->width() / 2, parent->height() - tipHeight,
-                   parent->width() / 2, tipHeight);
+        QRect rect(parent->width() / 2, parent->height() - m_tipHeight,
+                   parent->width() / 2, m_tipHeight);
         setGeometry(rect);
     }
     return QWidget::eventFilter(watched, event);
@@ -67,7 +67,7 @@ void StatusTip::showStatusTip(QString text)
 {
     setText(text);
 
-    animation->stop();
-    animation->start();
+    m_animation->stop();
+    m_animation->start();
     show();
 }

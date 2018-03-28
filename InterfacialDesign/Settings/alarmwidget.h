@@ -1,11 +1,11 @@
 #ifndef TABALARM_H
 #define TABALARM_H
 
-#include <QStackedWidget>
 #include <QMap>
 #include <QDialog>
+#include "stackedwidget.h"
 
-class AlarmWidget : public QStackedWidget
+class AlarmWidget : public StackedWidget
 {
     Q_OBJECT
 public:
@@ -17,29 +17,26 @@ public:
     void initAlarmWidget();
     void initRegionEditDialog();
 
-signals:
-    void signalSetParameter(int type, void *param = NULL, QString SessionID = "R00001");
-    void signalGetParameter(int type, void *param = NULL, QString SessionID = "R00001");
-
 public slots:
-    void handleSwitchTab(const QModelIndex &index);
+    void setCurrentIndex(const QModelIndex &index) override;
+    void handlePrepareData() override;
+    void handleReceiveData(VidiconProtocol::Type type, QByteArray data) override;
+
     void handleTimeSelect(int state);
     void handleSelectAllWeek();
-    void handlePrepareData();
-    void handleReceiveData(int type, QByteArray data);
 
 private:
-    QWidget *motionDetectionWidget;
-    QMap<QString, QWidget *> motionDetectionMap;
+    QWidget *m_motionDetectionWidget;
+    QMap<QString, QWidget *> m_motionDetectionMap;
 
-    QDialog *regionEditDialog;
-    QMap<QString, QWidget *> regionEditMap;
+    QDialog *m_regionEditDialog;
+    QMap<QString, QWidget *> m_regionEditMap;
 
-    QWidget *videoBlindWidget;
-    QMap<QString, QWidget *> videoBlindMap;
+    QWidget *m_videoBlindWidget;
+    QMap<QString, QWidget *> m_videoBlindMap;
 
-    QWidget *alarmWidget;
-    QMap<QString, QWidget *> alarmMap;
+    QWidget *m_alarmWidget;
+    QMap<QString, QWidget *> m_alarmMap;
 };
 
 #endif // TABALARM_H

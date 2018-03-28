@@ -26,16 +26,17 @@ public:
 public slots:
     void loginHandler(LoginWidget::LoginState state);
     void logoutHandler();
-    void handleReceiveData(int type, QByteArray data);
+    void handleReceiveData(VidiconProtocol::Type type, QByteArray data);
+    void handleCurrentChange(int index);
 
 private:
-    HomeWidget *homeWidget;
-    PreviewWidget *previewWidget;
-    PlaybackWidget *playbackWidget;
-    PhotoWidget *photoWidget;
-    SettinsWidget *settinsWidget;
-    NavigationWidget *navigationWidget;
-    DownloadWidget *downloadWidget;
+    HomeWidget *m_homeWidget;
+    PreviewWidget *m_previewWidget;
+    PlaybackWidget *m_playbackWidget;
+    PhotoWidget *m_photoWidget;
+    SettinsWidget *m_settinsWidget;
+    NavigationWidget *m_navigationWidget;
+    DownloadWidget *m_downloadWidget;
 };
 
 #endif // MAINWINDOW_H

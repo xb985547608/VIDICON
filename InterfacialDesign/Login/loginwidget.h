@@ -18,16 +18,9 @@ public:
         FactoryLogin,
         NormalLogin
     };
+    Q_ENUM(LoginState)
 
-    static LoginWidget * getInstance()
-    {
-        if(NULL == _instance)
-        {
-            if (NULL == _instance)
-                _instance = new LoginWidget();
-        }
-        return _instance;
-    }
+    explicit LoginWidget(QWidget *parent = nullptr);
     ~LoginWidget();
     void clear();
 
@@ -44,19 +37,14 @@ public slots:
     void onLoginBtn();
     void onCloseBtn();
     void onMinimizeBtn();
-    void handleReceiveData(int type, QByteArray data);
 
 private:
-    explicit LoginWidget(QWidget *parent = nullptr);
-    static LoginWidget* _instance;
-
     Ui::LoginForm *ui;
     bool windowMove;
     QPoint moveStartPos;
+
     SwitchButton *switchButton;
 
-    QString user;
-    QString passwd;
 };
 
 #endif // LOGINWIDGET_H

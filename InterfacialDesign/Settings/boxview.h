@@ -1,53 +1,38 @@
 #ifndef LISTVIEW_H
 #define LISTVIEW_H
 
-#include <QTableView>
+#include <QListView>
+#include <QAbstractListModel>
 
-class BoxModel;
+class ListModel;
 
-class BoxView : public QTableView
+class ListView : public QListView
 {
     Q_OBJECT
 public:
-    explicit BoxView(QWidget *parent = Q_NULLPTR);
-    ~BoxView();
+    explicit ListView(QWidget *parent = Q_NULLPTR);
+    ~ListView();
 
-    void setData(const QStringList &list);
-    BoxModel *getModel() const{ return model; }
+    void addItems(const QStringList &items);
 protected:
-    virtual void mousePressEvent(QMouseEvent *event);
-public slots:
-    void hanlderSwitchRow(int row);
-
-private:
-    BoxModel *model;
+    void mousePressEvent(QMouseEvent *event) override;
 };
 
-class BoxModel : public QAbstractTableModel
+class ListModel : public QAbstractListModel
 {
     Q_OBJECT
 public:
-    explicit BoxModel(QObject *parent = 0);
-    ~BoxModel();
+    explicit ListModel(QObject *parent = 0);
+    ~ListModel();
 
-    //获取行数
-    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
-    //获取列数
-    virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
-    //获取指定角色的数据数据
-    virtual QVariant data(const QModelIndex &index, int role) const;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
 
-    void setDataSource(const QStringList &l);
-    void setColumnCount(int c) { column = c; }
-
-signals:
-
-public slots:
-
+    bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 private:
-    int row;
-    int column;
-    QStringList list;
+    QStringList m_items;
 };
 
 #endif // LISTVIEW_H

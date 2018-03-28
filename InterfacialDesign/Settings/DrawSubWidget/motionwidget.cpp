@@ -7,14 +7,14 @@
 
 MotionWidget::MotionWidget(QWidget *parent) : QWidget(parent)
 {
-    motionRegionMap = new char *[REGIONROW];
+    m_motionRegionMap = new char *[REGIONROW];
     for(int i=0; i<REGIONROW; i++) {
-        motionRegionMap[i] = new char[REGIONCOLUMN];
+        m_motionRegionMap[i] = new char[REGIONCOLUMN];
     }
 
-    timer = new QTimer(this);
-    timer->start(100);
-    connect(timer, &QTimer::timeout, this, &MotionWidget::handleTimeout);
+    m_timer = new QTimer(this);
+    m_timer->start(100);
+    connect(m_timer, &QTimer::timeout, this, &MotionWidget::handleTimeout);
     connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &MotionWidget::handleReceiveImage);
 }
 
@@ -22,7 +22,7 @@ void MotionWidget::handleFullScreen()
 {
     for(int i=0; i<REGIONROW; i++){
         for(int j=0; j<REGIONCOLUMN; j++){
-            motionRegionMap[i][j] = 1;
+            m_motionRegionMap[i][j] = 1;
         }
     }
 }
@@ -31,7 +31,7 @@ void MotionWidget::handleCleanScreen()
 {
     for(int i=0; i<REGIONROW; i++){
         for(int j=0; j<REGIONCOLUMN; j++){
-            motionRegionMap[i][j] = 0;
+            m_motionRegionMap[i][j] = 0;
         }
     }
 }
@@ -39,7 +39,7 @@ void MotionWidget::handleCleanScreen()
 void MotionWidget::handleReceiveImage(QPixmap *pixmap)
 {
     if(isVisible() && !pixmap->isNull()){
-        backgroundPixmap = *pixmap;
+        m_backgroundPixmap = *pixmap;
         update();
         delete pixmap;
     }
@@ -64,18 +64,18 @@ void MotionWidget::paintEvent(QPaintEvent *event)
     float gridHeight = (float)size().height() / REGIONROW;
 
     p.fillRect(rect(), Qt::black);
-    p.drawPixmap(rect(), backgroundPixmap);
+    p.drawPixmap(rect(), m_backgroundPixmap);
 
     for(int i=0; i<REGIONROW; i++){
         float xStart = 0;
         float yStart = 0 + i * gridHeight;
         for(int j=0; j<REGIONCOLUMN; j++){
             QRectF rect(xStart + j * gridWidth, yStart, gridWidth, gridHeight);
-            if(motionRegionMap[i][j] == 1){
+            if(m_motionRegionMap[i][j] == 1){
                 pen.setColor(Qt::blue);
                 p.setPen(pen);
                 p.drawRect(rect);
-            }else if(motionRegionMap[i][j] == 0){
+            }else if(m_motionRegionMap[i][j] == 0){
 //                pen.setColor(Qt::red);
 //                p.setPen(pen);
 //                if(motionRegionMap[i+1][j] == 0 && ((i+1) < REGIONROW)){
@@ -98,16 +98,16 @@ void MotionWidget::paintEvent(QPaintEvent *event)
 void MotionWidget::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton){
-        validPressLeft = true;
+        m_validPressLeft = true;
     }else   if(event->button() == Qt::RightButton){
-        validPressRight = true;
+        m_validPressRight = true;
     }
-    pressPos = event->pos();
+    m_pressPos = event->pos();
 }
 
 void MotionWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    if(validPressLeft || validPressRight){
+    if(m_validPressLeft || m_validPressRight){
         int gridWidth = size().width() / REGIONCOLUMN;
         int gridHeight = size().height() / REGIONROW;
         int row = event->pos().y() / gridHeight;
@@ -116,11 +116,11 @@ void MotionWidget::mouseMoveEvent(QMouseEvent *event)
         if(row < 0 || row >= REGIONROW || column < 0 || column >= REGIONCOLUMN)
             return;
 
-        if(validPressLeft){
-            motionRegionMap[row][column] = 1;
+        if(m_validPressLeft){
+            m_motionRegionMap[row][column] = 1;
             update();
-        }else if(validPressRight){
-            motionRegionMap[row][column] = 0;
+        }else if(m_validPressRight){
+            m_motionRegionMap[row][column] = 0;
             update();
         }
 
@@ -130,8 +130,8 @@ void MotionWidget::mouseMoveEvent(QMouseEvent *event)
 void MotionWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton){
-        validPressLeft = false;
+        m_validPressLeft = false;
     }else   if(event->button() == Qt::RightButton){
-        validPressRight = false;
+        m_validPressRight = false;
     }
 }

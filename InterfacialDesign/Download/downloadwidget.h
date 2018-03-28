@@ -33,8 +33,8 @@ public slots:
 
 private:
     Ui::DownloadForm *ui;
-    DownloadInfoView *listView;
-    QMap<int, QString> waitingQueue;
+    DownloadInfoView *m_listView;
+    QMap<int, QString> m_waitingQueue;
 };
 
 #endif // DOWNLOADWIDGET_H

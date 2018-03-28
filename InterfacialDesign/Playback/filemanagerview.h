@@ -30,7 +30,7 @@ public:
     ~FileModel();
 
     void setDataSource(const QStringList &l);
-    const QList<FileInfo> &getDataSource() { return fileList; }
+    const QList<FileInfo> &getDataSource() { return m_items; }
     void checkState();
 
 protected:
@@ -49,10 +49,10 @@ public slots:
     void handleStateChange(int state);
 
 private:
-    int column;
+    int m_column;
 
-    QList<FileInfo> fileList;
-    QStringList headList;
+    QList<FileInfo> m_items;
+    QStringList m_headItems;
 };
 
 class FileView : public QTableView
@@ -73,7 +73,7 @@ public slots:
     void handleReceiveImage(QPixmap *pixmap);
 
 private:
-    QList<QPushButton *> btnList;
+    QList<QPushButton *> m_btnList;
 };
 
 class FileViewDelegate : public QItemDelegate
@@ -110,10 +110,10 @@ signals:
 public slots:
     void handleStateChange(int state);
 private:
-    bool bPressed;
-    bool bMoving;
-    bool bTristate;
-    bool bChecked;
+    bool m_pressed;
+    bool m_moving;
+    bool m_tristate;
+    bool m_checked;
 };
 
 #endif // TABLEVIEW_H

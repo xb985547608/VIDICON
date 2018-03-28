@@ -33,9 +33,9 @@ signals:
 public slots:
 
 private:
-    QSound *errorEffct;
-    QSound *successEffect;
-    QSound *snapshotEffect;
+    QSound *m_errorEffct;
+    QSound *m_successEffect;
+    QSound *m_snapshotEffect;
 };
 
 #endif // SOUNDEFFECT_H

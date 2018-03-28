@@ -18,7 +18,7 @@ public slots:
     void handleReceiveImage(QPixmap *pixmap);
     void handleTimeout();
 private:
-    QPixmap backgroundPixmap;
+    QPixmap m_backgroundPixmap;
 };
 
 #endif // IMAGEWIDGET_H
