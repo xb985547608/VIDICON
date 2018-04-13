@@ -21,7 +21,7 @@ public:
     void initModifyInfoWidget();
     void initAddUserInfoWidget();
 signals:
-    void signalSetParameter(VidiconProtocol::Type type, void *param = NULL, QString SessionID = "R00001");
+    void signalSetParameter(VidiconProtocol::Type type, QVariant param = QVariant(), QString SessionID = "R00001");
 
 protected:
     virtual void mousePressEvent(QMouseEvent *event);

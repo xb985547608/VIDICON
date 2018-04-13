@@ -24,6 +24,7 @@ SystemWidget::SystemWidget(QWidget *parent) :
     initDeviceInfoWidget();
     initSetTimeWidget();
     initUserConfigWidget();
+    initWifiSettinsWidget();
 }
 
 SystemWidget::~SystemWidget()
@@ -40,7 +41,7 @@ void SystemWidget::initMaintenanceWidget()
     btn1->setFixedWidth(80);
     connect(btn1, &QPushButton::clicked, this, [this]() {
         if(QMessageBox::question(this, "警告", "确定需要恢复出厂设置吗？") == QMessageBox::Yes) {
-            emit signalSetParameter(VidiconProtocol::RECOVEDEFAULT, NULL);
+            emit signalSetParameter(VidiconProtocol::RECOVEDEFAULT);
         }
     });
 
@@ -49,7 +50,7 @@ void SystemWidget::initMaintenanceWidget()
     btn2->setFixedWidth(80);
     connect(btn2, &QPushButton::clicked, this, [this]() {
         if(QMessageBox::question(this, "警告", "确定需要重启吗？") == QMessageBox::Yes) {
-            emit signalSetParameter(VidiconProtocol::REBOOT, NULL);
+            emit signalSetParameter(VidiconProtocol::REBOOT);
         }
     });
 
@@ -75,15 +76,7 @@ void SystemWidget::initMaintenanceWidget()
     layout1->addWidget(time1,     2, 2, 1, 1);
     layout1->addWidget(btn3,      2, 3, 1, 1);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_maintenanceWidget);
-    layout3->addStretch();
-    layout3->addLayout(layout2);
-    layout3->addStretch();
-
+    setAlignment(m_maintenanceWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_maintenanceWidget);
 }
 
@@ -124,15 +117,7 @@ void SystemWidget::initDeviceInfoWidget()
     layout1->addWidget(lbl4,      1, 0, 1, 1);
     layout1->addWidget(lineEdit4, 1, 1, 1, 3);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_deviceInfoWidget);
-    layout3->addStretch();
-    layout3->addLayout(layout2);
-    layout3->addStretch();
-
+    setAlignment(m_deviceInfoWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_deviceInfoWidget);
 }
 
@@ -212,15 +197,7 @@ void SystemWidget::initSetTimeWidget()
 
     layout1->addWidget(btn2, 5, 0, 1, 5, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_setTimeWidget);
-    layout3->addStretch();
-    layout3->addLayout(layout2);
-    layout3->addStretch();
-
+    setAlignment(m_setTimeWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_setTimeWidget);
 }
 
@@ -241,16 +218,37 @@ void SystemWidget::initUserConfigWidget()
     layout1->addWidget(view, 0, 0, 1, 1);
     layout1->addWidget(btn,  1, 0, 1, 1);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_userConfigWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 8);
-    layout3->addStretch(1);
-
+    setAlignment(m_userConfigWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_userConfigWidget);
+}
+
+void SystemWidget::initWifiSettinsWidget()
+{
+    m_wifiSettinsWidget = new QWidget(this);
+
+    QLabel *lbl1 = new QLabel("WIFI名：", m_wifiSettinsWidget);
+    LineEdit *lineEdit1 = new LineEdit(m_wifiSettinsWidget);
+    m_wifiSettinsMap.insert("user", lineEdit1);
+
+    QLabel *lbl2 = new QLabel("密码：", m_wifiSettinsWidget);
+    LineEdit *lineEdit2 = new LineEdit(m_wifiSettinsWidget);
+    m_wifiSettinsMap.insert("passwd", lineEdit2);
+
+    QPushButton *btn = new QPushButton("保存", m_wifiSettinsWidget);
+    btn->setFixedWidth(50);
+    connect(btn, &QPushButton::clicked, this, &SystemWidget::handlePrepareData);
+
+    QGridLayout *layout1 = new QGridLayout;
+    layout1->addWidget(lbl1,        0, 0, 1, 1);
+    layout1->addWidget(lineEdit1,   0, 1, 1, 2);
+
+    layout1->addWidget(lbl2,        1, 0, 1, 1);
+    layout1->addWidget(lineEdit2,   1, 1, 1, 2);
+
+    layout1->addWidget(btn,         2, 2, 1, 1);
+
+    setAlignment(m_wifiSettinsWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
+    addWidget(m_wifiSettinsWidget);
 }
 
 void SystemWidget::setCurrentIndex(const QModelIndex &index)
@@ -275,6 +273,10 @@ void SystemWidget::setCurrentIndex(const QModelIndex &index)
         emit signalGetParameter(VidiconProtocol::USERCONFIG);
         break;
     }
+    case 4: {
+//        emit signalGetParameter(VidiconProtocol::USERCONFIG);
+        break;
+    }
     default:
         break;
     }
@@ -286,14 +288,18 @@ void SystemWidget::handlePrepareData()
 {
     switch(currentIndex()) {
     case 2: {
-        NTPParameter *param = new NTPParameter;
-        param->TZ = static_cast<QComboBox *>(m_setTimeMap["Time Zone"])->currentText();
-        param->UTCDateTime = QString("%1T%2Z").arg(static_cast<QDateEdit *>(m_setTimeMap["date"])->date().toString("yyyy-MM-dd"))
+        NTPParameter param;
+        param.TZ = static_cast<QComboBox *>(m_setTimeMap["Time Zone"])->currentText();
+        param.UTCDateTime = QString("%1T%2Z").arg(static_cast<QDateEdit *>(m_setTimeMap["date"])->date().toString("yyyy-MM-dd"))
                 .arg(static_cast<QDateEdit *>(m_setTimeMap["time"])->time().toString("HH:mm:ss"));
-        param->IsUpdateTime = static_cast<QComboBox *>(m_setTimeMap["PC Time Sync"])->currentIndex();
-        param->Enabled = static_cast<QComboBox *>(m_setTimeMap["NTP"])->currentIndex();
-        param->NTPServer = static_cast<LineEdit *>(m_setTimeMap["NTP Server"])->text();
-        emit signalSetParameter(VidiconProtocol::NTP, param);
+        param.IsUpdateTime = static_cast<QComboBox *>(m_setTimeMap["PC Time Sync"])->currentIndex();
+        param.Enabled = static_cast<QComboBox *>(m_setTimeMap["NTP"])->currentIndex();
+        param.NTPServer = static_cast<LineEdit *>(m_setTimeMap["NTP Server"])->text();
+        emit signalSetParameter(VidiconProtocol::NTP, QVariant::fromValue(param));
+        break;
+    }
+    case 4: {
+        //TODO: wifi设置
         break;
     }
     default:

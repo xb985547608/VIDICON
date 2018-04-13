@@ -95,13 +95,13 @@ void MainWindow::handleReceiveData(VidiconProtocol::Type type, QByteArray data)
 void MainWindow::handleCurrentChange(int index)
 {
     if (index == 1 || index == 2 || index == 3) {
-        if (!m_homeWidget->isLogin()) {
+        /*if (!m_homeWidget->isLogin()) {
             m_navigationWidget->setCurrentIndex(0);
             QMessageBox::warning(m_navigationWidget, "警告", "您还未登录，请登录后重试");
         } else if (!m_homeWidget->isAuthorization()) {
             m_navigationWidget->setCurrentIndex(0);
             QMessageBox::warning(m_navigationWidget, "警告", "U盾授权失败");
-        } else {
+        } else */{
             if(index == 1) {
                 m_previewWidget->refresh();
             } else if (index == 2) {

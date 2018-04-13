@@ -65,14 +65,14 @@ DateWidget::DateWidget(QWidget *parent) :
     btn->setStyleSheet("QPushButton{border-image:url(:images/query.png)0 80 0 0}"
                        "QPushButton:pressed{border-image:url(:images/query.png)0 0 0 80}");
     connect(btn, &QPushButton::clicked, this, [this]() {
-        BackUpQueryParameter *param1 = new BackUpQueryParameter;
-        param1->Date = m_dateEdit->date();
-        param1->Type = 1;
-        emit signalSetParameter(VidiconProtocol::BACKQUERY, param1);
-        BackUpQueryParameter *param2 = new BackUpQueryParameter;
-        param2->Date = m_dateEdit->date();
-        param2->Type = 2;
-        emit signalSetParameter(VidiconProtocol::BACKQUERY, param2);
+        BackUpQueryParameter param1;
+        param1.Date = m_dateEdit->date();
+        param1.Type = 1;
+        emit signalSetParameter(VidiconProtocol::BACKQUERY, QVariant::fromValue(param1));
+        BackUpQueryParameter param2;
+        param2.Date = m_dateEdit->date();
+        param2.Type = 2;
+        emit signalSetParameter(VidiconProtocol::BACKQUERY, QVariant::fromValue(param2));
     });
 
     QVBoxLayout *layout2 = new QVBoxLayout(this);
@@ -122,14 +122,14 @@ void DateWidget::refresh(QDate date)
     if (date.isNull())
         date = m_dateEdit->date();
 
-    BackUpQueryParameter *param1 = new BackUpQueryParameter;
-    param1->Type = 6;
-    param1->Date = date;
-    emit signalSetParameter(VidiconProtocol::BACKQUERY, param1);
-    BackUpQueryParameter *param2 = new BackUpQueryParameter;
-    param2->Type = 0;
-    param2->Date = date;
-    emit signalSetParameter(VidiconProtocol::BACKQUERY, param2);
+    BackUpQueryParameter param1;
+    param1.Type = 6;
+    param1.Date = date;
+    emit signalSetParameter(VidiconProtocol::BACKQUERY, QVariant::fromValue(param1));
+    BackUpQueryParameter param2;
+    param2.Type = 0;
+    param2.Date = date;
+    emit signalSetParameter(VidiconProtocol::BACKQUERY, QVariant::fromValue(param2));
     emit signalDateChange(date);
 }
 

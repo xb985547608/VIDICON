@@ -15,6 +15,7 @@ public:
     void initDeviceInfoWidget();
     void initSetTimeWidget();
     void initUserConfigWidget();
+    void initWifiSettinsWidget();
 
 public slots:
     void setCurrentIndex(const QModelIndex &index) override;
@@ -33,6 +34,9 @@ private:
 
     QWidget *m_userConfigWidget;
     QMap<QString, QWidget *> m_userConfigMap;
+
+    QWidget *m_wifiSettinsWidget;
+    QMap<QString, QWidget *> m_wifiSettinsMap;
 };
 
 #endif // TABSYATEM_H

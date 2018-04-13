@@ -288,7 +288,7 @@ void VidiconProtocol::getPrivacyMaskParameter(QString SessionID)
     m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
-void VidiconProtocol::setPrivacyMaskParameter(QString SessionID, const PrivacyMaskParameter *param)
+void VidiconProtocol::setPrivacyMaskParameter(QString SessionID, QList<PrivacyMaskParameter> param)
 {
     QString urlSuffix = QString("/ISAPI/PrivacyMask?ID=%1").arg(SessionID);
     QNetworkRequest request;
@@ -298,19 +298,20 @@ void VidiconProtocol::setPrivacyMaskParameter(QString SessionID, const PrivacyMa
 
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
                                "<PrivacyMask>"));
-    for(int i=0; i<4; i++) {
+    for(int i=0; i<param.count(); i++) {
         requestBody.append(QString("<ZoneSetting_%6>"
                                         "<Enabled>%1</Enabled>"
                                         "<PosX>%2</PosX>"
                                         "<PosY>%3</PosY>"
                                         "<Width>%4</Width>"
                                         "<Height>%5</Height>"
-                                    "</ZoneSetting_%6>").arg(param[i].Enabled)
-                                                       .arg(param[i].PosX)
-                                                       .arg(param[i].PosY)
-                                                       .arg(param[i].Width)
-                                                       .arg(param[i].Height)
-                                                       .arg(i));
+                                    "</ZoneSetting_%6>")
+                           .arg(param.at(i).Enabled)
+                           .arg(param.at(i).PosX)
+                           .arg(param.at(i).PosY)
+                           .arg(param.at(i).Width)
+                           .arg(param.at(i).Height)
+                           .arg(i));
     }
 
     requestBody.append("</PrivacyMask>");
@@ -332,7 +333,7 @@ void VidiconProtocol::getOSDParameter(QString SessionID)
     m_reply = m_manager->post(request, requestBody.toLatin1());
 }
 
-void VidiconProtocol::setOSDParameter(QString SessionID, const OSDParameter *param)
+void VidiconProtocol::setOSDParameter(QString SessionID, const QList<OSDParameter> param)
 {
     QString urlSuffix = QString("/ISAPI/OSD/OSDInfo?ID=%1").arg(SessionID);
     QNetworkRequest request;
@@ -341,7 +342,7 @@ void VidiconProtocol::setOSDParameter(QString SessionID, const OSDParameter *par
     QString requestBody;
     requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?><OSDInfo>"));
 
-    for(int i=0; i<4; i++){
+    for(int i=0; i<param.count(); i++){
         requestBody.append(QString("<OSDParam_%1>"
                                         "<OSDType>%2</OSDType>"
                                         "<Position>"
@@ -353,14 +354,15 @@ void VidiconProtocol::setOSDParameter(QString SessionID, const OSDParameter *par
                                         "<DateFormat>%7</DateFormat>"
                                         "<FontSize>%8</FontSize>"
                                         "<FontColor>%9</FontColor>"
-                                    "</OSDParam_%1>").arg(i).arg(param[i].OSDType)
-                                                           .arg(param[i].Enabled)
-                                                           .arg(param[i].OSDText)
-                                                           .arg(param[i].x)
-                                                           .arg(param[i].y)
-                                                           .arg(param[i].DateFormat)
-                                                           .arg(param[i].FontSize)
-                                                           .arg(param[i].FontColor));
+                                    "</OSDParam_%1>").arg(i)
+                           .arg(param.at(i).OSDType)
+                           .arg(param.at(i).Enabled)
+                           .arg(param.at(i).OSDText)
+                           .arg(param.at(i).x)
+                           .arg(param.at(i).y)
+                           .arg(param.at(i).DateFormat)
+                           .arg(param.at(i).FontSize)
+                           .arg(param.at(i).FontColor));
     }
 
     requestBody.append(QString("</OSDInfo>"));
@@ -1728,92 +1730,78 @@ void VidiconProtocol::handleReply(QNetworkReply *reply)
 }
 
 
-void VidiconProtocol::handleSetParameter(Type type, void *param, QString SessionID)
+void VidiconProtocol::handleSetParameter(Type type, QVariant param, QString SessionID)
 {
     qDebug() << "#VidiconProtocol# handleSetParameter type:" << type;
     switch (type) {
         case VIDEOENCODING: {
-            VideoEncodingParameter *temp = static_cast<VideoEncodingParameter *>(param);
-            setVideoEncodingParameter(SessionID, *temp);
-            delete temp;
+            VideoEncodingParameter temp = param.value<VideoEncodingParameter>();
+            setVideoEncodingParameter(SessionID, temp);
             break;
         }
         case AUDIOENCODING: {
-            AudioEncodingParameter *temp = static_cast<AudioEncodingParameter *>(param);
-            setAudioEncodingParameter(SessionID, *temp);
-            delete temp;
+            AudioEncodingParameter temp = param.value<AudioEncodingParameter>();
+            setAudioEncodingParameter(SessionID, temp);
             break;
         }
         case OSD: {
-            OSDParameter *temp = static_cast<OSDParameter *>(param);
+            QList<OSDParameter> temp = param.value<QList<OSDParameter>>();
             setOSDParameter(SessionID, temp);
-            delete []temp;
             break;
         }
         case NTP: {
-            NTPParameter *temp = static_cast<NTPParameter *>(param);
-            setNTP(SessionID, *temp);
-            delete temp;
+            NTPParameter temp = param.value<NTPParameter>();
+            setNTP(SessionID, temp);
             break;
         }
         case PRIVACY: {
-            PrivacyMaskParameter *temp = static_cast<PrivacyMaskParameter *>(param);
+            QList<PrivacyMaskParameter> temp = param.value<QList<PrivacyMaskParameter>>();
             setPrivacyMaskParameter(SessionID, temp);
-            delete []temp;
             break;
         }
         case IMAGE: {
-            ImageParameter *temp = static_cast<ImageParameter *>(param);
-            setImageParameter(SessionID, *temp);
-            delete temp;
+            ImageParameter temp = param.value<ImageParameter>();
+            setImageParameter(SessionID, temp);
             break;
         }
         case TCPIP: {
-            BasicParameter *temp = static_cast<BasicParameter *>(param);
-            setBasicParameter(SessionID, *temp);
-            delete temp;
+            BasicParameter temp = param.value<BasicParameter>();
+            setBasicParameter(SessionID, temp);
             break;
         }
         case OTHER: {
-            OtherParameter *temp = static_cast<OtherParameter *>(param);
-            setOtherParameter(SessionID, *temp);
-            delete temp;
+            OtherParameter temp = param.value<OtherParameter>();
+            setOtherParameter(SessionID, temp);
             break;
         }
         case MOTION: {
-            MotionDetectionParameter *temp = static_cast<MotionDetectionParameter *>(param);
-            setMotionDetectionParameter(SessionID, *temp);
-            delete temp;
+            MotionDetectionParameter temp = param.value<MotionDetectionParameter>();
+            setMotionDetectionParameter(SessionID, temp);
             break;
         }
         case BLIND: {
-            VideoBlindAlarmParameter *temp = static_cast<VideoBlindAlarmParameter *>(param);
-            setVideoBlindAlarmParameter(SessionID, *temp);
-            delete temp;
+            VideoBlindAlarmParameter temp = param.value<VideoBlindAlarmParameter>();
+            setVideoBlindAlarmParameter(SessionID, temp);
             break;
         }
         case SENSOR: {
-            SensorAlarmParameter *temp = static_cast<SensorAlarmParameter *>(param);
-            setSensorAlarmParameter(SessionID, *temp);
-            delete temp;
+            SensorAlarmParameter temp = param.value<SensorAlarmParameter>();
+            setSensorAlarmParameter(SessionID, temp);
             break;
         }
         case SCHEDULE: {
-            RemoteRecordingPlan *temp = static_cast<RemoteRecordingPlan *>(param);
-            setRemoteRecordingPlan(SessionID, *temp);
-            delete temp;
+            RemoteRecordingPlan temp = param.value<RemoteRecordingPlan>();
+            setRemoteRecordingPlan(SessionID, temp);
             break;
         }
         case SDSTORAGE: {
-            SDStorageParameter *temp = static_cast<SDStorageParameter *>(param);
-            setSDStorageParameter(SessionID, *temp);
-            delete temp;
+            SDStorageParameter temp = param.value<SDStorageParameter>();
+            setSDStorageParameter(SessionID, temp);
             break;
         }
         case SNAPSHOT: {
-            SnapshotPlanParameter *temp = static_cast<SnapshotPlanParameter *>(param);
-            setSnapshotPlanParameter(SessionID, *temp);
-            delete temp;
+            SnapshotPlanParameter temp = param.value<SnapshotPlanParameter>();
+            setSnapshotPlanParameter(SessionID, temp);
             break;
         }
         case FORMATSDCARD: {
@@ -1829,39 +1817,33 @@ void VidiconProtocol::handleSetParameter(Type type, void *param, QString Session
             break;
         }
         case BACKQUERY: {
-            BackUpQueryParameter *temp = static_cast<BackUpQueryParameter *>(param);
-            backUpQuery(SessionID, *temp);
-            delete temp;
+            BackUpQueryParameter temp = param.value<BackUpQueryParameter>();
+            backUpQuery(SessionID, temp);
             break;
         }
         case STARTPLAYING: {
-            StartPlayingParameter *temp = static_cast<StartPlayingParameter *>(param);
-            setRecordStartPlayingTime(SessionID, *temp);
-            delete temp;
+            StartPlayingParameter temp = param.value<StartPlayingParameter>();
+            setRecordStartPlayingTime(SessionID, temp);
             break;
         }
         case PLAYSTATE: {
-            PlayStateParameter *temp = static_cast<PlayStateParameter *>(param);
-            setFastOrSlowPlayState(SessionID, *temp);
-            delete temp;
+            PlayStateParameter temp = param.value<PlayStateParameter>();
+            setFastOrSlowPlayState(SessionID, temp);
             break;
         }
         case USERCONFIG: {
-            UserConfigInfo *temp = static_cast<UserConfigInfo *>(param);
-            setUserConfig(SessionID, *temp);
-            delete temp;
+            UserConfigInfo temp = param.value<UserConfigInfo>();
+            setUserConfig(SessionID, temp);
             break;
         }
         case ADDUSER: {
-            UserConfigInfo *temp = static_cast<UserConfigInfo *>(param);
-            addUser(SessionID, *temp);
-            delete temp;
+            UserConfigInfo temp = param.value<UserConfigInfo>();
+            addUser(SessionID, temp);
             break;
         }
         case DELETEUSER: {
-            UserConfigInfo *temp = static_cast<UserConfigInfo *>(param);
-            delUser(SessionID, *temp);
-            delete temp;
+            UserConfigInfo temp = param.value<UserConfigInfo>();
+            delUser(SessionID, temp);
             break;
         }
         default:
@@ -1872,14 +1854,13 @@ void VidiconProtocol::handleSetParameter(Type type, void *param, QString Session
         m_replyMap.insert(m_reply, m_currentType);
 }
 
-void VidiconProtocol::handleGetParameter(Type type, void *param, QString SessionID)
+void VidiconProtocol::handleGetParameter(Type type, const QVariant param, QString SessionID)
 {
     qDebug() << "#VidiconProtocol# handleGetParameter type:" << type;
     switch (type) {
         case VIDEOENCODING: {
-            VideoBasic *temp = static_cast<VideoBasic *>(param);
-            getVideoEncodingParameter(SessionID, *temp);
-            delete temp;
+            VideoBasic temp = param.value<VideoBasic>();
+            getVideoEncodingParameter(SessionID, temp);
             break;
         }
         case AUDIOENCODING: {
@@ -1986,6 +1967,7 @@ void VidiconProtocol::handleGetParameter(Type type, void *param, QString Session
             getUserConfig(SessionID);
         }
         default:
+            qDebug() << "#VidiconProtocol# handleGetParameter ignore signal, type:" << type;
             break;
     }
 

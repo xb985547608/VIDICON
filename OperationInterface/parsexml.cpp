@@ -112,14 +112,14 @@ bool ParseXML::parseAudioEncodingParameter(AudioEncodingParameter *param, QByteA
     return true;
 }
 
-bool ParseXML::parseOSDParameter(OSDParameter *param, QByteArray data)
+bool ParseXML::parseOSDParameter(QList<OSDParameter> &param, QByteArray data)
 {
     QDomDocument *doc = new QDomDocument();
     QString errorMsg;
     int errorLine, errorColumn;
 
     if(!doc->setContent(data, &errorMsg, &errorLine, &errorColumn)) {
-        qDebug() << "#ParseXML# parseAudioEncodingParameter Error occurred: "
+        qDebug() << "#ParseXML# parseOSDParameter Error occurred: "
                  << "errorMsg" << errorMsg
                  << "errorLine" << errorLine
                  << "errorColumn" << errorColumn;

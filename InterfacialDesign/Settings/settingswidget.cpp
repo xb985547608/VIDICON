@@ -72,7 +72,7 @@ void SettinsWidget::initSideBar()
 
     list.clear();
     m_boxSystem = new ListView(m_toolbox);
-    list << "维护" << "设备信息" << "时间设置" << "账号管理";
+    list << "维护" << "设备信息" << "时间设置" << "账号管理" << "WIFI设置";
     m_boxSystem->addItems(list);
     m_toolbox->addItem(m_boxSystem, QIcon(":/images/system.png"), "系统设置");
 }

@@ -15,7 +15,7 @@ public:
     explicit OSDWidget(QWidget *parent = nullptr);
     ~OSDWidget();
 
-    OSDParameter *getOSDParameters() {return m_parameters;}
+    QList<OSDParameter> &getOSDParameters() {return m_parameters;}
 
 protected:
     virtual void paintEvent(QPaintEvent *event);
@@ -30,11 +30,11 @@ public slots:
     void handleTimeout();
 
 private:
-    OSDParameter *m_parameters;
+    QList<OSDParameter> m_parameters;
     QPixmap m_backgroundPixmap;
 
     bool m_validPress;
-    QPoint m_diffValue;
+    QPoint m_lastPos;
     int m_currentMoveIndex;
 };
 

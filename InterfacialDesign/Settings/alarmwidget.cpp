@@ -234,15 +234,7 @@ void AlarmWidget::initMotionDetectionWidget()
 
     layout1->addWidget(btn3,       15, 0, 1, 8, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_motionDetectionWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 4);
-    layout3->addStretch(1);
-
+    setAlignment(m_motionDetectionWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_motionDetectionWidget);
 }
 
@@ -436,15 +428,7 @@ void AlarmWidget::initVideoBlindWidget()
 
     layout1->addWidget(btn3,    14, 0, 1, 8, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_videoBlindWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 4);
-    layout3->addStretch(1);
-
+    setAlignment(m_videoBlindWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_videoBlindWidget);
 }
 
@@ -634,15 +618,7 @@ void AlarmWidget::initAlarmWidget()
 
     layout1->addWidget(btn3,    14, 0, 1, 8, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_alarmWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 4);
-    layout3->addStretch(1);
-
+    setAlignment(m_alarmWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_alarmWidget);
 }
 
@@ -695,15 +671,7 @@ void AlarmWidget::initRegionEditDialog()
 
     layout1->addWidget(btn3,      3, 11, 1, 2, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_regionEditDialog);
-    layout3->addStretch();
-    layout3->addLayout(layout2);
-    layout3->addStretch();
-
+    setAlignment(m_regionEditDialog, layout1, Qt::AlignTop | Qt::AlignHCenter);
 }
 
 void AlarmWidget::setCurrentIndex(const QModelIndex &index)
@@ -735,53 +703,53 @@ void AlarmWidget::handlePrepareData()
 {
     switch(currentIndex()) {
     case 0: {
-        MotionDetectionParameter *param = new MotionDetectionParameter;
-        param->Enabled = static_cast<QCheckBox *>(m_motionDetectionMap["Enable"])->checkState() == Qt::Checked ? 1 : 0;
-        param->AlarmOutput = static_cast<QCheckBox *>(m_motionDetectionMap["Alarm Output"])->checkState() == Qt::Checked ? 1 : 0;
-        param->VideoOutput = static_cast<QCheckBox *>(m_motionDetectionMap["Record Video"])->checkState() == Qt::Checked ? 1 : 0;
-        param->AlarmDuration = static_cast<LineEdit *>(m_motionDetectionMap["Alarm Duration"])->text().toInt();
-        param->PreRecTime = static_cast<LineEdit *>(m_motionDetectionMap["Pre-record time"])->text().toInt();
-        param->DelayRecTime = static_cast<QComboBox *>(m_motionDetectionMap["Record time"])->currentText().toInt();
-        param->weeksStateMap = static_cast<TimeRegionWidget *>(m_motionDetectionMap["region"])->getWeeksState();
-        param->Plans = static_cast<TimeRegionWidget *>(m_motionDetectionMap["region"])->getPlans();
+        MotionDetectionParameter param;
+        param.Enabled = static_cast<QCheckBox *>(m_motionDetectionMap["Enable"])->checkState() == Qt::Checked ? 1 : 0;
+        param.AlarmOutput = static_cast<QCheckBox *>(m_motionDetectionMap["Alarm Output"])->checkState() == Qt::Checked ? 1 : 0;
+        param.VideoOutput = static_cast<QCheckBox *>(m_motionDetectionMap["Record Video"])->checkState() == Qt::Checked ? 1 : 0;
+        param.AlarmDuration = static_cast<LineEdit *>(m_motionDetectionMap["Alarm Duration"])->text().toInt();
+        param.PreRecTime = static_cast<LineEdit *>(m_motionDetectionMap["Pre-record time"])->text().toInt();
+        param.DelayRecTime = static_cast<QComboBox *>(m_motionDetectionMap["Record time"])->currentText().toInt();
+        param.weeksStateMap = static_cast<TimeRegionWidget *>(m_motionDetectionMap["region"])->getWeeksState();
+        param.Plans = static_cast<TimeRegionWidget *>(m_motionDetectionMap["region"])->getPlans();
         if(sender()->objectName() == "MotionRegion") {
             char **map = static_cast<MotionWidget *>(m_regionEditMap["region"])->getMotionRegionMap();
             for(int i=0; i<REGIONROW; i++) {
                 for(int j=0; j<REGIONCOLUMN; j++) {
-                    param->AreaMask.append(QString::number(map[i][j]));
+                    param.AreaMask.append(QString::number(map[i][j]));
                 }
             }
-            param->Sensitivity = static_cast<QComboBox *>(m_regionEditMap["Sensitivity"])->currentIndex();
-            param->AlarmThreshold = static_cast<QSlider *>(m_regionEditMap["Threshold"])->value();
-            param->onlyRegion = true;
+            param.Sensitivity = static_cast<QComboBox *>(m_regionEditMap["Sensitivity"])->currentIndex();
+            param.AlarmThreshold = static_cast<QSlider *>(m_regionEditMap["Threshold"])->value();
+            param.onlyRegion = true;
         }else {
-            param->onlyRegion = false;
+            param.onlyRegion = false;
         }
-        emit signalSetParameter(VidiconProtocol::MOTION, param);
+        emit signalSetParameter(VidiconProtocol::MOTION, QVariant::fromValue(param));
         break;
     }
     case 1: {
-        VideoBlindAlarmParameter *param = new VideoBlindAlarmParameter;
-        param->Enabled = static_cast<QCheckBox *>(m_videoBlindMap["Enable"])->checkState() == Qt::Checked ? 1 : 0;
-        param->AlarmOutput = static_cast<QCheckBox *>(m_videoBlindMap["Output"])->checkState() == Qt::Checked ? 1 : 0;
-        param->VideoOutput = static_cast<QCheckBox *>(m_videoBlindMap["Record"])->checkState() == Qt::Checked ? 1 : 0;
-        param->AlarmDuration = static_cast<LineEdit *>(m_videoBlindMap["Alarm time"])->text().toInt();
-        param->Sensitivity = static_cast<QComboBox *>(m_videoBlindMap["Sensitivity"])->currentIndex();
-        param->weeksStateMap = static_cast<TimeRegionWidget *>(m_videoBlindMap["region"])->getWeeksState();
-        param->Plans = static_cast<TimeRegionWidget *>(m_videoBlindMap["region"])->getPlans();
-        emit signalSetParameter(VidiconProtocol::BLIND, param);
+        VideoBlindAlarmParameter param;
+        param.Enabled = static_cast<QCheckBox *>(m_videoBlindMap["Enable"])->checkState() == Qt::Checked ? 1 : 0;
+        param.AlarmOutput = static_cast<QCheckBox *>(m_videoBlindMap["Output"])->checkState() == Qt::Checked ? 1 : 0;
+        param.VideoOutput = static_cast<QCheckBox *>(m_videoBlindMap["Record"])->checkState() == Qt::Checked ? 1 : 0;
+        param.AlarmDuration = static_cast<LineEdit *>(m_videoBlindMap["Alarm time"])->text().toInt();
+        param.Sensitivity = static_cast<QComboBox *>(m_videoBlindMap["Sensitivity"])->currentIndex();
+        param.weeksStateMap = static_cast<TimeRegionWidget *>(m_videoBlindMap["region"])->getWeeksState();
+        param.Plans = static_cast<TimeRegionWidget *>(m_videoBlindMap["region"])->getPlans();
+        emit signalSetParameter(VidiconProtocol::BLIND, QVariant::fromValue(param));
         break;
     }
     case 2: {
-        SensorAlarmParameter *param = new SensorAlarmParameter;
-        param->Enabled = static_cast<QCheckBox *>(m_alarmMap["Enable"])->checkState() == Qt::Checked ? 1 : 0;
-        param->AlarmOutput = static_cast<QCheckBox *>(m_alarmMap["Output"])->checkState() == Qt::Checked ? 1 : 0;
-        param->VideoOutput = static_cast<QCheckBox *>(m_alarmMap["Record"])->checkState() == Qt::Checked ? 1 : 0;
-        param->AlarmDuration = static_cast<LineEdit *>(m_alarmMap["Alarm time"])->text().toInt();
-        param->SensorType = static_cast<QComboBox *>(m_alarmMap["Type"])->currentIndex();
-        param->weeksStateMap = static_cast<TimeRegionWidget *>(m_alarmMap["region"])->getWeeksState();
-        param->Plans = static_cast<TimeRegionWidget *>(m_alarmMap["region"])->getPlans();
-        emit signalSetParameter(VidiconProtocol::SENSOR, param);
+        SensorAlarmParameter param;
+        param.Enabled = static_cast<QCheckBox *>(m_alarmMap["Enable"])->checkState() == Qt::Checked ? 1 : 0;
+        param.AlarmOutput = static_cast<QCheckBox *>(m_alarmMap["Output"])->checkState() == Qt::Checked ? 1 : 0;
+        param.VideoOutput = static_cast<QCheckBox *>(m_alarmMap["Record"])->checkState() == Qt::Checked ? 1 : 0;
+        param.AlarmDuration = static_cast<LineEdit *>(m_alarmMap["Alarm time"])->text().toInt();
+        param.SensorType = static_cast<QComboBox *>(m_alarmMap["Type"])->currentIndex();
+        param.weeksStateMap = static_cast<TimeRegionWidget *>(m_alarmMap["region"])->getWeeksState();
+        param.Plans = static_cast<TimeRegionWidget *>(m_alarmMap["region"])->getPlans();
+        emit signalSetParameter(VidiconProtocol::SENSOR, QVariant::fromValue(param));
         break;
     }
     default:

@@ -114,11 +114,11 @@ void UserInfoView::initModifyInfoWidget()
         QString passwd2 = static_cast<LineEdit *>(m_modifyInfoMap["Confirm"])->text();
 
         if (passwd1 == passwd2) {
-            UserConfigInfo *info = new UserConfigInfo;
-            info->UserName = static_cast<LineEdit *>(m_modifyInfoMap["User"])->text();
-            info->PassWord = passwd1;
-            info->Privilege = static_cast<QComboBox *>(m_modifyInfoMap["Group"])->currentIndex();
-            emit signalSetParameter(VidiconProtocol::USERCONFIG, info);
+            UserConfigInfo info;
+            info.UserName = static_cast<LineEdit *>(m_modifyInfoMap["User"])->text();
+            info.PassWord = passwd1;
+            info.Privilege = static_cast<QComboBox *>(m_modifyInfoMap["Group"])->currentIndex();
+            emit signalSetParameter(VidiconProtocol::USERCONFIG, QVariant::fromValue(info));
         }
     });
 
@@ -204,11 +204,11 @@ void UserInfoView::initAddUserInfoWidget()
         QString passwd2 = static_cast<LineEdit *>(m_addUserInfoMap["Confirm"])->text();
 
         if (passwd1 == passwd2) {
-            UserConfigInfo *info = new UserConfigInfo;
-            info->UserName = user;
-            info->PassWord = passwd1;
-            info->Privilege = static_cast<QComboBox *>(m_addUserInfoMap["Group"])->currentIndex();
-            emit signalSetParameter(VidiconProtocol::ADDUSER, info);
+            UserConfigInfo info;
+            info.UserName = user;
+            info.PassWord = passwd1;
+            info.Privilege = static_cast<QComboBox *>(m_addUserInfoMap["Group"])->currentIndex();
+            emit signalSetParameter(VidiconProtocol::ADDUSER, QVariant::fromValue(info));
         }
     });
 
@@ -273,9 +273,9 @@ void UserInfoView::handleDelUserInfo()
     QString user = model()->data(model()->index(row, 1)).toString();
     if (QMessageBox::question(this, "删除用户！！", QString("是否删除用户名为：%1的账号信息").arg(user.toStdString().data()))
             == QMessageBox::Yes) {
-        UserConfigInfo *info = new UserConfigInfo;
-        info->UserName = user;
-        emit signalSetParameter(VidiconProtocol::DELETEUSER, info);
+        UserConfigInfo info;
+        info.UserName = user;
+        emit signalSetParameter(VidiconProtocol::DELETEUSER, QVariant::fromValue(info));
     }
 }
 

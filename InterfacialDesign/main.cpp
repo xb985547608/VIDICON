@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     a.setStyle(new CustomStyle);
 
-    qRegisterMetaType<WholeDeviceInfo>("WholeDeviceInfo");
+//    qRegisterMetaType<WholeDeviceInfo>("WholeDeviceInfo");
     qRegisterMetaType<WId>("WId");
 
     //永久性配置信息管理

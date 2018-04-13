@@ -19,7 +19,10 @@ StackedWidget::StackedWidget(QWidget *parent) :
 
 void StackedWidget::setCurrentIndex(int index)
 {
-    m_stackedWidget->setCurrentIndex(index);
+    if (m_stackedWidget->count() == 0)
+        return;
+
+    m_stackedWidget->setCurrentIndex(qBound(0, index, m_stackedWidget->count()));
 }
 
 int StackedWidget::currentIndex() const

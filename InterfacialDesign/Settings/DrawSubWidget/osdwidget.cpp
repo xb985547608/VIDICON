@@ -14,7 +14,9 @@ OSDWidget::OSDWidget(QWidget *parent) : QWidget(parent) ,
     f.setPixelSize(16);
     setFont(f);
 
-    m_parameters = new OSDParameter[4];
+    OSDParameter temp;
+    for (int i=0; i<4; i++)
+        m_parameters.append(temp);
 
     QTimer *timer = new QTimer(this);
     timer->start(100);
@@ -24,7 +26,6 @@ OSDWidget::OSDWidget(QWidget *parent) : QWidget(parent) ,
 
 OSDWidget::~OSDWidget()
 {
-    delete []m_parameters;
 }
 
 void OSDWidget::paintEvent(QPaintEvent *event)
@@ -36,7 +37,7 @@ void OSDWidget::paintEvent(QPaintEvent *event)
     p.fillRect(rect(), Qt::black);
     p.drawPixmap(rect(), m_backgroundPixmap);
 
-    for(int i=0; i<4; i++) {
+    for(int i=0; i<m_parameters.count(); i++) {
         QRect rect(m_parameters[i].x * size().width() / XSCALEMAX,
                    m_parameters[i].y * size().height() / YSCALEMAX,
                    size().width() / 2, fontMetrics().height() + 4);
@@ -72,13 +73,13 @@ void OSDWidget::paintEvent(QPaintEvent *event)
 void OSDWidget::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton) {
-        for(int i=0; i<4; i++) {
+        for(int i=0; i<m_parameters.count(); i++) {
             QRect rect(m_parameters[i].x * size().width() / XSCALEMAX,
                        m_parameters[i].y * size().height() / YSCALEMAX,
                        size().width() / 2, fontMetrics().height() + 4);
             if(rect.contains(event->pos())) {
                 m_validPress = true;
-                m_diffValue = event->pos() - rect.topLeft();
+                m_lastPos = event->pos() - rect.topLeft();
                 m_currentMoveIndex = i;
             }
         }
@@ -91,9 +92,7 @@ void OSDWidget::mouseMoveEvent(QMouseEvent *event)
         QRect rect(m_parameters[m_currentMoveIndex].x * size().width() / XSCALEMAX,
                    m_parameters[m_currentMoveIndex].y * size().height() / YSCALEMAX,
                    size().width() / 2, fontMetrics().height() + 4);
-        qDebug() << rect;
-        rect.moveTo(event->pos() - m_diffValue);
-        qDebug() << rect;
+        rect.moveTo(event->pos() - m_lastPos);
         m_parameters[m_currentMoveIndex].x = rect.x() * XSCALEMAX / size().width();
         m_parameters[m_currentMoveIndex].y = rect.y() * YSCALEMAX / size().height();
 

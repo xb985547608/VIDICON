@@ -199,15 +199,7 @@ void RecordWidget::initScheduleWidget()
 
     layout1->addWidget(btn2,    13, 0, 1, 8, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_scheduleWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 4);
-    layout3->addStretch(1);
-
+    setAlignment(m_scheduleWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_scheduleWidget);
 }
 
@@ -244,7 +236,7 @@ void RecordWidget::initSDStorageWidget()
     QPushButton *btn2 = new QPushButton("格式化", m_SDStorageWidget);
     connect(btn2, &QPushButton::clicked, this, [this](){
         if(QMessageBox::question(this, "警告", "是否格式化SD卡") == QMessageBox::Yes) {
-            emit signalSetParameter(VidiconProtocol::FORMATSDCARD, NULL);
+            emit signalSetParameter(VidiconProtocol::FORMATSDCARD);
         }
     });
 
@@ -307,15 +299,7 @@ void RecordWidget::initSDStorageWidget()
 
     layout1->addWidget(btn3,      9, 0, 1, 6, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_SDStorageWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 4);
-    layout3->addStretch(1);
-
+    setAlignment(m_SDStorageWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_SDStorageWidget);
 }
 
@@ -494,15 +478,7 @@ void RecordWidget::initSnapshotWidget()
 
     layout1->addWidget(btn2,    14, 0, 1, 8, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_snapshotWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 4);
-    layout3->addStretch(1);
-
+    setAlignment(m_snapshotWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_snapshotWidget);
 }
 
@@ -564,15 +540,7 @@ void RecordWidget::initDestinationWidget()
 
     layout1->addWidget(btn1,     4, 0, 1, 4, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_destinationWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 4);
-    layout3->addStretch(1);
-
+    setAlignment(m_destinationWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_destinationWidget);
 }
 
@@ -604,15 +572,7 @@ void RecordWidget::initNASWidget()
 
     layout1->addWidget(btn1,      3, 0, 1, 4, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_NASWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 4);
-    layout3->addStretch(1);
-
+    setAlignment(m_NASWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_NASWidget);
 }
 
@@ -654,32 +614,32 @@ void RecordWidget::handlePrepareData()
 {
     switch(currentIndex()) {
     case 0: {
-        RemoteRecordingPlan *param = new RemoteRecordingPlan;
-        param->Enabled = static_cast<QCheckBox *>(m_scheduleMap["Enable"])->checkState() ? 1 : 0;
-        param->weeksStateMap = static_cast<TimeRegionWidget *>(m_scheduleMap["region"])->getWeeksState();
-        param->Plans = static_cast<TimeRegionWidget *>(m_scheduleMap["region"])->getPlans();
+        RemoteRecordingPlan param;
+        param.Enabled = static_cast<QCheckBox *>(m_scheduleMap["Enable"])->checkState() ? 1 : 0;
+        param.weeksStateMap = static_cast<TimeRegionWidget *>(m_scheduleMap["region"])->getWeeksState();
+        param.Plans = static_cast<TimeRegionWidget *>(m_scheduleMap["region"])->getPlans();
 
-        emit signalSetParameter(VidiconProtocol::SCHEDULE, param);
+        emit signalSetParameter(VidiconProtocol::SCHEDULE, QVariant::fromValue(param));
         break;
     }
     case 1: {
-        SDStorageParameter *param = new SDStorageParameter;
-        param->OperType = static_cast<QComboBox *>(m_SDStorageMap["Overwrite"])->currentIndex();
-        param->RecordSelect = static_cast<QComboBox *>(m_SDStorageMap["Stream"])->currentIndex();
-        param->RecordMode = static_cast<QComboBox *>(m_SDStorageMap["Record Type"])->currentIndex();
-        param->RecordTime = static_cast<LineEdit *>(m_SDStorageMap["Record Time"])->text().toInt();
+        SDStorageParameter param;
+        param.OperType = static_cast<QComboBox *>(m_SDStorageMap["Overwrite"])->currentIndex();
+        param.RecordSelect = static_cast<QComboBox *>(m_SDStorageMap["Stream"])->currentIndex();
+        param.RecordMode = static_cast<QComboBox *>(m_SDStorageMap["Record Type"])->currentIndex();
+        param.RecordTime = static_cast<LineEdit *>(m_SDStorageMap["Record Time"])->text().toInt();
 
-        emit signalSetParameter(VidiconProtocol::SDSTORAGE, param);
+        emit signalSetParameter(VidiconProtocol::SDSTORAGE, QVariant::fromValue(param));
         break;
     }
     case 2: {
-        SnapshotPlanParameter *param = new SnapshotPlanParameter;
-        param->Enabled = static_cast<QCheckBox *>(m_snapshotMap["Enable"])->checkState() ? 1 : 0;
-        param->SnapIntervalTime = static_cast<LineEdit *>(m_snapshotMap["Interval"])->text().toInt();
-        param->weeksStateMap = static_cast<TimeRegionWidget *>(m_snapshotMap["region"])->getWeeksState();
-        param->Plans = static_cast<TimeRegionWidget *>(m_snapshotMap["region"])->getPlans();
+        SnapshotPlanParameter param;
+        param.Enabled = static_cast<QCheckBox *>(m_snapshotMap["Enable"])->checkState() ? 1 : 0;
+        param.SnapIntervalTime = static_cast<LineEdit *>(m_snapshotMap["Interval"])->text().toInt();
+        param.weeksStateMap = static_cast<TimeRegionWidget *>(m_snapshotMap["region"])->getWeeksState();
+        param.Plans = static_cast<TimeRegionWidget *>(m_snapshotMap["region"])->getPlans();
 
-        emit signalSetParameter(VidiconProtocol::SNAPSHOT, param);
+        emit signalSetParameter(VidiconProtocol::SNAPSHOT, QVariant::fromValue(param));
     }
     default:
         break;

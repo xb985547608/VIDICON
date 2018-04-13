@@ -419,11 +419,11 @@ void TimerShaft::checkStartPlayTime(QPoint pos)
         if(isOK) {
             qDebug() << "#checkStartPlayTime# play time" << playTime;
             m_currentPlayPos = (qreal)(pos.x() - m_margin) / m_width;
-            StartPlayingParameter *param = new StartPlayingParameter;
-            param->htmlid = m_htmlid;
-            param->playing = 1;
-            param->Time = QDateTime(m_date, playTime);
-            emit signalSetParameter(VidiconProtocol::STARTPLAYING, param);
+            StartPlayingParameter param;
+            param.htmlid = m_htmlid;
+            param.playing = 1;
+            param.Time = QDateTime(m_date, playTime);
+            emit signalSetParameter(VidiconProtocol::STARTPLAYING, QVariant::fromValue(param));
             break;
         }
         qDebug() << temp.StarTime << temp.EndTime;

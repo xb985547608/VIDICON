@@ -62,10 +62,10 @@ void PlaybackWidget::setStateValue(int value)
     if (value == m_stateValue || value > 2 || value < -2)
         return;
     m_stateValue = value;
-    PlayStateParameter *param = new PlayStateParameter;
-    param->htmlid = m_htmlid;
-    param->StateValue = m_stateValue;
-    emit signalSetParameter(VidiconProtocol::PLAYSTATE, param);
+    PlayStateParameter param;
+    param.htmlid = m_htmlid;
+    param.StateValue = m_stateValue;
+    emit signalSetParameter(VidiconProtocol::PLAYSTATE, QVariant::fromValue(param));
 }
 
 void PlaybackWidget::resizeEvent(QResizeEvent *event)

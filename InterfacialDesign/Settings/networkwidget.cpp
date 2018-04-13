@@ -172,15 +172,7 @@ void NetworkWidget::initTCPIPWidget()
 
     layout1->addWidget(btn, 15, 0, 1, 3, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_tcpIpWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 10);
-    layout3->addStretch(1);
-
+    setAlignment(m_tcpIpWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_tcpIpWidget);
 }
 
@@ -213,15 +205,7 @@ void NetworkWidget::initPPPOEWidget()
 
     layout1->addWidget(btn,       3, 0, 1, 3, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_PPPOEWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 10);
-    layout3->addStretch(1);
-
+    setAlignment(m_PPPOEWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_PPPOEWidget);
 }
 
@@ -279,15 +263,7 @@ void NetworkWidget::initDDNSClientWidget()
 
     layout1->addWidget(btn,       6, 0, 1, 3, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_DDNSClientWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 10);
-    layout3->addStretch(1);
-
+    setAlignment(m_DDNSClientWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_DDNSClientWidget);
 }
 
@@ -380,15 +356,7 @@ void NetworkWidget::initEmailWidget()
     layout1->addWidget(btn1,       11, 0, 1, 1, Qt::AlignRight);
     layout1->addWidget(btn2,       11, 2, 1, 1, Qt::AlignLeft);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_EmailWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 10);
-    layout3->addStretch(1);
-
+    setAlignment(m_EmailWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_EmailWidget);
 }
 
@@ -457,15 +425,7 @@ void NetworkWidget::initFTPWidget()
     layout1->addWidget(btn1,      7, 0, 1, 1, Qt::AlignRight);
     layout1->addWidget(btn2,      7, 2, 1, 1, Qt::AlignLeft);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_FTPWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 10);
-    layout3->addStretch(1);
-
+    setAlignment(m_FTPWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_FTPWidget);
 }
 
@@ -500,15 +460,7 @@ void NetworkWidget::initBonjourWidget()
 
     layout1->addWidget(btn3,      3, 1, 1, 1, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_BonjourWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 10);
-    layout3->addStretch(1);
-
+    setAlignment(m_BonjourWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_BonjourWidget);
 }
 
@@ -566,15 +518,7 @@ void NetworkWidget::initSNMPWidget()
 
     layout1->addWidget(btn,       7, 1, 1, 1, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_SNMPWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 10);
-    layout3->addStretch(1);
-
+    setAlignment(m_SNMPWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_SNMPWidget);
 }
 
@@ -599,15 +543,7 @@ void NetworkWidget::initUPNPWidget()
 
     layout1->addWidget(btn,      1, 1, 1, 1, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_UPNPWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 10);
-    layout3->addStretch(1);
-
+    setAlignment(m_UPNPWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_UPNPWidget);
 }
 
@@ -632,15 +568,7 @@ void NetworkWidget::initHTTPsWidget()
 
     layout1->addWidget(btn,      2, 1, 1, 1, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_HTTPsWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 10);
-    layout3->addStretch(1);
-
+    setAlignment(m_HTTPsWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_HTTPsWidget);
 }
 
@@ -679,15 +607,7 @@ void NetworkWidget::initP2PWidget()
 
     layout1->addWidget(btn,       4, 0, 1, 11, Qt::AlignCenter);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_P2PWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 10);
-    layout3->addStretch(1);
-
+    setAlignment(m_P2PWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_P2PWidget);
 }
 
@@ -721,15 +641,7 @@ void NetworkWidget::initRTSPWidget()
     layout1->addWidget(lbl2,      3, 0, 1, 1, Qt::AlignTop);
     layout1->addWidget(lbl3,      3, 1, 1, 2, Qt::AlignTop);
 
-    QVBoxLayout *layout2 = new QVBoxLayout;
-    layout2->addLayout(layout1);
-    layout2->addStretch();
-
-    QHBoxLayout *layout3 = new QHBoxLayout(m_RTSPWidget);
-    layout3->addStretch(1);
-    layout3->addLayout(layout2, 10);
-    layout3->addStretch(1);
-
+    setAlignment(m_RTSPWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_RTSPWidget);
 }
 
@@ -795,32 +707,32 @@ void NetworkWidget::handlePrepareData()
 {
     switch(currentIndex()) {
     case 0: {
-        BasicParameter *param1 = new BasicParameter;
-        param1->MaxLink = static_cast<LineEdit *>(m_tcpIpMap["Max connection"])->text().toInt();
-        param1->DHCP = static_cast<QComboBox *>(m_tcpIpMap["DHCP"])->currentIndex();
-        param1->ipv4.IpAddr = static_cast<LineEdit *>(m_tcpIpMap["IPv4 Address"])->text();
-        param1->ipv4.SubnetMask = static_cast<LineEdit *>(m_tcpIpMap["IPv4 Subnet"])->text();
-        param1->ipv4.Gateway = static_cast<LineEdit *>(m_tcpIpMap["IPv4 Gateway"])->text();
-        param1->ipv4.DNS1 = static_cast<LineEdit *>(m_tcpIpMap["IPv4 DNS 1"])->text();
-        param1->ipv4.DNS2 = static_cast<LineEdit *>(m_tcpIpMap["IPv4 DNS 2"])->text();
-        param1->ipv6.IpAddr = static_cast<LineEdit *>(m_tcpIpMap["IPv6 Address"])->text();
-        param1->ipv6.Gateway = static_cast<LineEdit *>(m_tcpIpMap["IPv6 Gateway"])->text();
-        param1->ipv6.DNS1 = static_cast<LineEdit *>(m_tcpIpMap["IPv6 DNS 1"])->text();
-        param1->ipv6.DNS2 = static_cast<LineEdit *>(m_tcpIpMap["IPv6 DNS 2"])->text();
-        param1->MACAddress = static_cast<LineEdit *>(m_tcpIpMap["IPv4 MacAddr"])->text();
-        emit signalSetParameter(VidiconProtocol::TCPIP, param1);
+        BasicParameter param1;
+        param1.MaxLink = static_cast<LineEdit *>(m_tcpIpMap["Max connection"])->text().toInt();
+        param1.DHCP = static_cast<QComboBox *>(m_tcpIpMap["DHCP"])->currentIndex();
+        param1.ipv4.IpAddr = static_cast<LineEdit *>(m_tcpIpMap["IPv4 Address"])->text();
+        param1.ipv4.SubnetMask = static_cast<LineEdit *>(m_tcpIpMap["IPv4 Subnet"])->text();
+        param1.ipv4.Gateway = static_cast<LineEdit *>(m_tcpIpMap["IPv4 Gateway"])->text();
+        param1.ipv4.DNS1 = static_cast<LineEdit *>(m_tcpIpMap["IPv4 DNS 1"])->text();
+        param1.ipv4.DNS2 = static_cast<LineEdit *>(m_tcpIpMap["IPv4 DNS 2"])->text();
+        param1.ipv6.IpAddr = static_cast<LineEdit *>(m_tcpIpMap["IPv6 Address"])->text();
+        param1.ipv6.Gateway = static_cast<LineEdit *>(m_tcpIpMap["IPv6 Gateway"])->text();
+        param1.ipv6.DNS1 = static_cast<LineEdit *>(m_tcpIpMap["IPv6 DNS 1"])->text();
+        param1.ipv6.DNS2 = static_cast<LineEdit *>(m_tcpIpMap["IPv6 DNS 2"])->text();
+        param1.MACAddress = static_cast<LineEdit *>(m_tcpIpMap["IPv4 MacAddr"])->text();
+        emit signalSetParameter(VidiconProtocol::TCPIP, QVariant::fromValue(param1));
 
-        OtherParameter *param2 = new OtherParameter;
-        param2->type1.Enabled = 1;
-        param2->type1.ServerType = 1;
-        param2->type1.Port = static_cast<LineEdit *>(m_tcpIpMap["HTTP Port"])->text().toInt();
-        param2->type2.Enabled = 1;
-        param2->type2.ServerType = 2;
-        param2->type2.Port = static_cast<LineEdit *>(m_tcpIpMap["Onvif Port"])->text().toInt();
-        param2->type3.Enabled = 1;
-        param2->type3.ServerType = 3;
-        param2->type3.Port = static_cast<LineEdit *>(m_tcpIpMap["RTSP Port"])->text().toInt();
-        emit signalSetParameter(VidiconProtocol::OTHER, param2);
+        OtherParameter param2;
+        param2.type1.Enabled = 1;
+        param2.type1.ServerType = 1;
+        param2.type1.Port = static_cast<LineEdit *>(m_tcpIpMap["HTTP Port"])->text().toInt();
+        param2.type2.Enabled = 1;
+        param2.type2.ServerType = 2;
+        param2.type2.Port = static_cast<LineEdit *>(m_tcpIpMap["Onvif Port"])->text().toInt();
+        param2.type3.Enabled = 1;
+        param2.type3.ServerType = 3;
+        param2.type3.Port = static_cast<LineEdit *>(m_tcpIpMap["RTSP Port"])->text().toInt();
+        emit signalSetParameter(VidiconProtocol::OTHER, QVariant::fromValue(param2));
 
         qDebug() << "#TabMedia# handleSendData send signal, ParameterType:" << VidiconProtocol::TCPIP << VidiconProtocol::OTHER;
         break;

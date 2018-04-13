@@ -22,7 +22,7 @@ public:
 
     bool parseVideoEncodingParameter(VideoEncodingParameter *param, QByteArray data);
     bool parseAudioEncodingParameter(AudioEncodingParameter *param, QByteArray data);
-    bool parseOSDParameter(OSDParameter *param, QByteArray data);
+    bool parseOSDParameter(QList<OSDParameter> &param, QByteArray data);
     bool parseNTPParameter(NTPParameter *param, QByteArray data);
     bool parseDeviceInfo(DeviceInfo *param, QByteArray data);
     bool parseImageParameter(ImageParameter *param, QByteArray data);
