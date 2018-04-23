@@ -40,7 +40,7 @@ public:
     void setSpecifiedIP(const QHostAddress &ip);
 
 signals:
-    void signalDeviceInfo(WholeDeviceInfo info);
+    void signalDeviceInfo(QVariant value);
 
 public slots:
     void handleSearchDevice();

@@ -24,7 +24,7 @@ SystemWidget::SystemWidget(QWidget *parent) :
     initDeviceInfoWidget();
     initSetTimeWidget();
     initUserConfigWidget();
-    initWifiSettinsWidget();
+    initWifiConfigWidget();
 }
 
 SystemWidget::~SystemWidget()
@@ -205,6 +205,7 @@ void SystemWidget::initUserConfigWidget()
 {
     m_userConfigWidget = new QWidget(this);
 
+#if 0
     UserInfoView *view = new UserInfoView(m_userConfigWidget);
     m_userConfigMap.insert("view", view);
 
@@ -217,21 +218,71 @@ void SystemWidget::initUserConfigWidget()
     QGridLayout *layout1 = new QGridLayout;
     layout1->addWidget(view, 0, 0, 1, 1);
     layout1->addWidget(btn,  1, 0, 1, 1);
+#else
+    QLabel *lbl1 = new QLabel("车号：", m_userConfigWidget);
+    LineEdit *lineEdit1 = new LineEdit(m_userConfigWidget);
+    lineEdit1->setReadOnly(false);
+    lineEdit1->setMaxLength(6);
+    m_userConfigMap.insert("train", lineEdit1);
+
+    QLabel *lbl2 = new QLabel("车厢号：", m_userConfigWidget);
+    LineEdit *lineEdit2 = new LineEdit(m_userConfigWidget);
+    lineEdit2->setReadOnly(false);
+    lineEdit2->setMaxLength(2);
+    m_userConfigMap.insert("coach", lineEdit2);
+
+    QLabel *lbl3 = new QLabel("车位号：", m_userConfigWidget);
+    LineEdit *lineEdit3 = new LineEdit(m_userConfigWidget);
+    lineEdit3->setReadOnly(false);
+    lineEdit2->setMaxLength(2);
+    m_userConfigMap.insert("seat", lineEdit3);
+
+    QPushButton *btn = new QPushButton("保存", m_userConfigWidget);
+    connect(btn, &QPushButton::clicked, this, [this](){
+        QString train = static_cast<LineEdit *>(m_userConfigMap["train"])->text();
+        QString coach = static_cast<LineEdit *>(m_userConfigMap["coach"])->text();
+        QString seat  = static_cast<LineEdit *>(m_userConfigMap["seat"])->text();
+        QString user = QString("CRH_%1_%2_%3")
+                .arg(train)
+                .arg(coach)
+                .arg(seat);
+
+        UserConfigInfo info;
+        info.UserName = user;
+        info.PassWord = user;
+        info.Privilege = 0;
+        emit signalSetParameter(VidiconProtocol::ADDUSER, QVariant::fromValue(info));
+    });
+
+    QGridLayout *layout1 = new QGridLayout;
+    layout1->addWidget(lbl1,        0, 0, 1, 1);
+    layout1->addWidget(lineEdit1,   0, 1, 1, 1);
+
+    layout1->addWidget(lbl2,        1, 0, 1, 1);
+    layout1->addWidget(lineEdit2,   1, 1, 1, 1);
+
+    layout1->addWidget(lbl3,        2, 0, 1, 1);
+    layout1->addWidget(lineEdit3,   2, 1, 1, 1);
+
+    layout1->addWidget(btn,         3, 0, 1, 2, Qt::AlignCenter);
+#endif
 
     setAlignment(m_userConfigWidget, layout1, Qt::AlignTop | Qt::AlignHCenter);
     addWidget(m_userConfigWidget);
 }
 
-void SystemWidget::initWifiSettinsWidget()
+void SystemWidget::initWifiConfigWidget()
 {
     m_wifiSettinsWidget = new QWidget(this);
 
     QLabel *lbl1 = new QLabel("WIFI名：", m_wifiSettinsWidget);
     LineEdit *lineEdit1 = new LineEdit(m_wifiSettinsWidget);
-    m_wifiSettinsMap.insert("user", lineEdit1);
+    lineEdit1->setMaxLength(32);
+    m_wifiSettinsMap.insert("ssid", lineEdit1);
 
     QLabel *lbl2 = new QLabel("密码：", m_wifiSettinsWidget);
     LineEdit *lineEdit2 = new LineEdit(m_wifiSettinsWidget);
+    lineEdit2->setMaxLength(16);
     m_wifiSettinsMap.insert("passwd", lineEdit2);
 
     QPushButton *btn = new QPushButton("保存", m_wifiSettinsWidget);
@@ -258,7 +309,7 @@ void SystemWidget::setCurrentIndex(const QModelIndex &index)
 
     switch(index.row()){
     case 0: {
-//        emit signalGetParameter(SCHEDULE);
+        emit signalGetParameter(VidiconProtocol::SCHEDULE);
         break;
     }
     case 1: {
@@ -274,7 +325,7 @@ void SystemWidget::setCurrentIndex(const QModelIndex &index)
         break;
     }
     case 4: {
-//        emit signalGetParameter(VidiconProtocol::USERCONFIG);
+        emit signalGetParameter(VidiconProtocol::WIFI);
         break;
     }
     default:
@@ -299,7 +350,10 @@ void SystemWidget::handlePrepareData()
         break;
     }
     case 4: {
-        //TODO: wifi设置
+        WifiConfigParameter param;
+        param.ssid = static_cast<LineEdit *>(m_wifiSettinsMap["ssid"])->text();
+        param.passwd = static_cast<LineEdit *>(m_wifiSettinsMap["passwd"])->text();
+        emit signalSetParameter(VidiconProtocol::WIFI, QVariant::fromValue(param));
         break;
     }
     default:
@@ -341,6 +395,7 @@ void SystemWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray data
         QList<UserConfigInfo> param;
         isOK = ParseXML::getInstance()->parseUserConfgInfo(param, data);
         if (isOK) {
+#if 0
             for (int i=0; i<param.size(); i++) {
                 qDebug() << "#SystemWidget# "
                          << "UserName: " << param[i].UserName
@@ -349,6 +404,30 @@ void SystemWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray data
             }
 
             static_cast<UserInfoView *>(m_userConfigMap["view"])->setItems(param);
+#else
+            for (int i=0; i<param.size(); i++) {
+                UserConfigInfo info = param.takeLast();
+                if (info.UserName.length() == 16) {
+                    if (info.UserName.left(3).compare("CRH") == 0) {
+                        QStringList list = info.UserName.split('_');
+                        if (list.count() == 4) {
+                            static_cast<LineEdit *>(m_userConfigMap["train"])->setText(list.at(1));
+                            static_cast<LineEdit *>(m_userConfigMap["coach"])->setText(list.at(2));
+                            static_cast<LineEdit *>(m_userConfigMap["seat"])->setText(list.at(3));
+                            break;
+                        }
+                    }
+                }
+            }
+#endif
+        }
+    }
+    case VidiconProtocol::WIFI: {
+        WifiConfigParameter param;
+        isOK = ParseXML::getInstance()->parseWifiConfgInfo(param, data);
+        if (isOK) {
+            static_cast<LineEdit *>(m_wifiSettinsMap["ssid"])->setText(param.ssid);
+            static_cast<LineEdit *>(m_wifiSettinsMap["passwd"])->setText(param.passwd);
         }
     }
     default:

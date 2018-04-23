@@ -23,6 +23,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+protected:
+    void closeEvent(QCloseEvent *event);
+
 public slots:
     void loginHandler(LoginWidget::LoginState state);
     void logoutHandler();

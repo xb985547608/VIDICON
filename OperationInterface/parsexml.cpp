@@ -281,7 +281,7 @@ bool ParseXML::parseImageParameter(ImageParameter *param, QByteArray data)
     int errorLine, errorColumn;
 
     if(!doc->setContent(data, &errorMsg, &errorLine, &errorColumn)) {
-        qDebug() << "#ParseXML# parseAudioEncodingParameter Error occurred: "
+        qDebug() << "#ParseXML# parseImageParameter Error occurred: "
                  << "errorMsg" << errorMsg
                  << "errorLine" << errorLine
                  << "errorColumn" << errorColumn;
@@ -327,9 +327,19 @@ bool ParseXML::parseImageParameter(ImageParameter *param, QByteArray data)
                 }
                 child2 = child2.nextSiblingElement();
             }
-        }else if(child1.tagName().compare("IrcutFilter", Qt::CaseInsensitive) == 0) {
-            if(child1.firstChildElement().tagName().compare("IrcutFilterMode", Qt::CaseInsensitive) == 0) {
-                param->IrcutFilterMode = child1.firstChildElement().text().toInt();
+        }else if(child1.tagName().compare("IrcutFilter", Qt::CaseInsensitive) == 0) {            
+            QDomElement child2 = child1.firstChildElement();
+            while(!child2.isNull()) {
+                if(child2.tagName().compare("IrcutFilterMode", Qt::CaseInsensitive) == 0) {
+                    param->IrcutFilterMode = child2.text().toInt();
+                }else if(child2.tagName().compare("BeginTime", Qt::CaseInsensitive) == 0) {
+                    QStringList list = child2.text().split(':');
+                    param->BeginTime = QTime(list.at(0).toInt(), list.at(1).toInt(), 0);
+                }else if(child2.tagName().compare("EndTime", Qt::CaseInsensitive) == 0) {
+                    QStringList list = child2.text().split(':');
+                    param->EndTime = QTime(list.at(0).toInt(), list.at(1).toInt(), 0);
+                }
+                child2 = child2.nextSiblingElement();
             }
         }else if(child1.tagName().compare("AntiFlash", Qt::CaseInsensitive) == 0) {
             if(child1.firstChildElement().tagName().compare("AntiFlashMode", Qt::CaseInsensitive) == 0) {
@@ -1593,6 +1603,48 @@ bool ParseXML::parseUserConfgInfo(QList<UserConfigInfo> &param, QByteArray data)
                 child2 = child2.nextSiblingElement();
             }
             param.append(info);
+        }
+
+        child = child.nextSiblingElement();
+    }
+
+    delete doc;
+    return true;
+}
+
+bool ParseXML::parseWifiConfgInfo(WifiConfigParameter &param, QByteArray data)
+{
+    QDomDocument *doc = new QDomDocument();
+    QString errorMsg;
+    int errorLine, errorColumn;
+
+    if(!doc->setContent(data, &errorMsg, &errorLine, &errorColumn)) {
+        qDebug() << "#ParseXML# parseWifiConfgInfo Error occurred: "
+                 << "errorMsg" << errorMsg
+                 << "errorLine" << errorLine
+                 << "errorColumn" << errorColumn;
+        delete doc;
+        return false;
+    }
+
+    QDomElement root = doc->documentElement();
+    if(root.isNull()) {
+        delete doc;
+        return false;
+    }
+
+    if (root.tagName().compare("WifiConfig", Qt::CaseInsensitive) != 0) {
+        qDebug("#ParseXML# parseWifiConfgInfo XML data unmatched");
+        delete doc;
+        return false;
+    }
+    QDomElement child = root.firstChildElement();
+
+    while (!child.isNull()) {
+        if (child.tagName().compare("WifiApSSID", Qt::CaseInsensitive) == 0) {
+            param.ssid = child.text();
+        } else if (child.tagName().compare("WifiApPassword", Qt::CaseInsensitive) == 0) {
+            param.passwd = child.text();
         }
 
         child = child.nextSiblingElement();

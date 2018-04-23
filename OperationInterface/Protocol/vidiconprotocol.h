@@ -326,8 +326,8 @@ struct ImageParameter {
     int     DWDRIntensity;
     int     IrcutFilterMode;
     int     HighLowLevel;
-    QString BeginTime;
-    QString EndTime;
+    QTime   BeginTime;
+    QTime   EndTime;
     int     NoiseReduceMode;
     int     LDCEnabled;
     int     BrightnessLevel;
@@ -402,6 +402,12 @@ struct PlayStateParameter {
     int StateValue;
 };
 Q_DECLARE_METATYPE(PlayStateParameter)
+
+struct WifiConfigParameter {
+    QString ssid;
+    QString passwd;
+};
+Q_DECLARE_METATYPE(WifiConfigParameter)
 
 struct PlayingTimeParameter {
     int htmlid;
@@ -479,6 +485,7 @@ public:
         ADDUSER,
         DELETEUSER,
         LOGOUT,
+        WIFI,
 
         RESPONSESTATUS,
         NETWORKERROR,
@@ -645,6 +652,9 @@ private:
 
     void addUser(QString SessionID, const UserConfigInfo &info);
     void delUser(QString SessionID, const UserConfigInfo &info);
+
+    void getWifiConfig(QString SessionID);
+    void setWifiConfig(QString SessionID, const WifiConfigParameter &param);
 
 signals:
     void signalReceiveData(VidiconProtocol::Type type, QByteArray data);

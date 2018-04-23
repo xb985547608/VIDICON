@@ -22,6 +22,9 @@ protected:
 signals:
 
 public slots:
+    void fullScreen();
+    void clearScreen();
+
     void handleReceiveImage(QPixmap *pixmap);
     void handleTimeout();
 

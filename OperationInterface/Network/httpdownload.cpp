@@ -5,21 +5,21 @@
 #include <QDir>
 #include "util.h"
 
-HttpDownload *HttpDownload::_instance = NULL;
+HttpDownload *HttpDownload::s_instance = NULL;
 HttpDownload::HttpDownload(QObject *parent) : QObject(parent),
-    host("192.168.0.66"), port("80"), currentCmd(-1)
+    m_host("192.168.0.66"), m_port("80"), m_currentCmd(-1)
 {
 
 }
 
 void HttpDownload::init()
 {
-    manager = new QNetworkAccessManager(this);
-    connect(manager, &QNetworkAccessManager::finished, this, &HttpDownload::finished);
+    m_manager = new QNetworkAccessManager(this);
+    connect(m_manager, &QNetworkAccessManager::finished, this, &HttpDownload::finished);
 
     //确保download目录的存在
-    downloadDir = QString("%1/%2").arg(qApp->applicationDirPath()).arg(DOWNLOADDIR);
-    QDir dir(downloadDir);
+    m_downloadDir = QString("%1/%2").arg(qApp->applicationDirPath()).arg(DOWNLOADDIR);
+    QDir dir(m_downloadDir);
     if(!dir.exists()) {
         dir.cdUp();
         dir.mkdir(DOWNLOADDIR);
@@ -35,14 +35,14 @@ void HttpDownload::init()
     }
 
     //该定时器用来计算每秒平均下载速率
-    timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, &HttpDownload::handleTimeout);
+    m_timer = new QTimer(this);
+    connect(m_timer, &QTimer::timeout, this, &HttpDownload::handleTimeout);
 }
 
 void HttpDownload::setDownloadDir(QString dirStr)
 {
-    downloadDir = dirStr;
-    QDir dir(downloadDir);
+    m_downloadDir = dirStr;
+    QDir dir(m_downloadDir);
     if(!dir.exists()) {
         dir.cdUp();
         dir.mkdir(DOWNLOADDIR);
@@ -54,11 +54,11 @@ void HttpDownload::getImage(QString path)
     while(!isLeisure()) {
         qApp->processEvents();
     }
-    reply = manager->get(QNetworkRequest(QUrl(QString("http://%1:%2/%3")
-                                         .arg(host)
-                                         .arg(port)
+    m_reply = m_manager->get(QNetworkRequest(QUrl(QString("http://%1:%2%3")
+                                         .arg(m_host)
+                                         .arg(m_port)
                                          .arg(path))));
-    currentCmd = CMD_GETIMAGE;
+    m_currentCmd = CMD_GETIMAGE;
 }
 
 void HttpDownload::downloadFile(QString fileName)
@@ -70,56 +70,63 @@ void HttpDownload::downloadFile(QString fileName)
         qApp->processEvents();
     }
     QStringList list = fileName.split('/');
-    fileStatus.fileName = list.at(list.length() - 1);
-    fileStatus.state = Downloading;
-    fileStatus.bytesReceived = 0;
-    fileStatus.bytesTotal = 0;
-    fileStatus.percent = 0;
-    fileStatus.speed = speed(0);
+    m_fileStatus.fileName = list.at(list.length() - 1);
+    m_fileStatus.state = Downloading;
+    m_fileStatus.bytesReceived = 0;
+    m_fileStatus.bytesTotal = 0;
+    m_fileStatus.percent = 0;
+    m_fileStatus.speed = speed(0);
 
     QString date = QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss-zzz");
-    tempFileName = QString("%1/%2.tmp").arg(downloadDir).arg(date);
-    currentCmd = CMD_DOWNLOAD;
+    m_tempFileName = QString("%1/%2.tmp").arg(m_downloadDir).arg(date);
+    m_currentCmd = CMD_DOWNLOAD;
 
-    reply = manager->get(QNetworkRequest(QUrl(QString("http://%1:%2/record/%3")
-                                              .arg(host)
-                                              .arg(port)
-                                              .arg(fileName))));
+    if (fileName.right(4).compare(".jpg") == 0){
+        m_reply = m_manager->get(QNetworkRequest(QUrl(QString("http://%1:%2/record/image/%3")
+                                                      .arg(m_host)
+                                                      .arg(m_port)
+                                                      .arg(fileName))));
+    } else {
+        m_reply = m_manager->get(QNetworkRequest(QUrl(QString("http://%1:%2/record/%3")
+                                                      .arg(m_host)
+                                                      .arg(m_port)
+                                                      .arg(fileName))));
+    }
 
 
     //测试链接
 //    reply = manager->get(QNetworkRequest(QUrl("http://sw.bos.baidu.com/sw-search-sp/software/06da2b30f1c74/BaiduNetdisk_5.7.3.1.exe")));
-    connect(reply, &QNetworkReply::readyRead, this, &HttpDownload::readyRead);
-    connect(reply, &QNetworkReply::downloadProgress, this, &HttpDownload::downloadProgress);
-    connect(reply, static_cast<void (QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error), this, &HttpDownload::handleError);
+    connect(m_reply, &QNetworkReply::readyRead, this, &HttpDownload::readyRead);
+    connect(m_reply, &QNetworkReply::downloadProgress, this, &HttpDownload::downloadProgress);
+    connect(m_reply, static_cast<void (QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error), this, &HttpDownload::handleError);
 
-    downloadTime.start();
-    timer->start(1000);
+    m_downloadTime.start();
+    m_timer->start(1000);
 }
 
 void HttpDownload::finished(QNetworkReply */*reply*/)
 {
-    if (reply != NULL) {
-        switch (currentCmd) {
+    if (m_reply != NULL) {
+        switch (m_currentCmd) {
             case CMD_GETIMAGE: {
                 QPixmap *pixmap = new QPixmap;
-                if(pixmap->loadFromData(reply->readAll())) {
+                if(pixmap->loadFromData(m_reply->readAll())) {
                     emit signalImage(pixmap);
                 }
                 break;
             }
             case CMD_DOWNLOAD: {
-                QFileInfo fileInfo(tempFileName);
-                QFileInfo newFileInfo = fileInfo.absolutePath() + "/" + fileStatus.fileName;
+                QFileInfo fileInfo(m_tempFileName);
+                QFileInfo newFileInfo = fileInfo.absolutePath() + "/" + m_fileStatus.fileName;
                 QDir dir;
                 if(dir.exists(fileInfo.absolutePath())) {
                     if(newFileInfo.exists()) {
                         newFileInfo.dir().remove(newFileInfo.fileName());
                     }
-                    QFile::rename(tempFileName, newFileInfo.absoluteFilePath());
+                    QFile::rename(m_tempFileName, newFileInfo.absoluteFilePath());
                     qDebug() << "#HttpDownload# finished(), Download file" << newFileInfo.fileName() << "Success !!";
-                    fileStatus.state = Finished;
-                    emit signalFileStatus(&fileStatus);
+                    m_fileStatus.state = Finished;
+                    emit signalFileStatus(&m_fileStatus);
                 }
                 break;
             }
@@ -132,45 +139,45 @@ void HttpDownload::finished(QNetworkReply */*reply*/)
 
 void HttpDownload::readyRead()
 {
-    if(currentCmd == CMD_DOWNLOAD) {
-        QFile file(tempFileName);
+    if(m_currentCmd == CMD_DOWNLOAD) {
+        QFile file(m_tempFileName);
         if(file.open(QIODevice::Append)) {
-            file.write(reply->readAll());
+            file.write(m_reply->readAll());
             file.close();
         }else {
-            qDebug() << "#HttpDownload# readyRead(), Open file error" << tempFileName;
+            qDebug() << "#HttpDownload# readyRead(), Open file error" << m_tempFileName;
         }
     }
 }
 
 void HttpDownload::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
-    if(currentCmd == CMD_DOWNLOAD) {
-        fileStatus.bytesReceived = bytesReceived;
-        fileStatus.bytesTotal = bytesTotal;
-        fileStatus.percent = bytesReceived * 100 / bytesTotal;
+    if(m_currentCmd == CMD_DOWNLOAD) {
+        m_fileStatus.bytesReceived = bytesReceived;
+        m_fileStatus.bytesTotal = bytesTotal;
+        m_fileStatus.percent = bytesReceived * 100 / bytesTotal;
     }
 }
 
 void HttpDownload::handleTimeout()
 {
     //下载的每秒瞬时速度
-    qreal s = fileStatus.bytesReceived - lastReceiveBytes;
+    qreal s = m_fileStatus.bytesReceived - m_lastReceiveBytes;
     //记录本次字节数
-    lastReceiveBytes = fileStatus.bytesReceived;
+    m_lastReceiveBytes = m_fileStatus.bytesReceived;
     //将速度转为字符串
-    fileStatus.speed = speed(s);
-    emit signalFileStatus(&fileStatus);
+    m_fileStatus.speed = speed(s);
+    emit signalFileStatus(&m_fileStatus);
 }
 
 void HttpDownload::handleError(QNetworkReply::NetworkError error)
 {
     qDebug() << "#HttpDownload# finished,"
-             << "StatusCode:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
+             << "StatusCode:" << m_reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
              << "ErrorType:" << error;
-    if (currentCmd == CMD_DOWNLOAD) {
-        fileStatus.state = Error;
-        emit signalFileStatus(&fileStatus);
+    if (m_currentCmd == CMD_DOWNLOAD) {
+        m_fileStatus.state = Error;
+        emit signalFileStatus(&m_fileStatus);
     }
     reset();
 }
@@ -181,19 +188,19 @@ void HttpDownload::handleCancelDownload(QString file)
         return;
 
     QStringList list = file.split('/');
-    if(fileStatus.fileName == list.at(list.length() - 1)) {
-        reply->abort();
+    if(m_fileStatus.fileName == list.at(list.length() - 1)) {
+        m_reply->abort();
     }
 }
 
 void HttpDownload::reset()
 {
-    if(currentCmd == CMD_DOWNLOAD) {
-        lastReceiveBytes = 0;
-        if(timer->isActive()) {
-            timer->stop();
+    if(m_currentCmd == CMD_DOWNLOAD) {
+        m_lastReceiveBytes = 0;
+        if(m_timer->isActive()) {
+            m_timer->stop();
         }
     }
-    currentCmd = -1;
-    reply = NULL;
+    m_currentCmd = -1;
+    m_reply = NULL;
 }

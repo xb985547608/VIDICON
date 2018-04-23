@@ -43,7 +43,6 @@ FileView::FileView(QWidget *parent) : QTableView(parent)
     setColumnWidth(0, 40);
     setColumnWidth(2, 60);
 
-
     setStyleSheet("QTableView{selection-background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #37ecba, stop: 1 #72afd3);}\
                    QCheckBox::indicator:unchecked { border-image: url(:/images/unchecked.png)0 0 0 28;}\
                    QCheckBox::indicator:unchecked:hover { border-image: url(:/images/unchecked.png)0 14 0 14;}\
@@ -73,18 +72,20 @@ void FileView::setDataSource(const QStringList &list)
     }
     m_btnList.clear();
 
-    for(int i=0; i<list.length(); i++) {
-        QPushButton *btn = new QPushButton("查看", this);
-        btn->setObjectName(QString::number(i));
-        connect(btn, &QPushButton::clicked, this, [btn, this](){
-            int row = btn->objectName().toInt();
-            QString path = QString("/record/%1").arg(dataSource().at(row).fileName);
-            qDebug() << "#FileView# view remote photo --> " << path;
-            if(path.right(3).compare("jpg") == 0)
-                QMetaObject::invokeMethod(HttpDownload::getInstance(), "getImage", Q_ARG(QString, path));
-        });
-        setIndexWidget(model()->index(i, OPERATIONCOLUMN), btn);
-        m_btnList.append(btn);
+    if (list.first().right(4).compare(".jpg") == 0) {
+        for(int i=0; i<list.length(); i++) {
+            QPushButton *btn = new QPushButton("查看", this);
+            btn->setObjectName(QString::number(i));
+            connect(btn, &QPushButton::clicked, this, [btn, this](){
+                int row = btn->objectName().toInt();
+                QString path = QString("/record/image/%1").arg(dataSource().at(row).fileName);
+                qDebug() << "#FileView# view remote photo --> " << path;
+                if(path.right(3).compare("jpg") == 0)
+                    QMetaObject::invokeMethod(HttpDownload::getInstance(), "getImage", Q_ARG(QString, path));
+            });
+            setIndexWidget(model()->index(i, OPERATIONCOLUMN), btn);
+            m_btnList.append(btn);
+        }
     }
 }
 

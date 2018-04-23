@@ -1262,8 +1262,8 @@ void VidiconProtocol::setImageParameter(QString SessionID, const ImageParameter 
                        .arg(param.Shutter)
                        .arg(param.IrcutFilterMode)
                        .arg(param.HighLowLevel)
-                       .arg(param.BeginTime)
-                       .arg(param.EndTime)
+                       .arg(param.BeginTime.toString("hh:mm"))
+                       .arg(param.EndTime.toString("hh:mm"))
                        .arg(param.AntiFlashMode)
                        .arg(param.BLCMode)
                        .arg(param.BLCIntensity)
@@ -1686,6 +1686,39 @@ void VidiconProtocol::delUser(QString SessionID, const UserConfigInfo &info)
     m_reply = m_manager->put(request, requestBody.toLatin1());
 }
 
+void VidiconProtocol::getWifiConfig(QString SessionID)
+{
+    QString urlSuffix = QString("/ISAPI/Network/Wifi?ID=%1").arg(SessionID);
+    QNetworkRequest request;
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
+
+    QString requestBody;
+
+    handlePrePare(request, requestBody);
+    m_currentType = WIFI;
+    m_reply = m_manager->post(request, requestBody.toLatin1());
+}
+
+void VidiconProtocol::setWifiConfig(QString SessionID, const WifiConfigParameter &param)
+{
+    QString urlSuffix = QString("/ISAPI/Network/Wifi?ID=%1").arg(SessionID);
+    QNetworkRequest request;
+    request.setUrl(QUrl(urlPrefix() + urlSuffix));
+
+    QString requestBody;
+    requestBody.append(QString("<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                               "<WifiConfig>"
+                                   "<wifiapssid>%1</wifiapssid>"
+                                   "<wifiappassword>%2</wifiappassword>"
+                               "</WifiConfig>")
+                       .arg(param.ssid)
+                       .arg(param.passwd));
+
+    handlePrePare(request, requestBody);
+    m_currentType = RESPONSESTATUS;
+    m_reply = m_manager->put(request, requestBody.toLatin1());
+}
+
 void VidiconProtocol::handlePrePare(QNetworkRequest &request, QString RequestBody)
 {
     //定制请求头
@@ -1846,6 +1879,11 @@ void VidiconProtocol::handleSetParameter(Type type, QVariant param, QString Sess
             delUser(SessionID, temp);
             break;
         }
+        case WIFI: {
+            WifiConfigParameter temp = param.value<WifiConfigParameter>();
+            setWifiConfig(SessionID, temp);
+            break;
+        }
         default:
             qDebug() << "#VidiconProtocol# handleSetParameter ignore signal, type:" << type;
             break;
@@ -1965,6 +2003,11 @@ void VidiconProtocol::handleGetParameter(Type type, const QVariant param, QStrin
         }
         case USERCONFIG: {
             getUserConfig(SessionID);
+            break;
+        }
+        case WIFI: {
+            getWifiConfig(SessionID);
+            break;
         }
         default:
             qDebug() << "#VidiconProtocol# handleGetParameter ignore signal, type:" << type;

@@ -37,15 +37,7 @@ DownloadInfoView::DownloadInfoView(QWidget *parent) :
     //外框风格-->无边框
     setFrameShape(QFrame::NoFrame);
 
-//    setSortingEnabled(true);
-
-    horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
-    horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
-    horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
-    setColumnWidth(0, 40);
-    setColumnWidth(1, 40);
-    setColumnWidth(2, 200);
-
+    connect(this->model(), &QAbstractItemModel::dataChanged, this, &DownloadInfoView::reset);
 
     setStyleSheet("QProgressBar{\
                       border: 1px solid rgb(210, 225, 240);\
@@ -60,6 +52,7 @@ DownloadInfoView::DownloadInfoView(QWidget *parent) :
                   }");
 
     createActions();
+    reset();
 }
 
 void DownloadInfoView::addData(QString fileName, int state, int progress)
@@ -170,6 +163,16 @@ void DownloadInfoView::contextMenuEvent(QContextMenuEvent *event)
         m_popMenu->exec(QCursor::pos());
         event->accept();
     }
+}
+
+void DownloadInfoView::reset()
+{
+    horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+    horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+    horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
+    setColumnWidth(0, 40);
+    setColumnWidth(1, 40);
+    setColumnWidth(2, 200);
 }
 
 DownloadInfoDelegate::DownloadInfoDelegate(QObject *parent) :
@@ -368,23 +371,23 @@ bool DownloadInfoModel::setData(const QModelIndex &index, const QVariant &value,
         return false;
 
     switch (role) {
-    case Qt::EditRole:
-    case Qt::DisplayRole: {
-        if(index.row() >= rowCount()) {
-            DownloadInfo d;
-            m_items.append(d);
+        case Qt::EditRole:
+        case Qt::DisplayRole: {
+            if(index.row() >= rowCount()) {
+                DownloadInfo d;
+                m_items.append(d);
+            }
+            if(1 == index.column())
+                m_items[index.row()].state = value.toInt();
+            else if(2 == index.column())
+                m_items[index.row()].progress = value.toInt();
+            else if(3 == index.column())
+                m_items[index.row()].fileName = value.toString();
+            emit dataChanged(index, index);
+            return true;
         }
-        if(1 == index.column())
-            m_items[index.row()].state = value.toInt();
-        else if(2 == index.column())
-            m_items[index.row()].progress = value.toInt();
-        else if(3 == index.column())
-            m_items[index.row()].fileName = value.toString();
-        emit dataChanged(index, index);
-        return true;
-    }
-    default:
-        return QAbstractTableModel::setData(index, value, role);
+        default:
+            return QAbstractTableModel::setData(index, value, role);
     }
     return false;
 }

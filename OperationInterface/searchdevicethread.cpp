@@ -24,6 +24,7 @@ void SearchDeviceThread::run()
 {
     qDebug() << "#SearchDeviceThread# start serach device";
 
+    isRun = true;
     udpSocket = new QUdpSocket();
 
     while(isRun) {
@@ -85,6 +86,6 @@ void SearchDeviceThread::readyRead()
 
     WholeDeviceInfo deviceInfo;
     if(ParseXML::getInstance()->parseDiscoveryDevice(&deviceInfo, buff)) {
-        emit signalDeviceInfo(deviceInfo);
+        emit signalDeviceInfo(QVariant::fromValue(deviceInfo));
     }
 }

@@ -47,6 +47,7 @@ public:
     bool parseBackUpQueryParameter(BackUpQueryParameter *param, QByteArray data);
     bool parsePlayingTimeParameter(PlayingTimeParameter *param, QByteArray data);
     bool parseUserConfgInfo(QList<UserConfigInfo> &param, QByteArray data);
+    bool parseWifiConfgInfo(WifiConfigParameter &param, QByteArray data);
 
     bool parsePullMsg(PullMessage *param, QByteArray data);
     bool parseResponseStatus(ResponseStatus *param, QByteArray data);

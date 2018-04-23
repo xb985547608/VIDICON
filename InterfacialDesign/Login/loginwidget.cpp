@@ -4,6 +4,7 @@
 #include <QCryptographicHash>
 #include <QMouseEvent>
 #include <QDebug>
+#include <QApplication>
 
 LoginWidget::LoginWidget(QWidget *parent) :
     QWidget(parent),
@@ -67,6 +68,12 @@ void LoginWidget::keyPressEvent(QKeyEvent *event)
     if(event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)
         onLoginBtn();
     QWidget::keyPressEvent(event);
+}
+
+void LoginWidget::closeEvent(QCloseEvent *event)
+{
+    Q_UNUSED(event)
+    qApp->exit();
 }
 
 void LoginWidget::onLoginBtn()

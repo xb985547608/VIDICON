@@ -47,14 +47,14 @@ void SettinsWidget::initSideBar()
 
     m_boxMedia = new ListView(m_toolbox);
     m_boxMedia->setFrameShape(QFrame::NoFrame);
-    list << "音视频" << "隐私遮蔽" << "图像参数" << "ROI" << "OSD";
+    list << "音视频" << "隐私遮蔽" << "图像参数" /*<< "ROI"*/ << "OSD";
     m_boxMedia->addItems(list);
     m_toolbox->addItem(m_boxMedia, QIcon(":/images/media.png"), "媒体设置");
 
     list.clear();
     m_boxNetwork = new ListView(m_toolbox);
-    list << "TCP/IP" << "PPPOE" << "DDNS Client" << "Email" << "FTP"
-         << "Bonjour" << "SNMP" << "UPNP" << "HTTPs" << "P2P" << "RTSP";
+    list << "TCP/IP" /*<< "PPPOE" << "DDNS Client" << "Email" << "FTP"
+         << "Bonjour" << "SNMP" << "UPNP" << "HTTPs" << "P2P" << "RTSP"*/;
     m_boxNetwork->addItems(list);
     m_toolbox->addItem(m_boxNetwork, QIcon(":/images/network.png"), "网络设置");
 

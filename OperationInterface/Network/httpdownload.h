@@ -36,26 +36,30 @@ public:
         int     state;          //文件状态
     };
     static HttpDownload *getInstance() {
-        if(_instance == NULL){
-            _instance = new HttpDownload();
+        if(s_instance == NULL){
+            s_instance = new HttpDownload();
         }
-        return _instance;
+        return s_instance;
     }
 
     void init();
-    QString getDownloadDir() const { return downloadDir; }
+    QString getDownloadDir() const { return m_downloadDir; }
     Q_INVOKABLE void setDownloadDir(QString dirStr);
 
     Q_INVOKABLE void getImage(QString path = "/ISAPI/Snap/GetImg0.1");
     Q_INVOKABLE void downloadFile(QString fileName);
 
-    inline bool isLeisure() { return (currentCmd == -1); }
+    inline bool isLeisure() { return (m_currentCmd == -1); }
+
+    void setHost(QString host) { m_host = host; }
+    void setPort(QString port) { m_port = port; }
+
 signals:
     void signalImage(QPixmap *pixmap);
-    void signalFileStatus(const FileStatus *fileStatus);
+    void signalFileStatus(const FileStatus *m_fileStatus);
 
 public slots:
-    void finished(QNetworkReply *reply);
+    void finished(QNetworkReply *m_reply);
     void readyRead();
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
     void handleTimeout();
@@ -66,23 +70,23 @@ private:
     void reset();
 
 private:
-    static HttpDownload *_instance;
+    static HttpDownload *s_instance;
     explicit HttpDownload(QObject *parent = nullptr);
 
-    QString host;
-    QString port;
-    QNetworkAccessManager *manager;
-    QNetworkReply *reply;
+    QString m_host;
+    QString m_port;
+    QNetworkAccessManager *m_manager;
+    QNetworkReply *m_reply;
 
-    int currentCmd;
-    QString tempFileName;
-    QString downloadDir;
+    int m_currentCmd;
+    QString m_tempFileName;
+    QString m_downloadDir;
 
-    FileStatus fileStatus;
+    FileStatus m_fileStatus;
 
-    QTime downloadTime;
-    QTimer *timer;
-    qint64 lastReceiveBytes;
+    QTime m_downloadTime;
+    QTimer *m_timer;
+    qint64 m_lastReceiveBytes;
 };
 
 #endif // HTTP_H

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += widgets gui network xml
+QT += widgets network xml
 
 TARGET = OperationInterface
 TEMPLATE = lib

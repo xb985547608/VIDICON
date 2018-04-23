@@ -24,6 +24,7 @@ public slots:
     void setCurrentIndex(const QModelIndex &index) override;
     void handlePrepareData() override;
     void handleReceiveData(VidiconProtocol::Type type, QByteArray data) override;
+    void checkInput(QString text);
 
 private:
     QWidget *m_audioVideoWidget;
@@ -40,6 +41,8 @@ private:
 
     QWidget *m_osdWidget;
     QMap<QString, QWidget *> m_OSDMap;
+
+    QList<QLineEdit *> m_notPass;
 };
 
 #endif // TABMEDIA_H

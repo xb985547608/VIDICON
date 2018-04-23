@@ -89,6 +89,7 @@ void UserInfoView::initModifyInfoWidget()
     QLabel *lbl1 = new QLabel("用户名：", m_modifyInfoWidget);
     LineEdit *lineEdit1 = new LineEdit(m_modifyInfoWidget);
     lineEdit1->setReadOnly(true);
+    lineEdit1->setMaxLength(16);
     m_modifyInfoMap.insert("User", lineEdit1);
 
     QLabel *lbl2 = new QLabel("权限：", m_modifyInfoWidget);
@@ -198,7 +199,6 @@ void UserInfoView::initAddUserInfoWidget()
                 .arg(train)
                 .arg(coach)
                 .arg(seat);
-        user = user.mid(0, 15);
 
         QString passwd1 = static_cast<LineEdit *>(m_addUserInfoMap["Password"])->text();
         QString passwd2 = static_cast<LineEdit *>(m_addUserInfoMap["Confirm"])->text();

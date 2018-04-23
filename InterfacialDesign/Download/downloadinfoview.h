@@ -25,6 +25,7 @@ signals:
     void signalCancelDownload(QString file);
 public slots:
     void contextMenuEvent(QContextMenuEvent *event) override;
+    void reset();
 private:
     QMenu *m_popMenu;
     QAction *m_cancelDownloadAction;

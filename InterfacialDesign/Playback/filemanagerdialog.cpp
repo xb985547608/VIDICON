@@ -22,6 +22,11 @@ FileManagerDialog::FileManagerDialog(QWidget *parent) :
     connect(rBtn1, &QRadioButton::toggled, this, [this](bool checked) {
         m_fileView->setDataSource(checked ? m_videoItems : m_pictureItems);
         m_isVideo = checked;
+
+        if (m_isVideo)
+            m_fileView->horizontalHeader()->hideSection(2);
+        else
+            m_fileView->horizontalHeader()->showSection(2);
     });
     QHBoxLayout *layout1 = new QHBoxLayout;
     layout1->addWidget(rBtn1);
@@ -78,7 +83,8 @@ void FileManagerDialog::handleReceiveData(VidiconProtocol::Type type, QByteArray
         isOK = ParseXML::getInstance()->parseBackUpQueryParameter(&param, data);
         if (isOK) {
             m_pictureItems = param.fileList;
-            m_fileView->setDataSource(m_isVideo ? m_videoItems : m_pictureItems);
+            m_fileView->setDataSource(m_videoItems);
+            m_fileView->horizontalHeader()->hideSection(2);
             exec();
         }
         break;

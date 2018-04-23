@@ -3,6 +3,7 @@
 
 #include <QMap>
 #include "stackedwidget.h"
+#include <QRegExpValidator>
 
 class NetworkWidget : public StackedWidget
 {
@@ -27,6 +28,8 @@ public slots:
     void setCurrentIndex(const QModelIndex &index) override;
     void handlePrepareData() override;
     void handleReceiveData(VidiconProtocol::Type type, QByteArray data) override;
+
+    void checkInput(QString text);
 
 private:
     QWidget *m_tcpIpWidget;
@@ -61,6 +64,8 @@ private:
 
     QWidget *m_RTSPWidget;
     QMap<QString, QWidget *> m_RTSPMap;
+
+    QList<QLineEdit *> m_notPass;
 };
 
 #endif // TABNETWORK_H

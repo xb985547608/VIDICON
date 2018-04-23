@@ -6,6 +6,7 @@
 #include "lineedit.h"
 #include "parsexml.h"
 #include "Control/vlccontrol.h"
+#include "Network/httpdownload.h"
 
 HomeWidget::HomeWidget(QWidget *parent) :
     BasicWidget(parent),
@@ -73,8 +74,10 @@ void HomeWidget::onSearchBtnClicked()
     }
 }
 
-void HomeWidget::hanldeDeviceInfo(WholeDeviceInfo info)
+void HomeWidget::hanldeDeviceInfo(QVariant value)
 {
+    WholeDeviceInfo info = qvariant_cast<WholeDeviceInfo>(value);
+
     m_items.append(info);
     ui->devNum->setText(QString::number(m_items.count()));
 
@@ -166,19 +169,30 @@ void HomeWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray data)
                 QString host = m_items.at(m_afterLoginRow).IPAddr;
                 QString httpPort = QString::number(m_items.at(m_afterLoginRow).HTTPPort);
                 QString rtspPort = QString::number(m_items.at(m_afterLoginRow).RTSPPort);
-                QString user = static_cast<LineEdit *>(m_loginMap.value("user"))->text();
-                QString passwd = static_cast<LineEdit *>(m_loginMap.value("passwd"))->text();
+
+                QString train = static_cast<LineEdit *>(m_loginMap["train"])->text();
+                QString coach = static_cast<LineEdit *>(m_loginMap["coach"])->text();
+                QString seat  = static_cast<LineEdit *>(m_loginMap["seat"])->text();
+                QString user = QString("CRH_%1_%2_%3")
+                        .arg(train)
+                        .arg(coach)
+                        .arg(seat);
 
                 VidiconProtocol::getInstance()->setHost(host);
                 VidiconProtocol::getInstance()->setPort(httpPort);
+
                 VlcControl::getInstance()->setHost(host);
                 VlcControl::getInstance()->setPort(rtspPort);
                 VlcControl::getInstance()->setUser(user);
-                VlcControl::getInstance()->setPasswd(passwd);
+                VlcControl::getInstance()->setPasswd(user);
+
+                HttpDownload::getInstance()->setHost(host);
+                HttpDownload::getInstance()->setPort(httpPort);
             }
 
-            static_cast<LineEdit *>(m_loginMap.value("user"))->clear();
-            static_cast<LineEdit *>(m_loginMap.value("passwd"))->clear();
+            static_cast<LineEdit *>(m_loginMap["train"])->clear();
+            static_cast<LineEdit *>(m_loginMap["coach"])->clear();
+            static_cast<LineEdit *>(m_loginMap["seat"])->clear();
             break;
         }
         default:
@@ -207,15 +221,24 @@ void HomeWidget::handleLogin(int row)
         VidiconProtocol::getInstance()->setPort(port);
 
         if (m_loginDialog->exec() == QDialog::Accepted) {
+#if 0
             QString user = static_cast<LineEdit *>(m_loginMap.value("user"))->text();
             QString passwd = static_cast<LineEdit *>(m_loginMap.value("passwd"))->text();
-
-            if (!user.length() || !passwd.length()) {
-                QMessageBox::warning(this, "警告", "用户名或密码不可为空，请重新输入");
+#else
+            QString train = static_cast<LineEdit *>(m_loginMap["train"])->text();
+            QString coach = static_cast<LineEdit *>(m_loginMap["coach"])->text();
+            QString seat  = static_cast<LineEdit *>(m_loginMap["seat"])->text();
+            QString user = QString("CRH_%1_%2_%3")
+                    .arg(train)
+                    .arg(coach)
+                    .arg(seat);
+#endif
+            if (user.length() != 16) {
+                QMessageBox::warning(this, "警告", "用户名格式错误，请重新输入");
             } else {
                 QMetaObject::invokeMethod(VidiconProtocol::getInstance(), "login",
                                           Q_ARG(QString, user),
-                                          Q_ARG(QString, passwd));
+                                          Q_ARG(QString, user));
             }
         }
     }
@@ -226,6 +249,7 @@ void HomeWidget::initLoginDialog()
     m_loginDialog = new QDialog(this);
     m_loginDialog->setFixedSize(200, 100);
 
+#if 0
     QLabel *lbl1 = new QLabel("用户：", m_loginDialog);
     LineEdit *lineEdit1 = new LineEdit(m_loginDialog);
     m_loginMap.insert("user", lineEdit1);
@@ -256,6 +280,43 @@ void HomeWidget::initLoginDialog()
     layout3->addStretch(1);
     layout3->addLayout(layout2);
     layout3->addStretch(1);
+#else
+    QLabel *lbl1 = new QLabel("车号：", m_loginDialog);
+    LineEdit *lineEdit1 = new LineEdit(m_loginDialog);
+    lineEdit1->setReadOnly(false);
+    lineEdit1->setMaxLength(6);
+    m_loginMap.insert("train", lineEdit1);
+
+    QLabel *lbl2 = new QLabel("车厢号：", m_loginDialog);
+    LineEdit *lineEdit2 = new LineEdit(m_loginDialog);
+    lineEdit2->setReadOnly(false);
+    lineEdit2->setMaxLength(2);
+    m_loginMap.insert("coach", lineEdit2);
+
+    QLabel *lbl3 = new QLabel("车位号：", m_loginDialog);
+    LineEdit *lineEdit3 = new LineEdit(m_loginDialog);
+    lineEdit3->setReadOnly(false);
+    lineEdit2->setMaxLength(2);
+    m_loginMap.insert("seat", lineEdit3);
+
+    QPushButton *btn = new QPushButton("登录", m_loginDialog);
+    btn->setFixedWidth(50);
+    connect(btn, &QPushButton::clicked, m_loginDialog, &QDialog::accept);
+
+    QGridLayout *layout1 = new QGridLayout;
+    layout1->addWidget(lbl1,        0, 0, 1, 1);
+    layout1->addWidget(lineEdit1,   0, 1, 1, 1);
+
+    layout1->addWidget(lbl2,        1, 0, 1, 1);
+    layout1->addWidget(lineEdit2,   1, 1, 1, 1);
+
+    layout1->addWidget(lbl3,        2, 0, 1, 1);
+    layout1->addWidget(lineEdit3,   2, 1, 1, 1);
+
+    layout1->addWidget(btn,         3, 0, 1, 2, Qt::AlignCenter);
+
+    setAlignment(m_loginDialog, layout1, Qt::AlignTop | Qt::AlignHCenter);
+#endif
 }
 
 void HomeWidget::createActions()

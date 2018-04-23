@@ -2,6 +2,7 @@
 #include "ui/ui_mainwindow.h"
 #include <QVBoxLayout>
 #include <QMessageBox>
+#include <QApplication>
 #include "Protocol/vidiconprotocol.h"
 #include "parsexml.h"
 #include "Settings/waitingshade.h"
@@ -33,12 +34,18 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &MainWindow::handleReceiveData);
     connect(m_navigationWidget, &NavigationWidget::currentChanged, this, &MainWindow::handleCurrentChange);
 
-    setMinimumSize(850, 700);
-    resize(850, 700);
+    setMinimumSize(880, 700);
+    resize(880, 700);
 }
 
 MainWindow::~MainWindow()
 {
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    Q_UNUSED(event)
+    qApp->exit();
 }
 
 void MainWindow::loginHandler(LoginWidget::LoginState state)

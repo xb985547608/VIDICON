@@ -30,7 +30,7 @@ signals:
 public slots:
     void reset();
     void onSearchBtnClicked();
-    void hanldeDeviceInfo(WholeDeviceInfo info);
+    void hanldeDeviceInfo(QVariant value);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;

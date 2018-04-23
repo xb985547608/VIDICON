@@ -15,7 +15,7 @@ public:
     void initDeviceInfoWidget();
     void initSetTimeWidget();
     void initUserConfigWidget();
-    void initWifiSettinsWidget();
+    void initWifiConfigWidget();
 
 public slots:
     void setCurrentIndex(const QModelIndex &index) override;

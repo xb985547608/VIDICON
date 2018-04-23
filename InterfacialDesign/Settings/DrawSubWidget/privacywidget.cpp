@@ -75,6 +75,22 @@ void PrivacyWidget::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
+void PrivacyWidget::fullScreen()
+{
+    reset();
+    m_rects[m_currentIndex].setTopLeft(QPoint(0, 0));
+    m_rects[m_currentIndex].setBottomRight(QPoint(width(), height()));
+    update();
+}
+
+void PrivacyWidget::clearScreen()
+{
+    reset();
+    m_rects[m_currentIndex].setTopLeft(QPoint(0, 0));
+    m_rects[m_currentIndex].setBottomRight(QPoint(0, 0));
+    update();
+}
+
 void PrivacyWidget::handleReceiveImage(QPixmap *pixmap)
 {
     if(isVisible() && !pixmap->isNull()){

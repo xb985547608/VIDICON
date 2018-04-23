@@ -16,16 +16,17 @@ NetworkWidget::NetworkWidget(QWidget *parent) :
     StackedWidget(parent)
 {
     initTCPIPWidget();
-    initPPPOEWidget();
-    initDDNSClientWidget();
-    initEmailWidget();
-    initFTPWidget();
-    initBonjourWidget();
-    initSNMPWidget();
-    initUPNPWidget();
-    initHTTPsWidget();
-    initP2PWidget();
-    initRTSPWidget();
+
+//    initPPPOEWidget();
+//    initDDNSClientWidget();
+//    initEmailWidget();
+//    initFTPWidget();
+//    initBonjourWidget();
+//    initSNMPWidget();
+//    initUPNPWidget();
+//    initHTTPsWidget();
+//    initP2PWidget();
+//    initRTSPWidget();
 }
 
 NetworkWidget::~NetworkWidget()
@@ -36,6 +37,11 @@ void NetworkWidget::initTCPIPWidget()
 {
     QStringList list;
     m_tcpIpWidget = new QWidget(this);
+
+    QString ipRegExpStr = "((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)";
+    QString macRegExpStr = "(([0-9a-z]{2}):){5}([0-9a-z]{2})";
+    QRegExpValidator *ipValidator = new QRegExpValidator(QRegExp(ipRegExpStr), this);
+    QRegExpValidator *macValidator = new QRegExpValidator(QRegExp(macRegExpStr), this);
 
     QLabel *lbl1 = new QLabel("最大连接数：", m_tcpIpWidget);
     LineEdit *lineEdit1 = new LineEdit(m_tcpIpWidget);
@@ -50,32 +56,38 @@ void NetworkWidget::initTCPIPWidget()
 
     QLabel *lbl3 = new QLabel("IPv4地址：", m_tcpIpWidget);
     LineEdit *lineEdit2 = new LineEdit(m_tcpIpWidget);
-    lineEdit2->setInputMask("000.000.000.000;");
+    lineEdit2->setValidator(ipValidator);
+    connect(lineEdit2, &LineEdit::textChanged, this, &NetworkWidget::checkInput);
     m_tcpIpMap.insert("IPv4 Address", lineEdit2);
 
     QLabel *lbl4 = new QLabel("IPv4掩码地址：", m_tcpIpWidget);
     LineEdit *lineEdit3 = new LineEdit(m_tcpIpWidget);
-    lineEdit3->setInputMask("000.000.000.000;");
+    lineEdit3->setValidator(ipValidator);
+    connect(lineEdit3, &LineEdit::textChanged, this, &NetworkWidget::checkInput);
     m_tcpIpMap.insert("IPv4 Subnet", lineEdit3);
 
     QLabel *lbl5 = new QLabel("IPv4网关地址：", m_tcpIpWidget);
     LineEdit *lineEdit4 = new LineEdit(m_tcpIpWidget);
-    lineEdit4->setInputMask("000.000.000.000;");
+    lineEdit4->setValidator(ipValidator);
+    connect(lineEdit4, &LineEdit::textChanged, this, &NetworkWidget::checkInput);
     m_tcpIpMap.insert("IPv4 Gateway", lineEdit4);
 
     QLabel *lbl6 = new QLabel("IPv4主DNS：", m_tcpIpWidget);
     LineEdit *lineEdit5 = new LineEdit(m_tcpIpWidget);
-    lineEdit5->setInputMask("000.000.000.000;");
+    lineEdit5->setValidator(ipValidator);
+    connect(lineEdit5, &LineEdit::textChanged, this, &NetworkWidget::checkInput);
     m_tcpIpMap.insert("IPv4 DNS 1", lineEdit5);
 
     QLabel *lbl7 = new QLabel("IPv4备用DNS：", m_tcpIpWidget);
     LineEdit *lineEdit6 = new LineEdit(m_tcpIpWidget);
-    lineEdit6->setInputMask("000.000.000.000;");
+    lineEdit6->setValidator(ipValidator);
+    connect(lineEdit6, &LineEdit::textChanged, this, &NetworkWidget::checkInput);
     m_tcpIpMap.insert("IPv4 DNS 2", lineEdit6);
 
     QLabel *lbl8 = new QLabel("MAC地址：", m_tcpIpWidget);
     LineEdit *lineEdit7 = new LineEdit(m_tcpIpWidget);
-    lineEdit7->setInputMask("HH:HH:HH:HH:HH:HH;");
+    lineEdit7->setValidator(macValidator);
+    connect(lineEdit7, &LineEdit::textChanged, this, &NetworkWidget::checkInput);
     m_tcpIpMap.insert("IPv4 MacAddr", lineEdit7);
 
     QLabel *lbl9 = new QLabel("IPv6地址：", m_tcpIpWidget);
@@ -108,20 +120,24 @@ void NetworkWidget::initTCPIPWidget()
     QLabel *lbl13 = new QLabel("HTTP端口(1-65535)：", m_tcpIpWidget);
     LineEdit *lineEdit12 = new LineEdit(m_tcpIpWidget);
     lineEdit12->setValidator(new QIntValidator(1, 65535, m_tcpIpWidget));
+    connect(lineEdit12, &LineEdit::textChanged, this, &NetworkWidget::checkInput);
     m_tcpIpMap.insert("HTTP Port", lineEdit12);
 
     QLabel *lbl14 = new QLabel("Onvif端口(1-65535)：", m_tcpIpWidget);
     LineEdit *lineEdit13 = new LineEdit(m_tcpIpWidget);
     lineEdit13->setValidator(new QIntValidator(1, 65535, m_tcpIpWidget));
+    connect(lineEdit13, &LineEdit::textChanged, this, &NetworkWidget::checkInput);
     m_tcpIpMap.insert("Onvif Port", lineEdit13);
 
     QLabel *lbl15 = new QLabel("RTSP端口(1-65535)：", m_tcpIpWidget);
     LineEdit *lineEdit14 = new LineEdit(m_tcpIpWidget);
     lineEdit14->setValidator(new QIntValidator(1, 65535, m_tcpIpWidget));
+    connect(lineEdit14, &LineEdit::textChanged, this, &NetworkWidget::checkInput);
     m_tcpIpMap.insert("RTSP Port", lineEdit14);
 
     QPushButton *btn = new QPushButton("保存", m_tcpIpWidget);
     connect(btn, &QPushButton::clicked, this, &NetworkWidget::handlePrepareData);
+    m_tcpIpMap.insert("save", btn);
 
     QGridLayout *layout1 = new QGridLayout;
 
@@ -650,6 +666,8 @@ void NetworkWidget::setCurrentIndex(const QModelIndex &index)
     if (!index.isValid())
         return;
 
+    m_notPass.clear();
+
     switch(index.row()){
     case 0: {
         emit signalGetParameter(VidiconProtocol::TCPIP);
@@ -780,8 +798,8 @@ void NetworkWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray dat
                     static_cast<LineEdit *>(m_tcpIpMap["Onvif Port"])->setText(QString::number(param1->Port));
                 }else if(param1->ServerType == 3) {
                     static_cast<LineEdit *>(m_tcpIpMap["RTSP Port"])->setText(QString::number(param1->Port));
-                    static_cast<QRadioButton *>(m_RTSPMap["Enable"])->setChecked(param1->Enabled ? true : false);
-                    static_cast<LineEdit *>(m_RTSPMap["RTSP Port"])->setText(QString::number(param1->Port));
+//                    static_cast<QRadioButton *>(m_RTSPMap["Enable"])->setChecked(param1->Enabled ? true : false);
+//                    static_cast<LineEdit *>(m_RTSPMap["RTSP Port"])->setText(QString::number(param1->Port));
                 }
                 param1++;
             }
@@ -909,4 +927,32 @@ void NetworkWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray dat
         qDebug() << "#NetworkWidget# handleReceiveData, ParameterType:" << type << "parse data success...";
     else
         qDebug() << "#NetworkWidget# handleReceiveData, ParameterType:" << type << "parse data error...";
+}
+
+void NetworkWidget::checkInput(QString text)
+{
+    QLineEdit *le = dynamic_cast<QLineEdit *>(sender());
+    if (le == NULL)
+        return;
+
+    QPushButton *btn = NULL;
+    switch (currentIndex()) {
+    case 0:
+        btn = dynamic_cast<QPushButton *>(m_tcpIpMap.value("save", NULL));
+        break;
+    default:
+        break;
+    }
+
+    if (btn == NULL)
+        return;
+
+    int pos = 0;
+    if (le->validator()->validate(text, pos) == QValidator::Acceptable) {
+        m_notPass.removeAll(le);
+    } else {
+        m_notPass.append(le);
+    }
+
+    btn->setEnabled(m_notPass.isEmpty());
 }
