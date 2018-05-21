@@ -1,6 +1,12 @@
 #ifndef PARSEXML_H
 #define PARSEXML_H
 
+/**
+ * @brief         解析设备下发的信息
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QObject>
 #include "Protocol/vidiconprotocol.h"
 #include "operationinterface_global.h"

@@ -1,15 +1,21 @@
 #ifndef SEARCHDEVICETHREAD_H
 #define SEARCHDEVICETHREAD_H
 
+/**
+ * @brief         搜索设备线程,通过发送广播消息
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QThread>
 #include <QUdpSocket>
 
 #include <QMutex>
 #include "operationinterface_global.h"
 
-#define UDPMULTICASTADDR "255.255.255.255"
-#define UDPMULTICASTRECEIVEPORT 3704
-#define UDPMULTICASTSENDPORT 3704
+#define BROADCAST_ADDR "255.255.255.255"
+#define UDPRECV_PORT 3704
+#define UDPSEND_PORT 3704
 
 struct WholeDeviceInfo{
     QString DeviceName;

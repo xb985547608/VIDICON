@@ -1,6 +1,12 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+/**
+ * @brief         通用小函数
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QString>
 #include <QTime>
 #include <QApplication>

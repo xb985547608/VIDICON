@@ -1,6 +1,12 @@
 #ifndef TABLEVIEW_H
 #define TABLEVIEW_H
 
+/**
+ * @brief         展示文件列表，选择所需下载或查看的文件
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QTableView>
 #include <QItemDelegate>
 #include <QDialog>

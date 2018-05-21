@@ -1,6 +1,12 @@
 #ifndef CUSTOMSTYLE_H
 #define CUSTOMSTYLE_H
 
+/**
+ * @brief         主要用于取消表格的虚线框和改变Slider鼠标点击后滑块位置的变化
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QProxyStyle>
 #include <QPixmap>
 

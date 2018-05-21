@@ -1,13 +1,9 @@
 #include "osdwidget.h"
-#include "parsexml.h"
-#include <QTimer>
-#include "Network/httpdownload.h"
-#include <QPainter>
 #include <QFont>
 #include <QMouseEvent>
-#include <QDebug>
 
-OSDWidget::OSDWidget(QWidget *parent) : QWidget(parent) ,
+OSDWidget::OSDWidget(QWidget *parent) :
+    ImageBaseWidget(parent),
     m_validPress(false)
 {
     QFont f = font();
@@ -17,11 +13,6 @@ OSDWidget::OSDWidget(QWidget *parent) : QWidget(parent) ,
     OSDParameter temp;
     for (int i=0; i<4; i++)
         m_parameters.append(temp);
-
-    QTimer *timer = new QTimer(this);
-    timer->start(100);
-    connect(timer, &QTimer::timeout, this, &OSDWidget::handleTimeout);
-    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &OSDWidget::handleReceiveImage);
 }
 
 OSDWidget::~OSDWidget()
@@ -30,12 +21,9 @@ OSDWidget::~OSDWidget()
 
 void OSDWidget::paintEvent(QPaintEvent *event)
 {
-    Q_UNUSED(event);
+    ImageBaseWidget::paintEvent(event);
     QPainter p(this);
     QPen pen;
-
-    p.fillRect(rect(), Qt::black);
-    p.drawPixmap(rect(), m_backgroundPixmap);
 
     for(int i=0; i<m_parameters.count(); i++) {
         QRect rect(m_parameters[i].x * size().width() / XSCALEMAX,
@@ -104,22 +92,4 @@ void OSDWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     Q_UNUSED(event);
     m_validPress = false;
-}
-
-void OSDWidget::handleReceiveImage(QPixmap *pixmap)
-{
-    if(isVisible() && !pixmap->isNull()){
-        m_backgroundPixmap = *pixmap;
-        update();
-        delete pixmap;
-    }
-}
-
-void OSDWidget::handleTimeout()
-{
-    if(isVisible()) {
-        if(HttpDownload::getInstance()->isLeisure()){
-            QMetaObject::invokeMethod(HttpDownload::getInstance(), "getImage", Qt::QueuedConnection);
-        }
-    }
 }

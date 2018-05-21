@@ -1,6 +1,12 @@
 #ifndef SQUAREWAVE_H
 #define SQUAREWAVE_H
 
+/**
+ * @brief         将监控设备上的记录计划可视化呈现
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QWidget>
 #include <QList>
 #include <QTime>

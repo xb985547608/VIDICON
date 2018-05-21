@@ -7,7 +7,7 @@
 #include <QPolygon>
 #include "parsexml.h"
 
-TimerShaft::TimerShaft(int htmlid, QWidget *parent) : BasicWidget(parent),
+TimerShaft::TimerShaft(int htmlid, QWidget *parent) : BaseWidget(parent),
     m_stretchScale(1.0),
     m_isPress(false),
     m_isMoving(false),    

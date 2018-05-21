@@ -26,36 +26,33 @@ void SearchDeviceThread::run()
 
     isRun = true;
     udpSocket = new QUdpSocket();
+    int errorCount = 0;
 
     while(isRun) {
-        while(!(udpSocket->isValid()) || udpSocket->state() != QUdpSocket::BoundState) {
+        while(!udpSocket->isValid() ||
+              (udpSocket->state() != QUdpSocket::BoundState)) {
             udpSocket->abort();
             udpSocket->close();
             delete udpSocket;
             udpSocket = new QUdpSocket();
 
             //将套接字绑定在指定接口上(这里通常与之绑定的是无线网卡的地址
-            if (!udpSocket->bind(specifiedIP, UDPMULTICASTRECEIVEPORT, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint)) {
-                qDebug() << "#SearchDeviceThread# udp socket bind error!";
+            if (!udpSocket->bind(specifiedIP, UDPRECV_PORT, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint)) {
+                qDebug() << "#SearchDeviceThread# udp socket bind error!" << specifiedIP << UDPRECV_PORT;
                 sleep(1);
+                errorCount++;
+                if (errorCount >= 3)
+                    break;
                 continue;
             }
 
-            //开启本地回环
-            udpSocket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
-
-            //加入组播组   未知BUG  已成功加入组播组还是返回false
-            if (!udpSocket->joinMulticastGroup(QHostAddress(UDPMULTICASTADDR))) {
-//                qDebug() << "#SearchDeviceThread# udp socket join group " << UDPMULTICASTADDR << " fail!";
-//                sleep(1);
-//                continue;
-            }
             qDebug() << "#SearchDeviceThread# prepare work finished";
-            udpSocket->writeDatagram("<Discovery/>\r\n", QHostAddress(UDPMULTICASTADDR), UDPMULTICASTSENDPORT);
+            udpSocket->writeDatagram("<Discovery/>\r\n", QHostAddress(BROADCAST_ADDR), UDPSEND_PORT);
         }
 
         //等待设备的回应，超时则认为设备搜索完成
-        if(udpSocket->waitForReadyRead(1000)) {
+        if(udpSocket->isValid() &&
+                udpSocket->waitForReadyRead(1000)) {
             readyRead();
         }else {
             isRun = false;

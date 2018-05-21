@@ -1,6 +1,12 @@
 #ifndef TABSYATEM_H
 #define TABSYATEM_H
 
+/**
+ * @brief         主要对设备系统参数的可视化和设置
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QMap>
 #include "stackedwidget.h"
 

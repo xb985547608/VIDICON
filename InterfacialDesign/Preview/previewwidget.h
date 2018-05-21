@@ -1,15 +1,21 @@
 #ifndef PREVIEWWIDGET_H
 #define PREVIEWWIDGET_H
 
+/**
+ * @brief         实时预览当前监控设备的画面，根据警报信息在界面上闪烁对应的图标做出提示
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QWidget>
 #include "Protocol/vidiconprotocol.h"
-#include "basicwidget.h"
+#include "basewidget.h"
 
 namespace Ui{
 class PreviewForm;
 }
 
-class PreviewWidget : public BasicWidget
+class PreviewWidget : public BaseWidget
 {
     Q_OBJECT
 public:

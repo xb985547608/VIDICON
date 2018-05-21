@@ -1,10 +1,16 @@
 #ifndef TIMERSHAFT_H
 #define TIMERSHAFT_H
 
+/**
+ * @brief         展示时间轴，通过点击来播放视频
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QWidget>
 #include <QPainter>
 #include "Protocol/vidiconprotocol.h"
-#include "basicwidget.h"
+#include "basewidget.h"
 
 #define GROOVEHEIGHT  10
 #define TICKMAXHEIGHT    15
@@ -16,7 +22,7 @@
 #define ONEDAYSEC    86399
 #define DIFFVALUE      5
 
-class TimerShaft : public BasicWidget
+class TimerShaft : public BaseWidget
 {
     Q_OBJECT
 public:

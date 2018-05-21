@@ -18,9 +18,6 @@ LoginWidget::LoginWidget(QWidget *parent) :
     ui->password->setEchoMode(QLineEdit::Password);
     ui->password->setMaxLength(15);
 
-    switchButton = new SwitchButton(ui->sbFactoryMode);
-    ui->sbFactoryMode->resize(switchButton->size());
-
     setWindowOpacity(0.9);
 
     connect(ui->btnLogin, SIGNAL(clicked()), this, SLOT(onLoginBtn()));
@@ -84,16 +81,13 @@ void LoginWidget::onLoginBtn()
 #else
     passwd = "admin";
 #endif
-    LoginState mode = switchButton->getState() ? FactoryLogin : NormalLogin;
-    QString level = mode == FactoryLogin ? FACTORY_USER : NORMAL_USER;
     QCryptographicHash c(QCryptographicHash::Md5);
     c.addData(passwd.toLocal8Bit().data());
     if (SettingsObject::mixMD5(c.result()).toHex().toStdString().data() ==
-            SettingsObject::getInstance()->getUserMapPasswd(level)) {
-        qDebug() << "#LoginWidget# MODE:" << mode << ", Login OK";
-        emit signalLoginState(mode);
+            SettingsObject::getInstance()->getUserMapPasswd(NORMAL_USER)) {
+        qDebug() << "#LoginWidget# Login OK";
+        emit signalLoginState(NormalLogin);
         hide();
-//        deleteLater();
     } else {
         ui->lblHint->setText("密码错误");
     }

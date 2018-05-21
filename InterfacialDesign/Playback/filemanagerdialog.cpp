@@ -9,7 +9,7 @@
 #include <QKeyEvent>
 
 FileManagerDialog::FileManagerDialog(QWidget *parent) :
-    BasicWidget(parent),
+    BaseWidget(parent),
     m_isVideo(true)
 {
     Qt::WindowFlags flags = windowFlags();

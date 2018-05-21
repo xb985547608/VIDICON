@@ -10,9 +10,6 @@ QNetworkReply *NetworkAccessManager::post(const QNetworkRequest &request, const 
 
     //超时控制
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, [this](){
-        m_errorMsg = tr("网络超时");
-    });
 
     return reply;
 }
@@ -23,9 +20,6 @@ QNetworkReply *NetworkAccessManager::put(const QNetworkRequest &request, const Q
 
     //超时控制
     ReplyTimeout *timeout = new ReplyTimeout(reply, TIMEOUTMSEC);
-    connect(timeout, &ReplyTimeout::timeout, this, [this](){
-        m_errorMsg = tr("网络超时");
-    });
 
     return reply;
 }
@@ -1737,29 +1731,23 @@ void VidiconProtocol::handlePrePare(QNetworkRequest &request, QString RequestBod
 
 void VidiconProtocol::handleReply(QNetworkReply *reply)
 {
-    if (reply->error() != QNetworkReply::NoError) {
-        qDebug() << "#VidiconProtocol# hanndlerReply,"
-                 << "StatusCode:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()
-                 << "ErrorType:" << reply->error();
-        emit signalReceiveData(NETWORKERROR, m_manager->errorMsg().toStdString().data());
+    QByteArray buffer;
+    if (reply->error() == QNetworkReply::NoError)
+        buffer = reply->readAll();
+    else
+        emit error(reply->error());
 
-        if (m_replyMap.value(reply) == PULLMESSAGE)
-            emit signalReceiveData(m_currentType, QByteArray());
-    } else {
-        QByteArray bytes = reply->readAll();
-        if (m_replyMap.value(reply) != NONE) {
-            qDebug() << "#VidiconProtocol# hanndlerReply, send signal ParameterType:" << m_replyMap.value(reply);
-            emit signalReceiveData(m_replyMap.value(reply), bytes);
-        }
+    qDebug() << "#VidiconProtocol# hanndlerReply, send signal ParameterType:" << m_replyMap.value(reply);
+    emit signalReceiveData(m_replyMap.value(reply), buffer);
+
 #if 0
         qDebug("#VidiconProtocol# hanndlerReply, response content start............");
         qDebug() << bytes.toStdString().data();
         qDebug("#VidiconProtocol# hanndlerReply, response content end  ............");
 #endif
-    }
     m_replyMap.remove(reply);
     m_currentType = NONE;
-    m_manager->resetErrorMsg();
+    reply->deleteLater();
 }
 
 

@@ -5,17 +5,13 @@
 #include "Network/httpdownload.h"
 #include <QMetaObject>
 
-MotionWidget::MotionWidget(QWidget *parent) : QWidget(parent)
+MotionWidget::MotionWidget(QWidget *parent) :
+    ImageBaseWidget(parent)
 {
     m_motionRegionMap = new char *[REGIONROW];
     for(int i=0; i<REGIONROW; i++) {
         m_motionRegionMap[i] = new char[REGIONCOLUMN];
     }
-
-    m_timer = new QTimer(this);
-    m_timer->start(100);
-    connect(m_timer, &QTimer::timeout, this, &MotionWidget::handleTimeout);
-    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &MotionWidget::handleReceiveImage);
 }
 
 void MotionWidget::handleFullScreen()
@@ -36,35 +32,15 @@ void MotionWidget::handleCleanScreen()
     }
 }
 
-void MotionWidget::handleReceiveImage(QPixmap *pixmap)
-{
-    if(isVisible() && !pixmap->isNull()){
-        m_backgroundPixmap = *pixmap;
-        update();
-        delete pixmap;
-    }
-}
-
-void MotionWidget::handleTimeout()
-{
-    if(isVisible()){
-        if(HttpDownload::getInstance()->isLeisure()){
-            QMetaObject::invokeMethod(HttpDownload::getInstance(), "getImage", Qt::QueuedConnection);
-        }
-    }
-}
-
 void MotionWidget::paintEvent(QPaintEvent *event)
 {
-    Q_UNUSED(event);
+    ImageBaseWidget::paintEvent(event);
+
     QPainter p(this);
     QPen pen;
 
     float gridWidth = (float)size().width() / REGIONCOLUMN;
     float gridHeight = (float)size().height() / REGIONROW;
-
-    p.fillRect(rect(), Qt::black);
-    p.drawPixmap(rect(), m_backgroundPixmap);
 
     for(int i=0; i<REGIONROW; i++){
         float xStart = 0;

@@ -2,6 +2,7 @@ debug
 release
 moc
 ui
+Bin
 obj
 rcc
 log

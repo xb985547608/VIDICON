@@ -1,10 +1,16 @@
 #ifndef SETUPWIDGET_H
 #define SETUPWIDGET_H
 
+/**
+ * @brief         创建并管理各类参数设置界面
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QWidget>
 #include <QToolBox>
 #include <QListWidget>
-#include "boxview.h"
+#include "listview.h"
 #include <QTabWidget>
 #include "mediawidget.h"
 #include "networkwidget.h"
@@ -17,7 +23,7 @@ namespace Ui{
 class SettingsForm;
 }
 
-class SettinsWidget : public QWidget
+class SettinsWidget : public BaseWidget
 {
     Q_OBJECT
 public:
@@ -32,16 +38,18 @@ private:
 signals:
 
 public slots:
+    void handleReceiveData(VidiconProtocol::Type type, QByteArray data) override;
+
     void refresh(int index = 0);
 
 private:
-    Ui::SettingsForm *ui;
+    Ui::SettingsForm *m_ui;
     QToolBox    *m_toolbox;
-    ListView    *m_boxMedia;
-    ListView    *m_boxNetwork;
-    ListView    *m_boxAlarm;
-    ListView    *m_boxRecord;
-    ListView    *m_boxSystem;
+    ListView    *m_listMedia;
+    ListView    *m_listNetwork;
+    ListView    *m_listAlarm;
+    ListView    *m_listRecord;
+    ListView    *m_listSystem;
 
     MediaWidget   *m_tabMedia;
     NetworkWidget *m_tabNetwork;

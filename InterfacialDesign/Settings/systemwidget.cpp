@@ -421,6 +421,7 @@ void SystemWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray data
             }
 #endif
         }
+        break;
     }
     case VidiconProtocol::WIFI: {
         WifiConfigParameter param;
@@ -429,6 +430,7 @@ void SystemWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray data
             static_cast<LineEdit *>(m_wifiSettinsMap["ssid"])->setText(param.ssid);
             static_cast<LineEdit *>(m_wifiSettinsMap["passwd"])->setText(param.passwd);
         }
+        break;
     }
     default:
         return;

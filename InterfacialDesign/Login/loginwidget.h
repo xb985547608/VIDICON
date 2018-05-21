@@ -1,9 +1,14 @@
 #ifndef LOGINWIDGET_H
 #define LOGINWIDGET_H
 
+/**
+ * @brief         登录界面
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QWidget>
 #include <QPoint>
-#include "SwitchButton/switchbutton.h"
 
 namespace Ui {
 class LoginForm;
@@ -43,9 +48,6 @@ private:
     Ui::LoginForm *ui;
     bool windowMove;
     QPoint moveStartPos;
-
-    SwitchButton *switchButton;
-
 };
 
 #endif // LOGINWIDGET_H

@@ -1,6 +1,12 @@
 #ifndef DOWNLOADINFOVIEW_H
 #define DOWNLOADINFOVIEW_H
 
+/**
+ * @brief         供下载界面使用，显示下载任务列表
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QTableView>
 #include <QStyledItemDelegate>
 #include <QSortFilterProxyModel>

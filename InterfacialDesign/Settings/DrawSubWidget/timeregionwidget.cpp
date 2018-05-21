@@ -2,7 +2,8 @@
 #include <QPainter>
 #include <QDebug>
 
-TimeRegionWidget::TimeRegionWidget(QWidget *parent) : QWidget(parent)
+TimeRegionWidget::TimeRegionWidget(QWidget *parent) :
+    QWidget(parent)
 {
     m_wordList << "周天" << "周一" << "周二" << "周三" << "周四"
              << "周五" << "周六";

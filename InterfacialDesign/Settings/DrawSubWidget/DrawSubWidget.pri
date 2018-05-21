@@ -3,11 +3,10 @@ HEADERS += \
     $$PWD/osdwidget.h \
     $$PWD/timeregionwidget.h \
     $$PWD/privacywidget.h \
-    $$PWD/imagewidget.h
+    $$PWD/imagebasewidget.h
 
 SOURCES += \
     $$PWD/motionwidget.cpp \
     $$PWD/osdwidget.cpp \
     $$PWD/timeregionwidget.cpp \
-    $$PWD/privacywidget.cpp \
-    $$PWD/imagewidget.cpp
+    $$PWD/privacywidget.cpp

@@ -1,6 +1,12 @@
 #ifndef TABALARM_H
 #define TABALARM_H
 
+/**
+ * @brief         主要对警报参数的可视化和设置
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QMap>
 #include <QDialog>
 #include "stackedwidget.h"

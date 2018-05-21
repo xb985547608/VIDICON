@@ -1,11 +1,18 @@
 #ifndef STACKEDWIDGET_H
 #define STACKEDWIDGET_H
 
+/**
+ * @brief         主要为设置界面提供的一个基础的带堆叠窗口功能的类
+ *                当设置参数时显示遮罩
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QStackedWidget>
-#include "basicwidget.h"
+#include "basewidget.h"
 #include "lineedit.h"
 
-class StackedWidget : public BasicWidget
+class StackedWidget : public BaseWidget
 {
     Q_OBJECT
 public:

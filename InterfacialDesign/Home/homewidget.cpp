@@ -9,7 +9,7 @@
 #include "Network/httpdownload.h"
 
 HomeWidget::HomeWidget(QWidget *parent) :
-    BasicWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::HomeForm)
 {
     ui->setupUi(this);
@@ -40,13 +40,21 @@ HomeWidget::HomeWidget(QWidget *parent) :
     initLoginDialog();
     createActions();
     reset();
-
-    m_cmDongle = new CMDongle(this);
 }
 
 HomeWidget::~HomeWidget()
 {
 
+}
+
+bool HomeWidget::isAuthorization()
+{
+    return m_afterLoginRow != -1 && m_items.count();
+}
+
+QString HomeWidget::name()
+{
+    return "摄像机";
 }
 
 void HomeWidget::reset()
@@ -114,6 +122,7 @@ void HomeWidget::hanldeDeviceInfo(QVariant value)
 
 bool HomeWidget::eventFilter(QObject *obj, QEvent *event)
 {
+    /* 右键菜单 */
     if (obj == ui->tableWidget && event->type() == QEvent::ContextMenu) {
         QContextMenuEvent *menuEvent = dynamic_cast<QContextMenuEvent *>(event);
         if (menuEvent != NULL) {
@@ -153,6 +162,8 @@ void HomeWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray data)
 
                     ui->tableWidget->item(m_beforeLoginRow, 0)->setIcon(QIcon(":/images/h_online.png"));
                     ui->tableWidget->item(m_beforeLoginRow, 0)->setText("已登录");
+
+                    /* 改变登录成功的项所在的行 */
                     m_afterLoginRow = m_beforeLoginRow;
 
                     ui->devIp->setText(m_items.at(m_afterLoginRow).IPAddr);
@@ -164,7 +175,11 @@ void HomeWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray data)
                     QMessageBox::information(this, "提示", "登录失败");
                     qDebug() << "#HomeWidget# login device erroe, please try again";
                 }
+            } else {
+                QMessageBox::information(this, "提示", "登录失败");
+                qDebug() << "#HomeWidget# login device erroe, please try again";
             }
+
             if (m_afterLoginRow != -1) {
                 QString host = m_items.at(m_afterLoginRow).IPAddr;
                 QString httpPort = QString::number(m_items.at(m_afterLoginRow).HTTPPort);
@@ -228,18 +243,24 @@ void HomeWidget::handleLogin(int row)
             QString train = static_cast<LineEdit *>(m_loginMap["train"])->text();
             QString coach = static_cast<LineEdit *>(m_loginMap["coach"])->text();
             QString seat  = static_cast<LineEdit *>(m_loginMap["seat"])->text();
-            QString user = QString("CRH_%1_%2_%3")
-                    .arg(train)
-                    .arg(coach)
-                    .arg(seat);
-#endif
-            if (user.length() != 16) {
-                QMessageBox::warning(this, "警告", "用户名格式错误，请重新输入");
+            QString user, passwd;
+            if ((train.compare("******") == 0) &&
+                    (coach.compare("**") == 0) &&
+                    (seat.compare("**") == 0)) {
+                user = "admin";
+                passwd = "admin";
             } else {
-                QMetaObject::invokeMethod(VidiconProtocol::getInstance(), "login",
-                                          Q_ARG(QString, user),
-                                          Q_ARG(QString, user));
+                user = QString("CRH_%1_%2_%3")
+                               .arg(train)
+                               .arg(coach)
+                               .arg(seat);
+                passwd = user;
             }
+
+#endif
+            QMetaObject::invokeMethod(VidiconProtocol::getInstance(), "login",
+                                      Q_ARG(QString, user),
+                                      Q_ARG(QString, passwd));
         }
     }
 }
@@ -247,7 +268,7 @@ void HomeWidget::handleLogin(int row)
 void HomeWidget::initLoginDialog()
 {
     m_loginDialog = new QDialog(this);
-    m_loginDialog->setFixedSize(200, 100);
+    m_loginDialog->setFixedSize(200, 150);
 
 #if 0
     QLabel *lbl1 = new QLabel("用户：", m_loginDialog);

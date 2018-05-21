@@ -1,9 +1,9 @@
 #include <QBoxLayout>
-
+#include "waitingshade.h"
 #include "stackedwidget.h"
 
 StackedWidget::StackedWidget(QWidget *parent) :
-    BasicWidget(parent)
+    BaseWidget(parent)
 {
     m_stackedWidget = new QStackedWidget(parent);
 
@@ -15,6 +15,10 @@ StackedWidget::StackedWidget(QWidget *parent) :
     }
     QLayout *row = layout();
     row->addWidget(m_stackedWidget);
+
+    connect(this, &StackedWidget::signalSetParameter, this, [this]() {
+        WaitingShade::getInstance()->show();
+    });
 }
 
 void StackedWidget::setCurrentIndex(int index)

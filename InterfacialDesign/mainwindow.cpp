@@ -5,7 +5,6 @@
 #include <QApplication>
 #include "Protocol/vidiconprotocol.h"
 #include "parsexml.h"
-#include "Settings/waitingshade.h"
 #include "statustip.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -27,11 +26,17 @@ MainWindow::MainWindow(QWidget *parent) :
     m_navigationWidget->addTab(m_settinsWidget,  QIcon(":/images/mw_settings.png"), tr("设置"));
     m_navigationWidget->addTab(m_downloadWidget, QIcon(":/images/mw_download.png"), tr("下载"));
 
-    WaitingShade::getInstance(this);
+
     StatusTip::getInstance(this);
 
+    CMDongle *cmDongle = new CMDongle(m_navigationWidget);
+
+    //添加验证器
+    m_authenticators.append(m_homeWidget);
+    m_authenticators.append(cmDongle);
+
     connect(m_playbackWidget, &PlaybackWidget::signalAddDownloadTask, m_downloadWidget, &DownloadWidget::enqueue);
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &MainWindow::handleReceiveData);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::error, this, &MainWindow::handleError);
     connect(m_navigationWidget, &NavigationWidget::currentChanged, this, &MainWindow::handleCurrentChange);
 
     setMinimumSize(880, 700);
@@ -59,56 +64,43 @@ void MainWindow::logoutHandler()
     setVisible(false);
 }
 
-void MainWindow::handleReceiveData(VidiconProtocol::Type type, QByteArray data)
+void MainWindow::handleError(QNetworkReply::NetworkError error)
 {
-    WaitingShade *w = WaitingShade::getInstance();
     StatusTip *s = StatusTip::getInstance();
-    if(!isVisible()) {
-        return;
-    }
+    QString msg;
+    if (error == QNetworkReply::OperationCanceledError)
+        msg = "网络超时";
+    else
+        msg = "网络出错";
 
-    switch(type) {
-    case VidiconProtocol::RESPONSESTATUS: {
-        ResponseStatus reply;
-        if(ParseXML::getInstance()->parseResponseStatus(&reply, data)) {
-            QString info;
-            if(reply.StatusCode == 1) {
-                info = "参数设置成功";
-            }else {
-                info = "参数设置失败";
-            }
-            s->showStatusTip(info);
-        }
-        if(w->isVisible()) {
-            w->hide();
-        }
-        break;
-    }
-    case VidiconProtocol::NETWORKERROR: {
-        if (data.isNull())
-            s->showStatusTip("夭寿啦~~网络出现未知状况");
-        else
-            s->showStatusTip(data);
-        if(w->isVisible()) {
-            w->hide();
-        }
-        break;
-    }
-    default:
-        break;
-    }
+    s->showStatusTip(msg);
+    qDebug() << "#MainWindow# handleError, error: " << error;
 }
 
 void MainWindow::handleCurrentChange(int index)
 {
     if (index == 1 || index == 2 || index == 3) {
-        /*if (!m_homeWidget->isLogin()) {
-            m_navigationWidget->setCurrentIndex(0);
-            QMessageBox::warning(m_navigationWidget, "警告", "您还未登录，请登录后重试");
-        } else if (!m_homeWidget->isAuthorization()) {
-            m_navigationWidget->setCurrentIndex(0);
-            QMessageBox::warning(m_navigationWidget, "警告", "U盾授权失败");
-        } else */{
+        bool isOK = true;
+        QString msg;
+
+        foreach (Authenticator *authenticator, m_authenticators) {
+            if (!authenticator->isAuthorization()) {
+
+                if (authenticator->name().compare("摄像机") == 0) {
+                    msg = "尚未登录设备，请登录后重试";
+                    isOK = false;
+                    break;
+                } /*else if (authenticator->name().compare("U盾") == 0) {
+                    if (index != 1) {
+                        msg = "U盾授权失败，请稍后重试";
+                        isOK = false;
+                        break;
+                    }
+                }*/
+            }
+        }
+
+        if (isOK){
             if(index == 1) {
                 m_previewWidget->refresh();
             } else if (index == 2) {
@@ -116,6 +108,9 @@ void MainWindow::handleCurrentChange(int index)
             } else if (index == 3) {
                 m_settinsWidget->refresh();
             }
+        } else {
+            m_navigationWidget->setCurrentIndex(0);
+            QMessageBox::warning(m_navigationWidget, "警告", msg);
         }
     }
 }

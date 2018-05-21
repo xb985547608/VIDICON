@@ -425,8 +425,7 @@ public:
     QNetworkReply *post(const QNetworkRequest &request, const QByteArray &data);
     QNetworkReply *put(const QNetworkRequest &request, const QByteArray &data);
 
-    QString errorMsg() const { return m_errorMsg; }
-    void resetErrorMsg() { m_errorMsg.clear(); }
+    QString errorMsg() const;
 
 private:
     QString m_errorMsg;
@@ -658,6 +657,7 @@ private:
 
 signals:
     void signalReceiveData(VidiconProtocol::Type type, QByteArray data);
+    void error(QNetworkReply::NetworkError);
 
 public slots:
     void init();
@@ -697,7 +697,6 @@ private slots:
         if (reply->isRunning()) {
             qDebug() << "#ReplyTimeout# Network connect timeout...";
             reply->abort();
-            reply->deleteLater();
             emit timeout();
         }
     }

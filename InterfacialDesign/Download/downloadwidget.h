@@ -1,6 +1,12 @@
 #ifndef DOWNLOADWIDGET_H
 #define DOWNLOADWIDGET_H
 
+/**
+ * @brief         布局下载界面，处理下载任务
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QWidget>
 #include "downloadinfoview.h"
 #include <QMap>

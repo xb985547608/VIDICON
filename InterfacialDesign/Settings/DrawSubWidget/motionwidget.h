@@ -1,14 +1,19 @@
 #ifndef DRAWMOTIONREGION_H
 #define DRAWMOTIONREGION_H
 
-#include <QWidget>
+/**
+ * @brief         显示区域上移动侦测范围的呈现与变更
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QMap>
-#include <QTimer>
+#include "imagebasewidget.h"
 
 #define REGIONROW 18
 #define REGIONCOLUMN 22
 
-class MotionWidget : public QWidget
+class MotionWidget : public ImageBaseWidget
 {
     Q_OBJECT
 public:
@@ -25,8 +30,6 @@ signals:
 public slots:
     void handleFullScreen();
     void handleCleanScreen();
-    void handleReceiveImage(QPixmap *pixmap);
-    void handleTimeout();
 
 private:
     char **m_motionRegionMap;
@@ -34,8 +37,6 @@ private:
     bool m_validPressLeft;
     bool m_validPressRight;
     QPoint m_pressPos;
-    QPixmap m_backgroundPixmap;
-    QTimer *m_timer;
 };
 
 #endif // DRAWMOTIONREGION_H

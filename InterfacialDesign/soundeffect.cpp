@@ -1,6 +1,6 @@
 #include "soundeffect.h"
 
-SoundEffect *SoundEffect::_instance = NULL;
+SoundEffect *SoundEffect::s_instance = NULL;
 SoundEffect::SoundEffect(QObject *parent) : QObject(parent)
 {
     m_errorEffct = new QSound(":/error.wav");

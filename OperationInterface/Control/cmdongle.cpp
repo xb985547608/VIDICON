@@ -43,6 +43,11 @@ void CMDongle::setBlinkInterval(int interval)
     }
 }
 
+QString CMDongle::name()
+{
+    return "U盾";
+}
+
 void CMDongle::errorHandler()
 {
     switch (CmGetLastErrorCode()) {

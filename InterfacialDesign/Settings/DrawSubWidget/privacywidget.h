@@ -1,9 +1,15 @@
 #ifndef PRIVACYWIDGET_H
 #define PRIVACYWIDGET_H
 
-#include <QWidget>
+/**
+ * @brief         显示区域上隐私区域的呈现与变更
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
 
-class PrivacyWidget : public QWidget
+#include "imagebasewidget.h"
+
+class PrivacyWidget : public ImageBaseWidget
 {
     Q_OBJECT
 public:
@@ -25,11 +31,7 @@ public slots:
     void fullScreen();
     void clearScreen();
 
-    void handleReceiveImage(QPixmap *pixmap);
-    void handleTimeout();
-
 private:
-    QPixmap m_backgroundPixmap;
     QRect *m_rects;
     QPoint m_startPos;
     QPoint m_endPos;

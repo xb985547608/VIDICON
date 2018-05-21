@@ -1,18 +1,24 @@
 #ifndef PLAYBACKWIDGET_H
 #define PLAYBACKWIDGET_H
 
+/**
+ * @brief         布局回放界面
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QWidget>
 #include "datewidget.h"
 #include "filemanagerdialog.h"
 #include <QSound>
-#include "basicwidget.h"
+#include "basewidget.h"
 #include "timershaft.h"
 
 namespace Ui{
 class PlaybackForm;
 }
 
-class PlaybackWidget : public BasicWidget
+class PlaybackWidget : public BaseWidget
 {
     Q_OBJECT
 public:
@@ -23,9 +29,6 @@ public:
 
 private:
     void setStateValue(int value);
-
-protected:
-    void resizeEvent(QResizeEvent *event) override;
 
 signals:
     void signalVlcControl(int type, int subtype = -1, WId id = 0);

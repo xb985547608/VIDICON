@@ -9,7 +9,7 @@
 #include "statustip.h"
 
 PlaybackWidget::PlaybackWidget(QWidget *parent) :
-    BasicWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::PlaybackForm),
     m_stateValue(0),
     m_isPlaying(false)
@@ -28,6 +28,9 @@ PlaybackWidget::PlaybackWidget(QWidget *parent) :
     });
 
     m_dateWidget = new DateWidget(ui->rightBar);
+    QVBoxLayout *layout1 = new QVBoxLayout(ui->rightBar);
+    layout1->addWidget(m_dateWidget);
+    layout1->setContentsMargins(0, 0, 0, 0);
 
     m_timerShaft = new TimerShaft(m_htmlid, ui->timeslider);
     connect(m_dateWidget, &DateWidget::signalDateChange, m_timerShaft, &TimerShaft::hanlderDateChange);
@@ -39,10 +42,6 @@ PlaybackWidget::PlaybackWidget(QWidget *parent) :
     connect(ui->fastPlayBtn, &QPushButton::clicked, this, &PlaybackWidget::onFastPlayBtnClicked);
     connect(ui->slowForwardBtn, &QPushButton::clicked, this, &PlaybackWidget::onSlowForwardBtnClicked);
     connect(ui->snapShotBtn, &QPushButton::clicked, this, &PlaybackWidget::onSnapshotBtnClicked);
-
-//    QTimer *timer = new QTimer(this);
-//    connect(timer, &QTimer::timeout, this, &PlaybackWidget::handleTimeout);
-//    timer->start(1000);
 }
 
 PlaybackWidget::~PlaybackWidget()
@@ -66,12 +65,6 @@ void PlaybackWidget::setStateValue(int value)
     param.htmlid = m_htmlid;
     param.StateValue = m_stateValue;
     emit signalSetParameter(VidiconProtocol::PLAYSTATE, QVariant::fromValue(param));
-}
-
-void PlaybackWidget::resizeEvent(QResizeEvent *event)
-{
-    Q_UNUSED(event);
-    m_dateWidget->setGeometry(5, 5, ui->rightBar->size().width() - 10, ui->rightBar->size().height() - 5);
 }
 
 void PlaybackWidget::refresh()

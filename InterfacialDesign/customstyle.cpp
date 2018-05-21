@@ -28,7 +28,7 @@ void CustomStyle::drawComplexControl(QStyle::ComplexControl cc, const QStyleOpti
 {
     switch (cc){
         case CC_Slider:
-
+            /*不采取重绘Slider的操作*/
         default:
             QProxyStyle::drawComplexControl(cc, opt, p, widget);
     }
@@ -41,7 +41,7 @@ int CustomStyle::pixelMetric(QStyle::PixelMetric metric, const QStyleOption *opt
 
 int CustomStyle::styleHint(QStyle::StyleHint stylehint, const QStyleOption *opt, const QWidget *widget, QStyleHintReturn *returnData) const
 {
-    //设置鼠标左键点击的位置为滑块的值
+    /*设置鼠标左键点击的位置为滑块的值*/
     if(QStyle::SH_Slider_AbsoluteSetButtons == stylehint)
         return Qt::LeftButton;
 
@@ -50,7 +50,7 @@ int CustomStyle::styleHint(QStyle::StyleHint stylehint, const QStyleOption *opt,
 
 void CustomStyle::drawPrimitive(QStyle::PrimitiveElement pe, const QStyleOption *opt, QPainter *p, const QWidget *w) const
 {
-    //取消虚线框
+    /*取消虚线框*/
     if(QStyle::PE_FrameFocusRect == pe)
         return;
 

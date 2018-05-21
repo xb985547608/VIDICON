@@ -1,14 +1,20 @@
 #ifndef DRAWOSDREGION_H
 #define DRAWOSDREGION_H
 
-#include <QWidget>
+/**
+ * @brief         显示区域上OSD的位置信息呈现与变更
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
+#include "imagebasewidget.h"
 #include "Protocol/vidiconprotocol.h"
 #include <QMap>
 
 #define XSCALEMAX 1000
 #define YSCALEMAX 1000
 
-class OSDWidget : public QWidget
+class OSDWidget : public ImageBaseWidget
 {
     Q_OBJECT
 public:
@@ -23,15 +29,8 @@ protected:
     virtual void mouseMoveEvent(QMouseEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
 
-signals:
-
-public slots:
-    void handleReceiveImage(QPixmap *pixmap);
-    void handleTimeout();
-
 private:
     QList<OSDParameter> m_parameters;
-    QPixmap m_backgroundPixmap;
 
     bool m_validPress;
     QPoint m_lastPos;

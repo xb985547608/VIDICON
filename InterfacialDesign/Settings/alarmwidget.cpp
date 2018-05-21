@@ -18,7 +18,8 @@
 #include "parsexml.h"
 #include <QMessageBox>
 
-AlarmWidget::AlarmWidget(QWidget *parent) : StackedWidget(parent)
+AlarmWidget::AlarmWidget(QWidget *parent) :
+    StackedWidget(parent)
 {
     initRegionEditDialog();
     initMotionDetectionWidget();    

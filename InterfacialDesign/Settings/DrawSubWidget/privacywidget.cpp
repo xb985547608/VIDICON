@@ -6,15 +6,10 @@
 #include <QMouseEvent>
 #include <QDebug>
 
-PrivacyWidget::PrivacyWidget(QWidget *parent) : QWidget(parent)
+PrivacyWidget::PrivacyWidget(QWidget *parent) :
+    ImageBaseWidget(parent)
 {
     m_rects = new QRect[4];
-
-    QTimer *timer = new QTimer(this);
-    timer->start(100);
-    connect(timer, &QTimer::timeout, this, &PrivacyWidget::handleTimeout);
-    connect(HttpDownload::getInstance(), &HttpDownload::signalImage, this, &PrivacyWidget::handleReceiveImage);
-
     reset();
 }
 
@@ -33,15 +28,11 @@ void PrivacyWidget::reset()
 
 void PrivacyWidget::paintEvent(QPaintEvent *event)
 {
-    Q_UNUSED(event);
+    ImageBaseWidget::paintEvent(event);
     QPainter p(this);
     QPen pen;
     pen.setColor(Qt::green);
     p.setPen(pen);
-
-    p.fillRect(rect(), Qt::black);
-
-    p.drawPixmap(rect(), m_backgroundPixmap);
 
     for(int i=0; i<4; i++) {
         p.fillRect(m_rects[i], Qt::black);
@@ -89,22 +80,4 @@ void PrivacyWidget::clearScreen()
     m_rects[m_currentIndex].setTopLeft(QPoint(0, 0));
     m_rects[m_currentIndex].setBottomRight(QPoint(0, 0));
     update();
-}
-
-void PrivacyWidget::handleReceiveImage(QPixmap *pixmap)
-{
-    if(isVisible() && !pixmap->isNull()){
-        m_backgroundPixmap = *pixmap;
-        update();
-        delete pixmap;
-    }
-}
-
-void PrivacyWidget::handleTimeout()
-{
-    if(isVisible()) {
-        if(HttpDownload::getInstance()->isLeisure()){
-            QMetaObject::invokeMethod(HttpDownload::getInstance(), "getImage", Qt::QueuedConnection);
-        }
-    }
 }

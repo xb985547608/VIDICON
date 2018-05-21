@@ -2,13 +2,13 @@
 #include <QEvent>
 #include <QDebug>
 
-StatusTip *StatusTip::_instance = NULL;
+StatusTip *StatusTip::s_instance = NULL;
 StatusTip::StatusTip(bool folowToHeadWidget, QWidget *parent) :
     QLabel(parent),
     m_tipHeight(20)
 {
     Q_ASSERT_X(parent, "", Q_FUNC_INFO);
-    //追溯根界面
+    //追溯root界面
     if (folowToHeadWidget) {
         while (parent->parentWidget() != 0) {
             parent = parent->parentWidget();
@@ -36,6 +36,7 @@ StatusTip::StatusTip(bool folowToHeadWidget, QWidget *parent) :
 
 bool StatusTip::eventFilter(QObject *watched, QEvent *event)
 {
+    /*当root界面新增子界面时，为保证其处于顶部显示*/
     if (event->type() == QEvent::ChildAdded) {
         QChildEvent* childEvent = dynamic_cast<QChildEvent*>(event);
         if (childEvent->child() != this) {
@@ -45,6 +46,7 @@ bool StatusTip::eventFilter(QObject *watched, QEvent *event)
         }
     }
 
+    /*随root界面大小变化而变化自身大小*/
     if(event->type() == QEvent::Resize) {
         QWidget* parent = parentWidget();
         QRect rect(parent->width() / 2, parent->height() - m_tipHeight,
@@ -65,6 +67,9 @@ void StatusTip::showEvent(QShowEvent *event)
 
 void StatusTip::showStatusTip(QString text)
 {
+    if (text.isNull())
+        return;
+
     setText(text);
 
     m_animation->stop();

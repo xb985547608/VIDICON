@@ -13,8 +13,7 @@
 #include <QCheckBox>
 #include <QTimeEdit>
 #include "DrawSubWidget/privacywidget.h"
-#include "DrawSubWidget/imagewidget.h"
-#include "waitingshade.h"
+#include "DrawSubWidget/imagebasewidget.h"
 
 MediaWidget::MediaWidget(QWidget *parent) :
     StackedWidget(parent)
@@ -310,7 +309,7 @@ void MediaWidget::initImageWidget()
     QStringList list;
     m_imageWidget = new QWidget(this);
 
-    ImageWidget *displayArea = new ImageWidget(m_imageWidget);
+    ImageBaseWidget *displayArea = new ImageBaseWidget(m_imageWidget);
     displayArea->setFixedSize(400, 400);
     displayArea->setStyleSheet("background-color:black");
     m_imageMap.insert("DisplayArea", displayArea);
@@ -470,7 +469,6 @@ void MediaWidget::initImageWidget()
     list.clear();
     connect(comboBox10, static_cast<void (QComboBox:: *)(int)>(&QComboBox::currentIndexChanged), this, [this](int index){
         bool isShow = index == 3 ? true : false;
-        qDebug() << isShow;
         static_cast<QLabel *>(m_imageMap["time1tag"])->setEnabled(isShow);
         static_cast<QTimeEdit *>(m_imageMap["time1"])->setEnabled(isShow);
         static_cast<QLabel *>(m_imageMap["time2tag"])->setEnabled(isShow);
@@ -813,7 +811,6 @@ void MediaWidget::handlePrepareData()
     default:
         break;
     }
-    WaitingShade::getInstance()->show();
 }
 
 void MediaWidget::handleReceiveData(VidiconProtocol::Type type, QByteArray data)

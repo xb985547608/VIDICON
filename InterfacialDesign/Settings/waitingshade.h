@@ -1,6 +1,12 @@
 #ifndef WAITINGSHADE_H
 #define WAITINGSHADE_H
 
+/**
+ * @brief         在设置参数时等待的一个遮罩
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QWidget>
 
 class WaitingShade : public QWidget

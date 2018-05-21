@@ -6,6 +6,7 @@
 #include <QTimer>
 
 #include "operationinterface_global.h"
+#include "authenticator.h"
 
 extern "C" {
 #include "CodeMeter.h"
@@ -15,10 +16,10 @@ extern "C" {
 #define FIRM_CODE    10
 #define PRODUCT_CODE 13
 
-class OPERATIONINTERFACESHARED_EXPORT CMDongle : public QObject
+class OPERATIONINTERFACESHARED_EXPORT CMDongle : public QObject, public Authenticator
 {
     Q_OBJECT
-    Q_PROPERTY(Type LEDType WRITE setLEDType)
+    Q_PROPERTY(Type LEDType READ LEDType WRITE setLEDType)
 public:
     //灯控制
     enum Type {
@@ -32,10 +33,14 @@ public:
     explicit CMDongle(QObject *parent = nullptr);
 
     void setBlinkInterval(int interval);
-    inline bool isAuthorization()
+    inline bool isAuthorization() override
     { return m_isAuthorization; }
+    QString name() override;
 
     void errorHandler();
+
+    Type LEDType()
+    { return m_ledType; }
 
 protected:
 

@@ -1,6 +1,12 @@
 #ifndef SOUNDEFFECT_H
 #define SOUNDEFFECT_H
 
+/**
+ * @brief         提供某些提示音效
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QObject>
 #include <QSound>
 
@@ -9,7 +15,7 @@ class SoundEffect : public QObject
     Q_OBJECT
 private:
     explicit SoundEffect(QObject *parent = nullptr);
-    static SoundEffect *_instance;
+    static SoundEffect *s_instance;
 
 public:
     //声效类别的枚举值
@@ -19,10 +25,10 @@ public:
         Snapshot
     };
     static SoundEffect *getInstance() {
-        if (_instance == NULL) {
-            _instance = new SoundEffect();
+        if (s_instance == NULL) {
+            s_instance = new SoundEffect();
         }
-        return _instance;
+        return s_instance;
     }
 
     void triggerSoundEffect(EffectMode mode);

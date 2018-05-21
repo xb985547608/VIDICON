@@ -1,6 +1,12 @@
 #ifndef TABLEVIEW_H
 #define TABLEVIEW_H
 
+/**
+ * @brief         显示当前登录设备的所有的账号信息
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QTableView>
 #include <QItemDelegate>
 #include <QDialog>

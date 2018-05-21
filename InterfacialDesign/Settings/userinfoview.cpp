@@ -13,7 +13,8 @@
 #include <QMessageBox>
 #include "lineedit.h"
 
-UserInfoView::UserInfoView(QWidget *parent) : QTableView(parent)
+UserInfoView::UserInfoView(QWidget *parent) :
+    QTableView(parent)
 {
     setModel(new UserInfoModel(this));
 //    setItemDelegate(new TableViewDelegate(this));

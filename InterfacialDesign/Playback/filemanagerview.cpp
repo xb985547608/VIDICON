@@ -72,7 +72,8 @@ void FileView::setDataSource(const QStringList &list)
     }
     m_btnList.clear();
 
-    if (list.first().right(4).compare(".jpg") == 0) {
+    if (!list.isEmpty() &&
+            list.first().right(4).compare(".jpg") == 0) {
         for(int i=0; i<list.length(); i++) {
             QPushButton *btn = new QPushButton("查看", this);
             btn->setObjectName(QString::number(i));
@@ -116,7 +117,7 @@ void FileView::mouseReleaseEvent(QMouseEvent *event)
 
 void FileView::handleReceiveImage(QPixmap *pixmap)
 {
-    if(isVisible() && !pixmap->isNull()){
+    if (isVisible() && !pixmap->isNull()) {
         QDialog *d = new QDialog;
         QLabel *lbl = new QLabel(d);
         lbl->setPixmap(*pixmap);

@@ -11,6 +11,7 @@
 #include "Network/httpdownload.h"
 #include "log4qt/logmanager.h"
 #include "log4qt/propertyconfigurator.h"
+
 int main(int argc, char *argv[])
 {
 
@@ -26,13 +27,8 @@ int main(int argc, char *argv[])
     Log4Qt::PropertyConfigurator::configure(":/logger.configure");
     Log4Qt::LogManager::setHandleQtMessages(true);
 
-    //将一些较为耗时的操作放入次线程中运行
-//    QThread *t1 = new QThread;
     VidiconProtocol *vp = VidiconProtocol::getInstance();
     vp->init();
-//    vp->moveToThread(t1);
-//    QObject::connect(t1, &QThread::started, vp, &VidiconProtocol::init);
-//    t1->start();
 
     QThread *t2 = new QThread;
     VlcControl *vc = VlcControl::getInstance();

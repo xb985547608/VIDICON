@@ -1,6 +1,12 @@
 #ifndef LISTVIEW_H
 #define LISTVIEW_H
 
+/**
+ * @brief         一个简易的列表视图
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QListView>
 #include <QAbstractListModel>
 

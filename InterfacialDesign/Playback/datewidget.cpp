@@ -10,7 +10,7 @@
 #include <QPushButton>
 
 DateWidget::DateWidget(QWidget *parent) :
-    BasicWidget(parent)
+    BaseWidget(parent)
 {
     setMouseTracking(true);
 
@@ -78,9 +78,9 @@ DateWidget::DateWidget(QWidget *parent) :
     QVBoxLayout *layout2 = new QVBoxLayout(this);
     layout2->addLayout(layout1, 0);
     layout2->addStretch();
-    layout2->addWidget(btn, 0, Qt::AlignCenter);
-    layout2->setContentsMargins(0, 0, 0, 0);
-    /*********************************界面布局*********************************/
+    layout2->addWidget(btn, 0, Qt::AlignHCenter | Qt::AlignBottom);
+    layout2->setContentsMargins(9, 9, 9, 0);
+    /**************************************************************************/
 
     m_MonthMap.clear();
     handleDateChangle(QDate::currentDate());
@@ -115,6 +115,12 @@ void DateWidget::mousePressEvent(QMouseEvent *event)
             handleDateChangle(m_dateEdit->date());
         }
     }
+}
+
+void DateWidget::resizeEvent(QResizeEvent *event)
+{
+    QWidget::resizeEvent(event);
+    qDebug() << size() << dynamic_cast<QWidget *>(parent())->size();
 }
 
 void DateWidget::refresh(QDate date)

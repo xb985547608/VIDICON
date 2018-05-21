@@ -32,10 +32,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 CONFIG(debug, debug|release){
-    LIBS += $$PWD/debug/OperationInterface.dll
+    LIBS += $$PWD/../Bin/OperationInterface.dll
 }else{
-    LIBS += $$PWD/release/OperationInterface.dll
+    LIBS += $$PWD/../Bin/OperationInterface.dll
 }
+
+DESTDIR = $$PWD/../Bin
 
 INCLUDEPATH += $$PWD/../OperationInterface/
 INCLUDEPATH += $$PWD/../OperationInterface/Control/sdk/include
@@ -46,24 +48,17 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     customstyle.cpp \
-    selectcurrentipdialog.cpp \
     statustip.cpp \
     soundeffect.cpp \
-    basicwidget.cpp \
-    stackedwidget.cpp
+    basicwidget.cpp
 
 HEADERS += \
         mainwindow.h \
     customstyle.h \
-    selectcurrentipdialog.h \
     statustip.h \
     soundeffect.h \
-    basicwidget.h \
-    stackedwidget.h \
-    lineedit.h
-
-FORMS += \
-    selectcurrentipdialog.ui
+    lineedit.h \
+    basewidget.h
 
 include($$PWD/Login/Login.pri)
 include($$PWD/Preview/Preview.pri)

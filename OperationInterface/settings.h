@@ -1,6 +1,12 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+/**
+ * @brief         永久性信息存储
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QSettings>
 #include "operationinterface_global.h"
 

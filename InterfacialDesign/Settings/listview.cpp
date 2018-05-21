@@ -1,4 +1,4 @@
-#include "boxview.h"
+#include "listview.h"
 #include <QHeaderView>
 #include <QMouseEvent>
 

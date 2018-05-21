@@ -1,6 +1,12 @@
 #ifndef TABNETWORK_H
 #define TABNETWORK_H
 
+/**
+ * @brief         主要对网络参数的可视化和设置
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QMap>
 #include "stackedwidget.h"
 #include <QRegExpValidator>
@@ -29,6 +35,9 @@ public slots:
     void handlePrepareData() override;
     void handleReceiveData(VidiconProtocol::Type type, QByteArray data) override;
 
+    /**
+     * 检查当前界面的一些输入是否合法，从而控制当前"save"按键的使能or失能
+     */
     void checkInput(QString text);
 
 private:

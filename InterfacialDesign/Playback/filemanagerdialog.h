@@ -1,14 +1,20 @@
 #ifndef FILEMANAGERDIALOG_H
 #define FILEMANAGERDIALOG_H
 
+/**
+ * @brief         弹出对话框，显示文件列表
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QDialog>
 #include <QMap>
 #include <QPointer>
 #include <QEventLoop>
 #include "filemanagerview.h"
-#include "basicwidget.h"
+#include "basewidget.h"
 
-class FileManagerDialog : public BasicWidget
+class FileManagerDialog : public BaseWidget
 {
     Q_OBJECT
 public:

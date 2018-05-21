@@ -1,6 +1,12 @@
 #ifndef TABRECORD_H
 #define TABRECORD_H
 
+/**
+ * @brief         主要对记录参数的可视化和设置
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QMap>
 #include "stackedwidget.h"
 

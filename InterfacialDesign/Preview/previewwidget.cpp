@@ -6,7 +6,7 @@
 #include "soundeffect.h"
 
 PreviewWidget::PreviewWidget(QWidget *parent) :
-    BasicWidget(parent),
+    BaseWidget(parent),
     ui(new Ui::PreviewForm)
 {
     ui->setupUi(this);

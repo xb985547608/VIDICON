@@ -1,15 +1,21 @@
 #ifndef DATEWIDGET_H
 #define DATEWIDGET_H
 
+/**
+ * @brief         选择对应的日期，触发更新所选择那天的信息
+ * @author        xiaobin <xiaobin@sunniwell.com>
+ * @date          20180504
+ */
+
 #include <QWidget>
 #include <QDate>
 #include <QMap>
 #include <QLabel>
 #include <QDateEdit>
 #include <QComboBox>
-#include "basicwidget.h"
+#include "basewidget.h"
 
-class DateWidget : public BasicWidget
+class DateWidget : public BaseWidget
 {
     Q_OBJECT
 public:
@@ -21,6 +27,7 @@ protected:
     virtual void enterEvent(QEvent *event);
     virtual void mouseMoveEvent(QMouseEvent *event);
     virtual void mousePressEvent(QMouseEvent *event);
+    virtual void resizeEvent(QResizeEvent *event);
 
 signals:
     void signalDateChange(QDate date);

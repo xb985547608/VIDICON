@@ -1,15 +1,15 @@
-#include "basicwidget.h"
+#include "basewidget.h"
 #include <QBoxLayout>
 
-BasicWidget::BasicWidget(QWidget *parent) :
+BaseWidget::BaseWidget(QWidget *parent) :
     QWidget(parent)
 {
-    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &BasicWidget::handleReceiveData);
-    connect(this, &BasicWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
-    connect(this, &BasicWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
+    connect(VidiconProtocol::getInstance(), &VidiconProtocol::signalReceiveData, this, &BaseWidget::handleReceiveData);
+    connect(this, &BaseWidget::signalSetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleSetParameter);
+    connect(this, &BaseWidget::signalGetParameter, VidiconProtocol::getInstance(), &VidiconProtocol::handleGetParameter);
 }
 
-void BasicWidget::setAlignment(QWidget *parentWidget, QWidget *widget, Qt::Alignment alignment)
+void BaseWidget::setAlignment(QWidget *parentWidget, QWidget *widget, Qt::Alignment alignment)
 {
     if (parentWidget == NULL || widget == NULL)
         return;
@@ -18,6 +18,11 @@ void BasicWidget::setAlignment(QWidget *parentWidget, QWidget *widget, Qt::Align
     if (parentWidget->layout() != NULL) {
         delete parentWidget->layout();
     }
+
+    if (!(alignment & Qt::AlignHorizontal_Mask))
+        alignment |= Qt::AlignHCenter;
+    else if (!(alignment & Qt::AlignVertical_Mask))
+        alignment |= Qt::AlignVCenter;
 
     QHBoxLayout *row = new QHBoxLayout();
     if (alignment | Qt::AlignLeft) {
@@ -48,7 +53,7 @@ void BasicWidget::setAlignment(QWidget *parentWidget, QWidget *widget, Qt::Align
     parentWidget->setLayout(column);
 }
 
-void BasicWidget::setAlignment(QWidget *parentWidget, QLayout *layout, Qt::Alignment alignment)
+void BaseWidget::setAlignment(QWidget *parentWidget, QLayout *layout, Qt::Alignment alignment)
 {
     if (parentWidget == NULL || layout == NULL)
         return;
@@ -57,6 +62,11 @@ void BasicWidget::setAlignment(QWidget *parentWidget, QLayout *layout, Qt::Align
     if (parentWidget->layout() != NULL) {
         delete parentWidget->layout();
     }
+
+    if (!(alignment & Qt::AlignHorizontal_Mask))
+        alignment |= Qt::AlignHCenter;
+    else if (!(alignment & Qt::AlignVertical_Mask))
+        alignment |= Qt::AlignVCenter;
 
     QHBoxLayout *row = new QHBoxLayout();
     if (alignment & Qt::AlignLeft) {
